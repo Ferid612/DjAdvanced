@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL
+from sqlalchemy import Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL, text
 from sqlalchemy.orm import relationship
 from DjAdvanced.settings import engine
 from sqlalchemy_utils import EncryptedType
@@ -229,4 +229,5 @@ class UserUserGroupRole(Base):
 
 
 Base.metadata.create_all(engine)
+ 
  

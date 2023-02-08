@@ -31,10 +31,10 @@ def send_email(usermail, subject, body):
         response = JsonResponse({"message":"something went wrong when sending mail"}, status=400)
         add_get_params(response)
         return response
-    
-    response = JsonResponse({"message":"Mail succesfully sending"},200)
-    add_get_params(response)
-    return response
+    print("message", "Mail succesfully sending")
+    # response = JsonResponse({"message":"Mail succesfully sending"},200)
+    # add_get_params(response)
+    # return response
 
 
 @csrf_exempt

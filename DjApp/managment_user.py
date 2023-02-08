@@ -1,14 +1,13 @@
 import datetime 
-from django.http import JsonResponse
 import jwt
+from django.http import JsonResponse
 from sqlalchemy.orm import sessionmaker
 from django.views.decorators.csrf import csrf_exempt
-from DjApp.decorators import token_required
-from DjApp.helpers import GetErrorDetails, add_get_params
-from DjAdvanced.settings import engine
-from DjApp.managment_mail_sender import send_verification_code
-from .models import Users
-from DjAdvanced.settings import SECRET_KEY 
+from DjAdvanced.settings import engine, SECRET_KEY
+from .managment_mail_sender import send_verification_code
+from .helpers import GetErrorDetails, add_get_params
+from .models import Role, UserGroup, UserUserGroupRole, Users
+from .decorators import permission_required, token_required
 from .managment_mail_sender import send_email
 
 
@@ -76,6 +75,7 @@ def register_user(request):
         add_get_params(response)
         return response
 
+
 @csrf_exempt
 def login(request):
     """
@@ -125,6 +125,7 @@ def login(request):
         add_get_params(response)
         return response
 
+
 @csrf_exempt
 @token_required
 def change_null_password(request):
@@ -144,6 +145,7 @@ def change_null_password(request):
     response = JsonResponse({'message': "Change null password process succesfully completed"})
     add_get_params(response)
     return response
+
 
 @csrf_exempt
 @token_required
@@ -189,6 +191,7 @@ def change_password(request):
         add_get_params(response)
         return response
 
+
 def update_user(request):
     """
     This function is used to update an existing product in the database.
@@ -220,3 +223,52 @@ def update_user(request):
     response = JsonResponse({'Success': 'The user has been successfully updated'}, status=200)
     add_get_params(response)
     return response
+
+
+@csrf_exempt
+@token_required
+@permission_required(permission_name="Manage customers")
+def assign_user_to_group_role(request):
+    try:
+            
+        applied_username = request.POST.get("applied_username")
+        assigned_role_name = request.POST.get("assigned_role_name")
+        assigned_group_name = request.POST.get("assigned_group_name")
+       
+        if not (applied_username or assigned_role_name or assigned_group_name):
+            # Return a JSON response with an error message and the error details
+            response = JsonResponse({'answer':'false', 'message':'Missing data error'}, status=404)            
+            add_get_params(response)
+            return response
+        
+        
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        applied_user_id = session.query(Users).filter_by(username=applied_username).first().id  
+        assigned_role_id = session.query(Role).filter_by(name=assigned_role_name).first().id  
+        assigned_group_id = session.query(UserGroup).filter_by(name=assigned_group_name).first().id  
+
+        
+        if not (applied_user_id or assigned_role_id or assigned_group_id):
+            response = JsonResponse({'answer':'false', 'message':'No record found matching either user or role name or group name'}, status=404)            
+            add_get_params(response)
+            return response
+        
+        
+        new_user_group_role_item = UserUserGroupRole(user_id=applied_user_id, role_id=assigned_role_id, user_group_id=assigned_group_id)
+        
+        session.add(new_user_group_role_item)
+        session.commit()
+        session.close()
+        
+        response = JsonResponse({'answer':'true', 'message':'Assiging new group and role to user is succesfully finshed.'}, status=200)            
+        add_get_params(response)
+        return response
+    
+        
+    except Exception as e:
+        # Return a JSON response with an error message and the error details
+        response = GetErrorDetails("Something went add role and group to user.", e, 500)
+        add_get_params(response)
+        return response

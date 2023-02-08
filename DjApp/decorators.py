@@ -67,19 +67,13 @@ def token_required(func):
         session=Session()
         
         user=session.query(Users).filter_by(username=username).first()
-        
+        session.close()
         if user.token != input_token:
             response =  JsonResponse({'answer':"False",'message': 'Token username mismatch'}, status=401)
             add_get_params(response)
             return response
         
-        # Get the user with the username from the database
-        try:
-            user = Users.objects.get(token=input_token)
-        except Exception as e:
-            response = GetErrorDetails({'answer':"False"},e)
-            add_get_params(response)
-            return response
+  
         
         # Add the user to the request object
         request.user = user
@@ -98,19 +92,14 @@ def permission_required(permission_name):
     :return: A wrapper function that checks for the required permission.
     """
     def decorator(f):
+    
         @wraps(f)
         def wrapper(request, *args, **kwargs):
             # Create a session
             Session = sessionmaker(bind=engine)
             session = Session()
-            
             # Get the username from the request
-            username = request.POST.get('username') if request.method == 'POST' else request.GET.get('username')
-            
-            # Get the user with the given username
-            user = session.query(Users).filter_by(username=username).first()
-            if not user:
-                return "User not found."
+            user = request.user
             
             # Get the user's permissions
             user_permissions = session.query(RolePermission)\
@@ -122,10 +111,15 @@ def permission_required(permission_name):
             # Extract the names of the user's permissions
             user_permission_names = [p.permission.name for p in user_permissions]
             
+            print("user_permission_names: ",user_permission_names )
+            
+            
             # Check if the user has the required permission
             if permission_name not in user_permission_names:
-                return "You do not have permission to access this resource."
-            
+                response =  JsonResponse({'answer':"False",'message': 'You do not have permission to access this resource.'}, status=401)
+                add_get_params(response)
+                return response
+                
             # Call the original function if the user has the required permission
             return f(request,*args, **kwargs)
         return wrapper

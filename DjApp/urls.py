@@ -33,6 +33,7 @@ urlpatterns = [
     path('change_password/', managment_user.change_password, name="Change user password."),    
     path('change_null_passwords/', managment_user.change_null_password, name="Set Farid612 all passwords of users which his(her) password is null ."),    
     path('update_user/', managment_user.update_user, name="Update user data."),    
+    path('assign_user/', managment_user.assign_user_to_group_role, name="Assign new role and group to user."),    
 
     path('get_verification/', managment_mail_sender.send_verification_code_after_login, name="Send user verification code to email."),    
     path('get_verification/', managment_mail_sender.verify_account, name="Check user verification code with email."),    

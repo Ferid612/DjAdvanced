@@ -1,22 +1,24 @@
 from django.http import JsonResponse
 from sqlalchemy.orm import sessionmaker
 from django.views.decorators.csrf import csrf_exempt
-from DjApp.decorators import token_required
+from DjApp.decorators import permission_required, token_required
 from DjApp.helpers import GetErrorDetails, add_get_params
 from DjAdvanced.settings import engine
 from .models import Users
 
 @csrf_exempt
 @token_required
+# @permission_required(permission_name="read")
 def get_user_data_by_username(request):
 
     try:
+        
         
         Session = sessionmaker(bind=engine)
         session = Session()
         username= request.GET.get('username') or request.POST.get('username') 
         user = session.query(Users).filter_by(username=username).first()
-            
+        session.close()
         if user:
             user_data = {
                 "id": user.id,
