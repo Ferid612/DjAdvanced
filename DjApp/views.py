@@ -3,8 +3,8 @@ from django.shortcuts import render,HttpResponse
 from django.http import JsonResponse
 from sqlalchemy.orm import relationship, sessionmaker
 from DjAdvanced.settings import engine
-from DjApp.managment_sms_sender import send_verification_code_with_twilio
-from .models import Category, Subcategory, Product
+from DjApp.management_of_sms_sender import send_verification_code_with_twilio
+# from .models import Category, Subcategory, Product
 from .helpers import add_get_params
 import traceback, logging
 
@@ -60,8 +60,8 @@ def get_all_products_by_subcategory_name(request):
         response = JsonResponse({'error': 'subcategory_name is a required parameter'}, status=400)
 
     # Create a session to interact with the database
-    Session = sessionmaker(bind=engine)  # create a new session
-    session = Session()  # start a new session
+    
+    session = sessionmaker(bind=engine)() # start a new session
 
 
     # Try to find the subcategory by name in both the Category and Subcategory tables
@@ -97,8 +97,9 @@ def get_products_by_category_name(request):
         response = JsonResponse({'error': 'category_name is a required parameter'}, status=400)
         add_get_params(response)
         return response
-    Session = sessionmaker(bind=engine)  # create a new session
-    session = Session()  # start a new session
+
+
+    session = sessionmaker(bind=engine)() # start a new session
 
 
     # Get the category object
@@ -129,8 +130,7 @@ def get_categories_and_subcategories(request):
     
     :return: list of dictionaries, each representing a category and its subcategories
     """
-    Session = sessionmaker(bind=engine)  # create a new session
-    session = Session()  # start a new session
+    session = sessionmaker(bind=engine)() # start a new session
 
     categories = session.query(Category).all()
     categories_data = []

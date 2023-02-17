@@ -1,7 +1,7 @@
 '''
 def add_subcategory():
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
+
 
     sports = session.query(Category).filter(Category.name == 'Sports').first()
     outdoor_sports = Subcategory(name='Outdoor Sports',category=sports)
@@ -37,8 +37,7 @@ def add_subcategory_with_paremetr(parent_name, new_subcategories):
     :param parent_name: name of the parent category or subcategory
     :param new_subcategories: list of new subcategories to be added
     """
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
 
     for subcategory in new_subcategories:
         # check if the subcategory already exists in the database
@@ -67,25 +66,23 @@ def add_subcategory_with_paremetr(parent_name, new_subcategories):
     
     
 def add_subcategory_without_parent():
-    Session = sessionmaker(bind=engine)
-session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
 
-# Adding categories
-electronics = Category(name='Electronics')
-smartphones = Subcategory(name='Smartphones',category=electronics)
-laptops = Subcategory(name='Laptops',category=electronics)
-television = Subcategory(name='Television',category=electronics)
+    # Adding categories
+    electronics = Category(name='Electronics')
+    smartphones = Subcategory(name='Smartphones',category=electronics)
+    laptops = Subcategory(name='Laptops',category=electronics)
+    television = Subcategory(name='Television',category=electronics)
 
-session.add(electronics)
-session.add(smartphones)
-session.add(laptops)
-session.add(television)
-session.commit()
+    session.add(electronics)
+    session.add(smartphones)
+    session.add(laptops)
+    session.add(television)
+    session.commit()
 
 
 def add_category():
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     categories = ['Clothes','Electronics','Sports','Toys','Tools','Music']
     
     for category in categories:
@@ -95,8 +92,7 @@ def add_category():
 
 
 def add_another_category():
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
 
     # Adding categories
     fashion = Category(name='Fashion')
@@ -121,8 +117,7 @@ def add_another_category():
 
 def add_new_subcategory():
     # Adding new subcategory
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     # Adding new subcategory
     television_category = session.query(Subcategory).filter(Subcategory.name == 'Television').first()
     
@@ -133,8 +128,7 @@ def add_new_subcategory():
 
 
 def add_product_to_smart():
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
 
     oled = session.query(Subcategory).filter(Subcategory.name == 'OLED').first()
     qled = session.query(Subcategory).filter(Subcategory.name == 'QLED').first()
@@ -160,8 +154,7 @@ def add_product_to_smart():
 
 
 def add_subcategories_to_smart_tv():
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     
     smart_tv = session.query(Subcategory).filter(Subcategory.name == 'Non Smart TV').first()
     OLED = Subcategory(name='OLED', parent_id = smart_tv.id)
@@ -181,8 +174,7 @@ def add_subcategories_to_smart_tv():
 
 
 def add_products_pro():
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
 
     product_names = ["Smartphone X", "Laptop Pro", "LED TV", "Sofa Set", "Dining Table Set", "King Size Bed", "Table Lamp", "Floor Lamp", "Microwave Oven", "Blender", "Men's Watch", "Women's Watch", "Kids Toy", "Outdoor Tent", "Camping Stove", "Portable Generator", "Power Drill", "Circular Saw", "Hammer", "Wrench"]
 
@@ -198,8 +190,7 @@ def add_products_pro():
 
 
 def add_products():
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
 
     # Adding products
     electronics = session.query(Category).filter(Category.name == 'Electronics').first()
@@ -255,8 +246,7 @@ def add_products():
 
 
 def get_products_by_subcategory_name(subcategory_name):
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     subcategory = session.query(Subcategory).filter(
         Subcategory.name == subcategory_name).first()
     subcategory_ids = [subcategory.id]
@@ -289,8 +279,7 @@ def get_subcategory_ids(subcategory):
 
 
 def get_products_by_subcategory_name(subcategory_name):
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     subcategory = session.query(Subcategory).filter(
         Subcategory.name == subcategory_name).first()
     subcategory_ids = get_subcategory_ids(subcategory)
@@ -300,8 +289,7 @@ def get_products_by_subcategory_name(subcategory_name):
 
 
 def get_products_by_categoy_name(subcategory_name):
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     subcategory = session.query(Subcategory).filter(
         Subcategory.name == subcategory_name).first()
     print()
@@ -337,8 +325,7 @@ def get_products_by_categoy_name(subcategory_name):
 
 def add_some_data():
     
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
 
     # Create the categories
     electronics = Category(name='Electronics')
@@ -446,9 +433,8 @@ def add_category(categories):
     This function adds new categories to the 'category' table in the database.
     If a category with the same name already exists, it will not be added again.
     """
-    Session = sessionmaker(bind=engine)  # create a new session
-    session = Session()  # start a new session
-
+    session = sessionmaker(bind=engine)() # start a new session
+    
     for category in categories:
         existing_category = session.query(
             Category).filter_by(name=category).one_or_none()
@@ -475,8 +461,7 @@ def add_subcategory(parent_name, new_subcategories):
     :param new_subcategories: the names of the subcategories to be added
     :type new_subcategories: list
     """
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
 
     for subcategory in new_subcategories:
         existing_category = session.query(Category).filter_by(
@@ -530,8 +515,7 @@ def add_products_to_subcategory(subcategory_name, product_list):
         subcategory_name (str): The name of the subcategory to add the products to.
         product_list (List[Dict[str, Union[str, float, int]]]): A list of dictionaries representing the products to be added. Each dictionary should have keys 'name', 'price', and 'description'.   
     """
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     subcategory = session.query(Subcategory).filter(
         (Subcategory.name == subcategory_name)).first()
 
@@ -563,8 +547,7 @@ def delete_null_category_subcategories():
     """
     This function deletes all subcategories that have a null category_id.
     """
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     # query to get all products that have a null subcategory_id
     null_category_subcategories = session.query(
         Subcategory).filter(Subcategory.category_id == None).all()
@@ -582,8 +565,7 @@ def delete_null_subcategory_products():
     """
     This function deletes all products that have a null subcategory_id.
     """
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     # query to get all products that have a null subcategory_id
     null_subcategory_products = session.query(
         Product).filter(Product.subcategory_id == None).all()
@@ -603,8 +585,7 @@ def get_all_products_by_subcategory_name(category_name):
     :param subcategory_name: str, name of the subcategory
     :return: list of Product objects
     """
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     
     existing_category = session.query(Category).filter_by(name=category_name).one_or_none()
     existing_category = existing_category or session.query(Subcategory).filter_by(name=category_name).one_or_none()
@@ -618,8 +599,7 @@ def get_all_products_by_subcategory_name(category_name):
 
 
 def get_products_by_category_name(category_name):
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     category = session.query(Category).filter(Category.name == category_name).first()
     subcategory_ids = session.query(Subcategory.id).filter(Subcategory.category_id == category.id).all()
     subcategory_ids = [id[0] for id in subcategory_ids]
@@ -630,8 +610,7 @@ def get_products_by_category_name(category_name):
 
 def get_all_subcategory_ids(category):
     subcategory_ids = []
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
 
     all_subcategories = session.query(Subcategory).filter_by(category_id=category.id).all()
     for subcategory in all_subcategories:
@@ -684,8 +663,7 @@ def add_products_to_subcategory(subcategory_name, product_list):
         subcategory_name (str): The name of the subcategory to add the products to.
         product_list (List[Dict[str, Union[str, float, int]]]): A list of dictionaries representing the products to be added. Each dictionary should have keys 'name', 'price', and 'description'.   
     """
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
     subcategory = session.query(Subcategory).filter(
         (Subcategory.name == subcategory_name)).first()
 
@@ -913,8 +891,7 @@ for i in range(1,21):
 
 
 def distribute_users():
-    Session = sessionmaker(bind=engine)
-    session = Session()
+    session = sessionmaker(bind=engine)() # start a new session
         
     # The groups and roles that are compatible with each other
     group_role_mapping = {
@@ -1079,5 +1056,94 @@ def distribute_users():
     .create(to=verified_number, code=otp_code)
     print(verification_check.status)
 
+
+# one to many
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100))
+    content = db.Column(db.Text)
+    comments = db.relationship('Comment', backref='post')
+
+    def __repr__(self):
+        return f'<Post "{self.title}">'
+
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
+
+    def __repr__(self):
+        return f'<Comment "{self.content[:20]}...">'
+
+
+
+
+# many to many 
+
+Base = declarative_base()
+
+author_book_table = Table('author_book', Base.metadata,
+    Column('author_id', Integer, ForeignKey('author.id')),
+    Column('book_id', Integer, ForeignKey('book.id'))
+)
+
+class Author(Base):
+    __tablename__ = 'author'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    books = relationship('Book', secondary=author_book_table, back_populates='authors')
+
+class Book(Base):
+    __tablename__ = 'book'
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    authors = relationship('Author', secondary=author_book_table, back_populates='books')
+In this example, we define an author_book_table intermediary table to hold the foreign 
+
+def add_products_to_subcategory(request):
+    """
+    This function is used to add products to a specific subcategory. 
+    It checks if a product with the same name already exists in the database and if so, it does not add it.
+     Parameters:
+        subcategory_name (str): The name of the subcategory to add the products to.
+        product_list (List[Dict[str, Union[str, float, int]]]): A list of dictionaries representing the products to be added. Each dictionary should have keys 'name', 'price', and 'description'.   
+    """
+    subcategory_name = request.POST.get('subcategory_name')
+    product_list = request.POST.getlist('product_list')
+    if not subcategory_name or not product_list:
+        response =  JsonResponse({'error': 'subcategory_name and product_list are required fields'}, status=400)
+        add_get_params(response)
+        return response
+    
+    session = sessionmaker(bind=engine)()
+
+    subcategory = session.query(Subcategory).filter(
+        (Subcategory.name == subcategory_name)).first()
+
+    # Iterate through the list of products
+
+    existing_products = []
+    added_products = []
+    # Iterate through the list of products
+    for product in product_list:
+        # Check if a product with the same name already exists
+        existing_product = session.query(Product).filter_by(
+            name=product['name']).one_or_none()
+
+        if existing_product:
+            existing_products.append(existing_product.name)
+        else:
+            new_product = Product(name=product['name'], price=product['price'],
+                                description=product['description'], subcategory=subcategory)
+            session.add(new_product)
+            added_products.append(product['name'])
+
+    # Commit the changes to the database
+    session.commit()
+    response =  JsonResponse({'existing_products': existing_products,'added_products':added_products}, status=200)
+    add_get_params(response)
+    return response
+        
 
 '''

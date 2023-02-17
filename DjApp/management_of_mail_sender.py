@@ -8,8 +8,9 @@ from DjApp.helpers import GetErrorDetails, add_get_params
 from django.views.decorators.csrf import csrf_exempt
 from sqlalchemy.orm import sessionmaker
 from DjAdvanced.settings import engine
-from DjApp.models import Users
+# from DjApp.models import Users
 from django.core.mail import send_mail
+
 
 
 def send_email(usermail, subject, body):
@@ -32,9 +33,7 @@ def send_email(usermail, subject, body):
         add_get_params(response)
         return response
     print("message", "Mail succesfully sending")
-    # response = JsonResponse({"message":"Mail succesfully sending"},200)
-    # add_get_params(response)
-    # return response
+
 
 
 @csrf_exempt
@@ -113,6 +112,7 @@ def send_verification_code(request,token):
         response = GetErrorDetails("Something went wrong when sending verification code.", e, 500)
         add_get_params(response)
         return response
+
 
 
 @csrf_exempt
@@ -198,13 +198,13 @@ def send_verification_code_after_login(request):
         return response
 
 
+
 @csrf_exempt
 @token_required
 def verify_account(request):
     try:
         # decode the token to retrieve the user's id
-        Session = sessionmaker(bind=engine)
-        session=Session()
+        session = sessionmaker(bind=engine)()
 
 
         # query the user with the id
@@ -225,6 +225,7 @@ def verify_account(request):
         response =  JsonResponse({"answer":"False",'Error':'Invalid token.'},status=400)
         add_get_params(response)
         return response
+
 
 
 @csrf_exempt

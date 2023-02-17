@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL, text
+from sqlalchemy import ForeignKeyConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from DjAdvanced.settings import engine
 from sqlalchemy_utils import EncryptedType
@@ -8,85 +9,221 @@ from passlib.context import CryptContext
 
 Base = declarative_base()
 
+class TimestampMixin:
+    created_at = Column(DateTime, nullable=False, server_default='now()')
+    updated_at = Column(DateTime, nullable=False, server_default='now()', onupdate='now()')
+    deleted_at = Column(DateTime, nullable=True)
+
+class Country(Base, TimestampMixin):
+    __tablename__ = 'country'
+    id = Column(Integer, primary_key=True)
+    country_code = Column(Integer,unique=True, nullable = False)
+    country_name = Column(String, unique=True, nullable=False)
+    currency_code = Column(String,  nullable=False)
+    
+    locations = relationship('Location', back_populates='country')
+    employment_jobs = relationship('EmploymentJobs', back_populates='country')
+    phone_numbers = relationship('PhoneNumber', back_populates='country')
+
+
+class Location(Base, TimestampMixin):
+    __tablename__ = 'location'
+    id = Column(Integer, primary_key=True)
+    country_id = Column(Integer, ForeignKey('country.id'), nullable=False)
+    addres_line_1 = Column(EncryptedType(String, 'AES'), nullable=False)
+    addres_line_2 = Column(EncryptedType(String, 'AES'))
+    city = Column(EncryptedType(String, 'AES'), nullable=False)
+    state = Column(EncryptedType(String, 'AES'), nullable=False)
+    district = Column(EncryptedType(String, 'AES'))
+    location_type_code = Column(EncryptedType(String, 'AES'))
+    postal_code = Column(EncryptedType(Integer, 'AES'),nullable=False)
+    description = Column(EncryptedType(String, 'AES'))
+    
+    supplier = relationship('Supplier', back_populates='location')
+    country = relationship('Country', back_populates='locations')
+
+
+class PhoneNumber(Base, TimestampMixin):
+    
+    __tablename__ = 'phone_number'
+    id = Column(Integer, primary_key=True)
+    phone_number = Column(EncryptedType(Integer, 'AES'),nullable=False, unique=True)
+    country_code = Column(Integer, ForeignKey('country.country_code'),nullable=False)
+    phone_type_id = Column(Integer)
+
+    person = relationship('Person', back_populates='phone_number')
+    supplier = relationship('Supplier', back_populates='phone_number')
+    country = relationship('Country', back_populates='phone_numbers')
+
 
 """
 This function creates the tables for the categories, subcategories, and products in the database.
 """
-class Category(Base):
+class Category(Base, TimestampMixin):
     """
     This class creates the table for the categories in the database.
     """
-    __table_args__ = {'extend_existing': True}
+    
     __tablename__ = 'category'
     id = Column(Integer, primary_key=True)
     parent_id = Column(Integer, ForeignKey('category.id'))
-    name = Column(String)
+    name = Column(String, unique=True, nullable=False)
+    sub_categories = relationship('Subcategory', back_populates='category')
 
 
-class Subcategory(Base):
+
+class Subcategory(Base, TimestampMixin):
     """
     This class creates the table for the subcategories in the database.
     """
-    __table_args__ = {'extend_existing': True}
+    
     __tablename__ = 'subcategory'
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    name = Column(String,unique=True, nullable=False)
     parent_id = Column(Integer, ForeignKey('subcategory.id'))
     category_id = Column(Integer, ForeignKey('category.id'))
+    sub_categories = relationship('Subcategory', back_populates='parent', cascade='all, delete')
+    parent = relationship('Subcategory', back_populates='sub_categories', remote_side=[id])
+    category = relationship('Category', back_populates='sub_categories')
+    product = relationship('Product', back_populates='subcategory')
 
 
-class Product(Base):
+class Supplier(Base, TimestampMixin):
     """
     A table representing the products.
     """
-    __table_args__ = {'extend_existing': True}
+    __tablename__ = 'supplier'
+    id = Column(Integer, primary_key=True)
+    name = Column(String,unique=True,nullable=False)
+    location_id =  Column(Integer, ForeignKey('location.id'),nullable=False, unique=True)
+    phone_number_id = Column(Integer, ForeignKey('phone_number.id'),nullable=False, unique=True)
+    description = Column(String)
+    
+    products = relationship('Product', back_populates='supplier')  
+    phone_number = relationship('PhoneNumber', back_populates='supplier')
+    location = relationship('Location', back_populates='supplier')  
+
+class Product(Base, TimestampMixin):
+    """
+    A table representing the products.
+    """
+    
     __tablename__ = 'product'
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    price = Column(Float)
+    name = Column(String, unique=True)
+    supplier_id = Column(Integer, ForeignKey('supplier.id'), nullable=False) 
+    subcategory_id = Column(Integer, ForeignKey('subcategory.id'),nullable=False)
+    price = Column(Float,nullable=False)
+    SKU = Column(String,unique=True,nullable=False)
     description = Column(String)
-    SKU = Column(String)
-    subcategory_id = Column(Integer, ForeignKey('subcategory.id'))
-    creadet_at = Column(DateTime)    
-    modified_at = Column(DateTime)    
-    deleted_at = Column(DateTime)    
     
+    image = relationship('ProductImage', back_populates='product')
+    supplier = relationship('Supplier', back_populates='products')
+    subcategory = relationship('Subcategory', back_populates='product')
+    comments = relationship('ProductComment', back_populates='product')
+    fags = relationship('ProductFag', back_populates='product')
     
-class Discount(Base):
-    __table_args__ = {'extend_existing': True}
+    discount = relationship('ProductDiscount', back_populates='products')
+    card_items = relationship('CardItem', back_populates='product')
+    order_item = relationship('OrderItem', back_populates='product')
+       
+        
+class ProductComment(Base, TimestampMixin):
+    """
+    A table representing the comments of product.
+    """
+    
+    __tablename__ = 'product_comment'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    ip = Column(String, nullable=False)
+    comment = Column(String, nullable=False)
+    _rate = Column(Integer, nullable=False)
+    status = Column(String, nullable=False)
+    product = relationship('Product', back_populates='comments')
+    user = relationship('Users', back_populates='comments')
+
+    @hybrid_property
+    def rate(self):
+        return self._rate
+    
+    @rate.setter
+    def rate(self, rate):
+        self._rate = min(max(rate, 0), 5);
+            
+
+class ProductFag(Base, TimestampMixin):
+    """
+    A table representing the question and answer section of product.
+    """
+    
+    __tablename__ = 'product_fag'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    ip = Column(String, nullable=False)
+    question = Column(String, nullable=False)
+    answer = Column(String, nullable=False)
+    status = Column(String, nullable=False)
+
+    product = relationship('Product', back_populates='fags')
+    user = relationship('Users', back_populates='fags')
+
+
+
+class ProductImage(Base, TimestampMixin):
+    
+    __tablename__ = 'product_image'
+    id = Column(Integer, primary_key=True)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    image_url = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    
+    product = relationship("Product", back_populates='image')
+
+    
+class Discount(Base, TimestampMixin):
     __tablename__ = 'discount'
     id = Column(Integer, primary_key=True)
     
-    name = Column(String)
+    name = Column(String,unique=True,nullable=False)
     description = Column(String)
-    discount_percent= Column(DECIMAL)
-    active = Column(Boolean)
-    creadet_at = Column(DateTime)    
-    modified_at = Column(DateTime)    
-    deleted_at = Column(DateTime)    
+    discount_percent= Column(DECIMAL,nullable=False)
+    active = Column(Boolean,default=False)
+    product_discount = relationship("ProductDiscount", back_populates='discount')
 
 
-pwd_context = CryptContext(
-        schemes=["bcrypt"],
-        default="bcrypt",
-        bcrypt__min_rounds=12
-    )
-
-class Users(Base):
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = 'users'
+class ProductDiscount(Base, TimestampMixin):
+    
+    __tablename__ = 'product_discount'
     id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True)
-    first_name = Column(String)
-    last_name = Column(String)
-    created_at = Column(DateTime,default=datetime.utcnow)
-    modified_at = Column(DateTime)
+    product_id = Column(Integer, ForeignKey('product.id'),nullable=False)
+    discount_id = Column(Integer, ForeignKey('discount.id'),nullable=False)
+    discount = relationship("Discount", back_populates='product_discount')
+    products = relationship("Product", back_populates='discount')
+
+
+
+
+class Person(Base, TimestampMixin):
+    
+    __tablename__ = 'persons'
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True,nullable=False)
+    first_name = Column(String,nullable=False)
+    last_name = Column(String,nullable=False)
     active = Column(Boolean,default=False)
     phone_verify = Column(Boolean,default=False)
-    _password =Column(String, unique=True, nullable=False)
-    usermail = Column(EncryptedType(String, 'AES'), unique=True, nullable=False)
-    telephone = Column(EncryptedType(Integer, 'AES'), unique=True, nullable=False)
+    _password =Column(String, nullable=False)
+    email = Column(EncryptedType(String, 'AES'), unique=True, nullable=False)
+    phone_number_id = Column(Integer, ForeignKey('phone_number.id'),unique=True)
+    
     token  = Column(String)
+    
+    phone_number = relationship('PhoneNumber', back_populates='person')
+    employee = relationship('Employees', back_populates='person')
+    user = relationship('Users', back_populates='person')
     
     def hash_password(self, password):
         password = password.encode('utf-8')
@@ -98,134 +235,245 @@ class Users(Base):
         return pwd_context.verify(password, self._password)
 
 
-class UserGroup(Base):
-    __table_args__ = {'extend_existing': True}
+
+pwd_context = CryptContext(
+        schemes=["bcrypt"],
+        default="bcrypt",
+        bcrypt__min_rounds=12
+    )
+
+
+
+class EmploymentJobs(Base, TimestampMixin):
+    
+    __tablename__ = 'employment_jobs'
+    id = Column(Integer, primary_key=True)
+    country_id = Column(Integer, ForeignKey('country.id'),nullable=False)
+    job_title = Column(String, nullable=False,unique=True)
+    min_salary = Column(Integer,nullable=False)
+    max_salary = Column(Integer,nullable=False)    
+   
+    country = relationship('Country', back_populates='employment_jobs')
+    employees = relationship('Employees', back_populates='employment_job')
+         
+
+
+class Users(Base, TimestampMixin):
+    
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    person_id = Column(Integer, ForeignKey('persons.id'),unique=True,nullable=False)
+    
+    
+    person = relationship('Person', back_populates='user')
+    user_user_group_role = relationship('UserUserGroupRole', back_populates='users')
+    payments =  relationship('UserPayment', back_populates='user')
+    shopping_session = relationship('ShoppingSession', back_populates='user')
+    orders =  relationship('OrderDetails', back_populates='user')
+    comments = relationship('ProductComment', back_populates='user')
+    fags = relationship('ProductFag', back_populates='user')
+
+
+class Employees(Base, TimestampMixin):
+    
+    __tablename__ = 'employees'
+    id = Column(Integer, primary_key=True)
+    person_id = Column(Integer, ForeignKey('persons.id'),unique=True,nullable=False)
+    hr_job_id = Column(Integer, ForeignKey('employment_jobs.id'))
+    
+    person = relationship('Person', back_populates='employee')
+    employment_job = relationship('EmploymentJobs', back_populates='employees')
+    employee_employee_group_role = relationship('EmployeeEmployeeGroupRole', back_populates='employees')
+
+
+
+class UserGroup(Base, TimestampMixin):
+    
     __tablename__ = 'user_group'
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    name = Column(String,unique=True,nullable=False)
     description = Column(String)
-
-
-class UserAddress(Base):
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = 'user_address'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    addres_line_1 = Column(EncryptedType(String, 'AES'))
-    addres_line_2 = Column(EncryptedType(String, 'AES'))
-    city = Column(String)
-    postal_code = Column(EncryptedType(Integer, 'AES'))
-    country = Column(DateTime)
-    telephone = Column(EncryptedType(Integer, 'AES'))
-    creadet_at = Column(DateTime)
-    modified_at = Column(DateTime)
-
-
-class UserPayment(Base):
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = 'user_payment'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    patment_type = Column(String)
-    provider = Column(String)
-    account_no = Column(Integer)
-    expiry = Column(DateTime)
+    user_user_group_role = relationship('UserUserGroupRole', back_populates='user_group')
     
-class ShoppingSession(Base):
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = 'shopping_session'
+    
+    
+class EmployeeGroup(Base, TimestampMixin):
+    
+    __tablename__ = 'employee_group'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    total = Column(DECIMAL)
-    creadet_at = Column(DateTime)
-    modified_at = Column(DateTime)
+    name = Column(String,unique=True,nullable=False)
+    description = Column(String)
+    employee_employee_group_role = relationship('EmployeeEmployeeGroupRole', back_populates='employee_group')
+
+
+class UserRole(Base, TimestampMixin):
+    
+    __tablename__ = 'user_roles'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, index=True)
+    description = Column(String)
+    
+    roles = relationship("RolePermission", back_populates='user_roles')
+    user_user_group_role = relationship('UserUserGroupRole', back_populates='user_roles')
+
+
+    
+class EmployeeRole(Base, TimestampMixin):
+    
+    __tablename__ = 'employee_roles'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, index=True)
+    description = Column(String)
+    roles = relationship("RolePermission", back_populates='employee_roles')
+   
+    employee_employee_group_role = relationship('EmployeeEmployeeGroupRole', back_populates='employee_roles')
+
+
+
+class UserUserGroupRole(Base, TimestampMixin):
+    
+    __tablename__ = 'user_user_group_role'
+    id = Column(Integer, primary_key=True)
+    
+    user_id = Column(Integer, ForeignKey('users.id'),unique=True,nullable=False)
+    user_group_id = Column(Integer, ForeignKey('user_group.id'))
+    role_id = Column(Integer, ForeignKey('user_roles.id'))
+    
+    users = relationship('Users', back_populates='user_user_group_role')
+    user_group = relationship('UserGroup', back_populates='user_user_group_role')
+    user_roles = relationship('UserRole', back_populates='user_user_group_role')
+    
+
+class EmployeeEmployeeGroupRole(Base, TimestampMixin):
+    
+    __tablename__ = 'employee_employee_group_role'
+    
+    id = Column(Integer, primary_key=True)
+    employee_id = Column(Integer, ForeignKey('employees.id'),unique=True,nullable=False)
+    employee_group_id = Column(Integer, ForeignKey('employee_group.id'))
+    employee_role_id = Column(Integer, ForeignKey('employee_roles.id'))
   
-class CardItem(Base):
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = 'card_item'
-    id = Column(Integer, primary_key=True)
-    session_id = Column(Integer, ForeignKey('shopping_session.id'))
-    product_id = Column(Integer, ForeignKey('product.id'))
-    creadet_at = Column(DateTime)
-    modified_at = Column(DateTime)
-
-class PaymentDetails(Base):
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = 'payment_details'
+    employees = relationship("Employees", back_populates='employee_employee_group_role')
+    employee_group = relationship("EmployeeGroup", back_populates='employee_employee_group_role')
+    employee_roles = relationship("EmployeeRole", back_populates='employee_employee_group_role')
     
-    id = Column(Integer, primary_key=True)
-    order_id = Column(Integer)
-    amount = Column(Integer)
-    provider = Column(String)
-    status = Column(String)
-    creadet_at = Column(DateTime)
-    modified_at = Column(DateTime)
-
-
-class OrderDetails(Base):
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = 'order_details'
     
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    payment_id = Column(Integer, ForeignKey('payment_details.id'))
-    total = Column(DECIMAL)
-    creadet_at = Column(DateTime)
-    modified_at = Column(DateTime)
 
-
-class OrderItems(Base):
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = 'order_items'
+class Permission(Base, TimestampMixin):
     
-    id = Column(Integer, primary_key=True)
-    order_id = Column(Integer, ForeignKey('order_details.id'))
-    product_id = Column(Integer, ForeignKey('product.id'))
-    quantity= Column(Integer)
-    creadet_at = Column(DateTime)
-    modified_at = Column(DateTime)
-
-
-class Role(Base):
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = 'roles'
-    
-    id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True, index=True)
-    description = Column(String)
-
-
-class Permission(Base):
-    __table_args__ = {'extend_existing': True}
     __tablename__ = 'permissions'
-    
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True, index=True)
+    name = Column(String, unique=True, index=True,nullable=False)
     description = Column(String)
+    
+    roles = relationship("RolePermission", back_populates='permissions')
 
 
-class RolePermission(Base):
-    __table_args__ = {'extend_existing': True}
+class RolePermission(Base, TimestampMixin):
+    
     __tablename__ = 'role_permission'
     
     id = Column(Integer, primary_key=True)
-    role_id = Column(Integer, ForeignKey(Role.id))
-    role = relationship("Role")
-    permission_id = Column(Integer, ForeignKey(Permission.id))
-    permission = relationship("Permission")
+    user_role_id = Column(Integer, ForeignKey(UserRole.id))
+    employee_role_id = Column(Integer, ForeignKey(EmployeeRole.id))
+    permission_id = Column(Integer, ForeignKey(Permission.id),nullable=False)
+    
+    user_roles = relationship("UserRole", back_populates='roles')
+    employee_roles = relationship("EmployeeRole", back_populates='roles')
+    permissions = relationship("Permission", back_populates='roles')
+    
 
 
-class UserUserGroupRole(Base):
-    __table_args__ = {'extend_existing': True}
-    __tablename__ = 'user_user_group_role'
+
+
+
+
+class UserPayment(Base, TimestampMixin):
+    
+    __tablename__ = 'user_payment'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'),nullable=False)
+    payment_type = Column(String)
+    provider = Column(String)
+    account_no = Column(Integer)    
+    expiry = Column(DateTime)
+    
+    user = relationship('Users', back_populates='payments')
+    
+    
+class ShoppingSession(Base, TimestampMixin):
+    
+    __tablename__ = 'shopping_session'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
+    total = Column(DECIMAL, default=0)
+    
+    user = relationship('Users', back_populates='shopping_session')
+    card_items = relationship('CardItem', back_populates='shopping_session')
+  
+  
+class CardItem(Base, TimestampMixin):
+    
+    __tablename__ = 'card_item'
+    id = Column(Integer, primary_key=True)
+    session_id = Column(Integer, ForeignKey('shopping_session.id'),nullable=False)
+    product_id = Column(Integer, ForeignKey('product.id'),nullable=False)
+    _quantity= Column(Integer)
+    
+    shopping_session = relationship("ShoppingSession", back_populates='card_items')
+    product = relationship("Product", back_populates='card_items')
+
+
+    @hybrid_property
+    def quantity(self):
+        return self._quantity
+    
+    @quantity.setter
+    def quantity(self, quantity):
+        self._quantity = min(max(quantity, 0), 10000);
+            
+
+class PaymentDetails(Base, TimestampMixin):
+    
+    __tablename__ = 'payment_details'
+    id = Column(Integer, primary_key=True)
+    amount = Column(Integer)
+    provider = Column(String)
+    status = Column(String)
+    
+    order_details = relationship("OrderDetails", back_populates='payment_details')
+
+
+class OrderDetails(Base, TimestampMixin):
+    
+    __tablename__ = 'order_details'
     
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
-    user = relationship("Users")
-    user_group_id = Column(Integer, ForeignKey('user_group.id'))
-    user_group = relationship("UserGroup")
-    role_id = Column(Integer, ForeignKey('roles.id'))
-    role = relationship("Role")
+    user_id = Column(Integer, ForeignKey('users.id'),nullable=False)
+    payment_id = Column(Integer, ForeignKey('payment_details.id'),nullable=False)
+    total = Column(DECIMAL,nullable=False)
+
+    user = relationship("Users", back_populates='orders')
+    payment_details = relationship("PaymentDetails", back_populates='order_details')
+    order_items = relationship("OrderItem", back_populates='order_details')
+
+
+class OrderItem(Base, TimestampMixin):
+    
+    __tablename__ = 'order_item'
+    
+    id = Column(Integer, primary_key=True)
+    order_id = Column(Integer, ForeignKey('order_details.id'),nullable=False)
+    product_id = Column(Integer, ForeignKey('product.id'),nullable=False)
+    quantity= Column(Integer,default=0)
+
+    order_details = relationship("OrderDetails", back_populates='order_items')
+    product = relationship("Product", back_populates='order_item')
+
+
+
+
+
 
 
 Base.metadata.create_all(engine)

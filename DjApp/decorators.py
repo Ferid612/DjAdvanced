@@ -1,12 +1,13 @@
 import datetime
 from functools import wraps
+import json
 import time
 from django.http import JsonResponse
 from DjAdvanced.settings import engine,SECRET_KEY
 from sqlalchemy.orm import sessionmaker
 import jwt
 from DjApp.helpers import GetErrorDetails, add_get_params
-from DjApp.models import Role, RolePermission, UserUserGroupRole, Users
+# # from DjApp.models import Role, RolePermission, UserUserGroupRole, Users
 
 
 
@@ -30,9 +31,16 @@ def token_required(func):
     @wraps(func)
     def wrapper(request, *args, **kwargs):
         # Get the token and username from the request
+
+            # Your code to update user information          
         if request.method == 'POST':
-            input_token = request.POST.get('token')
-            username = request.POST.get('username')
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
+                username = data.get('username')
+                input_token = data.get('token')
+            else:
+                input_token = request.POST.get('token')
+                username = request.POST.get('username')
         else:
             input_token = request.GET.get('token')
             username = request.GET.get('username')
@@ -63,8 +71,7 @@ def token_required(func):
             add_get_params(response)
             return response
         
-        Session= sessionmaker(bind=engine)
-        session=Session()
+        session = sessionmaker(bind=engine)()
         
         user=session.query(Users).filter_by(username=username).first()
         session.close()
@@ -96,8 +103,7 @@ def permission_required(permission_name):
         @wraps(f)
         def wrapper(request, *args, **kwargs):
             # Create a session
-            Session = sessionmaker(bind=engine)
-            session = Session()
+            session = sessionmaker(bind=engine)()
             # Get the username from the request
             user = request.user
             

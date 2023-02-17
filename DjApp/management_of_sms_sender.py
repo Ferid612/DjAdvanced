@@ -33,13 +33,15 @@ def send_verification_code_with_twilio(request):
     add_get_params(response)
     return response
 
+
+
 @csrf_exempt    
 @token_required
 def verify_twilio(request):
 
     # decode the token to retrieve the user's id
-    Session = sessionmaker(bind=engine)
-    session=Session()
+    session = sessionmaker(bind=engine)()
+
     try:
         client = Client(account_sid, auth_token)
 

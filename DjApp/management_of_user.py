@@ -1,14 +1,15 @@
-import datetime 
+import datetime
+import json 
 import jwt
 from django.http import JsonResponse
 from sqlalchemy.orm import sessionmaker
 from django.views.decorators.csrf import csrf_exempt
 from DjAdvanced.settings import engine, SECRET_KEY
-from .managment_mail_sender import send_verification_code
+from .management_of_mail_sender import send_verification_code
 from .helpers import GetErrorDetails, add_get_params
-from .models import Role, UserGroup, UserUserGroupRole, Users
+# from .models import Role, MemberAddress, UserGroup, UserUserGroupRole, Users
 from .decorators import permission_required, token_required
-from .managment_mail_sender import send_email
+from .management_of_mail_sender import send_email
 
 
 @csrf_exempt
@@ -28,8 +29,8 @@ def register_user(request):
     """
     try:
         # Start a new database session
-        Session = sessionmaker(bind=engine)
-        session=Session()
+
+        session = sessionmaker(bind=engine)()
 
         # Get the parameters from the request object
         username = request.POST.get('username')
@@ -76,6 +77,7 @@ def register_user(request):
         return response
 
 
+
 @csrf_exempt
 def login(request):
     """
@@ -93,8 +95,8 @@ def login(request):
         password = request.POST.get('password')
 
         # Start a database session
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        session = sessionmaker(bind=engine)()
+
 
         # Get the user from the database
         user = session.query(Users).filter(Users.username == username).first()
@@ -126,35 +128,15 @@ def login(request):
         return response
 
 
-@csrf_exempt
-@token_required
-def change_null_password(request):
-    # Start a database session
-    Session = sessionmaker(bind=engine)
-    session = Session()
-
-    # Select all rows where username is empty
-    empty_usernames = session.query(Users).filter(Users._password == None).all()
-
-    # Generate random word as new username
-    for empty_username in empty_usernames:
-        empty_username.hash_password("Farid612")
-    # Commit changes
-    session.commit()
-    
-    response = JsonResponse({'message': "Change null password process succesfully completed"})
-    add_get_params(response)
-    return response
-
 
 @csrf_exempt
 @token_required
-def change_password(request):
+def change_password(request):       
     try:
             
         # Start a database session
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        session = sessionmaker(bind=engine)()
+
 
         username = request.POST.get('username')
         new_password = request.POST.get('new_password')
@@ -192,58 +174,179 @@ def change_password(request):
         return response
 
 
+
+@csrf_exempt
+@token_required
 def update_user(request):
     """
     This function is used to update an existing product in the database.
     Parameters:
-        product_id (int): The id of the product to be updated.
-        new_values (Dict[str, Union[str, float]]): A dictionary of the new values for the product. The keys in the dictionary should correspond to the names of the columns in the 'product' table, and the values should be the new values for each column.
+        user_name (string): The username of the user to be updated.
+        new_values (Dict[str, Union[str, float]]): A dictionary of the new values for the users. The keys in the dictionary should correspond to the names of the columns in the 'users' table, and the values should be the new values for each column.
     """
-    user_name = request.POST.get('user_name')
-    new_values = request.POST.get('new_values')
-    if not user_name or not new_values:
-        response = JsonResponse({'error': 'user_name and new_values are required fields'}, status=400)
+    if request.method == 'POST':
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+            new_values = data.get('new_values')
+        else:
+            new_values = request.POST.get('new_values')
+            
+    if not new_values:
+        response = JsonResponse({'error': 'new_values are required fields'}, status=400)
         add_get_params(response)
         return response
-    Session = sessionmaker(bind=engine)
-    session = Session()
 
-    # Get the product with the given id
-    user = session.query(Users).filter_by(name=user_name).one_or_none()
-    if not user:
-        response = JsonResponse({'error': 'A product with the given id does not exist'}, status=400)
-        add_get_params(response)
-        return response
-    # Update the values for each column in the product table
-    for column_name, new_value in new_values.items():
-        setattr(user, column_name, new_value)
 
+    session = sessionmaker(bind=engine)()
+    user = request.user
+              
+    # Update the values for each column in the users table
+    
+    for index, new_value in enumerate(new_values):
+        for column_name, value in new_value.items():
+            print(f"{column_name}:{value}")
+            setattr(user, column_name, value)
+            
+
+    # Add the user object to the session
+    session.add(user)
     # Commit the changes to the database
     session.commit()
+    session.close()
+    
     response = JsonResponse({'Success': 'The user has been successfully updated'}, status=200)
     add_get_params(response)
     return response
 
 
+
 @csrf_exempt
 @token_required
-@permission_required(permission_name="Manage customers")
+def add_user_address(request):
+    """
+    This function handles user address creation by creating a new address and adding it to the user's account.
+    The function receives the following parameters from the request object:
+    - user_id: the ID of the user to add the address to
+    - addres_line_1: the first line of the user's address
+    - addres_line_2: the second line of the user's address (optional)
+    - city: the city of the user's address
+    - postal_code: the postal code of the user's address
+    - country: the country of the user's address
+    - telephone: the telephone number of the user
+    If the address creation is successful, the function returns a JSON response with a success message and the new address's information.
+    If an error occurs during the address creation process, the function returns a JSON response with an error message and the error details.
+    """
+    try:
+
+        # Get the parameters from the request object
+        user = request.user
+        user_id = user.id
+        
+        addres_line_1 = request.POST.get('addres_line_1') 
+        addres_line_2 = request.POST.get('addres_line_2')
+        city = request.POST.get('city') 
+        postal_code = request.POST.get('postal_code') 
+        country = request.POST.get('country') 
+        telephone = request.POST.get('telephone') 
+        
+        
+        if not (addres_line_1 or city or country or telephone):
+            response = JsonResponse({'answer':'False', 'message':'Missing data error. Addres line 1, City, Country and Telephone section must be filled'}, status=404)            
+            add_get_params(response)
+            return response
+        
+        
+        session = sessionmaker(bind=engine)() # Start a new database session
+        
+        # Create a new address object with the given parameters
+        new_address = MemberAddress(
+                                user_id=user_id,
+                                addres_line_1=addres_line_1,
+                                addres_line_2=addres_line_2,
+                                city=city,
+                                postal_code=postal_code,
+                                country=country,
+                                telephone=telephone,
+                                creadet_at=datetime.datetime.now(),
+                                modified_at=datetime.datetime.now(),
+                                )
+        
+        # Add the new address to the database and commit the changes
+        session.add(new_address)
+        session.commit()
+        session.close()
+        
+        # Return a JSON response with a success message and the new address's information
+        response = JsonResponse({"Success":"The new address has been successfully added to the user's account.","user_name": user.username, "addres_line_1": addres_line_1, "addres_line_2": addres_line_2, "city": city, "postal_code": postal_code, "country": country, "telephone": telephone}, status=200)
+        add_get_params(response)
+        return response
+    
+    except Exception as e:
+        # Return a JSON response with an error message and the error details
+        response = GetErrorDetails("Something went wrong when adding the address.", e, 404)
+        add_get_params(response)
+        return response
+
+
+
+@csrf_exempt
+@token_required
+def update_user_address(request):
+    """
+    This function is used to update an existing user_adres in the database.
+    Parameters:
+        new_values (Dict[str, Union[str, float]]): A dictionary of the new values for the product. The keys in the dictionary should correspond to the names of the columns in the 'userAddres' table, and the values should be the new values for each column.
+    """
+    new_values = request.POST.get('new_values')
+    if not new_values:
+        response = JsonResponse({'error': 'new_values are required fields'}, status=400)
+        add_get_params(response)
+        return response
+
+
+    session = sessionmaker(bind=engine)()
+    user = request.user
+    
+    
+    # Update the values for each column in the users table
+    
+    for index, new_value in enumerate(new_values):
+        for column_name, value in new_value.items():
+            print(f"{column_name}:{value}")
+            setattr(user, column_name, value)
+            
+
+    # Add the user object to the session
+    session.add(user)
+    # Commit the changes to the database
+    session.commit()
+    session.close()
+            
+    response = JsonResponse({'Success': 'The user address has been successfully updated'}, status=200)
+    add_get_params(response)
+    return response
+
+
+
+@csrf_exempt
+@token_required
+@permission_required(permission_name="Manage users")
 def assign_user_to_group_role(request):
     try:
             
         applied_username = request.POST.get("applied_username")
         assigned_role_name = request.POST.get("assigned_role_name")
         assigned_group_name = request.POST.get("assigned_group_name")
-       
+    
         if not (applied_username or assigned_role_name or assigned_group_name):
             # Return a JSON response with an error message and the error details
-            response = JsonResponse({'answer':'false', 'message':'Missing data error'}, status=404)            
+            response = JsonResponse({'answer':'False', 'message':'Missing data error'}, status=404)            
             add_get_params(response)
             return response
         
         
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        session = sessionmaker(bind=engine)()
+
 
         applied_user_id = session.query(Users).filter_by(username=applied_username).first().id  
         assigned_role_id = session.query(Role).filter_by(name=assigned_role_name).first().id  
@@ -251,7 +354,7 @@ def assign_user_to_group_role(request):
 
         
         if not (applied_user_id or assigned_role_id or assigned_group_id):
-            response = JsonResponse({'answer':'false', 'message':'No record found matching either user or role name or group name'}, status=404)            
+            response = JsonResponse({'answer':'False', 'message':'No record found matching either user or role name or group name'}, status=404)            
             add_get_params(response)
             return response
         
@@ -272,3 +375,26 @@ def assign_user_to_group_role(request):
         response = GetErrorDetails("Something went add role and group to user.", e, 500)
         add_get_params(response)
         return response
+    
+    
+    
+@csrf_exempt
+@token_required
+@permission_required(permission_name="Manage users")
+def change_null_password(request):
+    # Start a database session
+    session = sessionmaker(bind=engine)()
+
+
+    # Select all rows where username is empty
+    empty_usernames = session.query(Users).filter(Users._password == None).all()
+
+    # Generate random word as new username
+    for empty_username in empty_usernames:
+        empty_username.hash_password("Farid612")
+    # Commit changes
+    session.commit()
+    
+    response = JsonResponse({'message': "Change null password process succesfully completed"})
+    add_get_params(response)
+    return response
