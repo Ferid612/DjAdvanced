@@ -1,11 +1,9 @@
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render,HttpResponse
+from django.shortcuts import HttpResponse
 from django.http import JsonResponse
-from sqlalchemy.orm import relationship, sessionmaker
-from DjAdvanced.settings import engine
-from DjApp.management_of_sms_sender import send_verification_code_with_twilio
-# from .models import Category, Subcategory, Product
-from .helpers import add_get_params
+from DjApp.decorators import login_required, require_http_methods
+from .models import Category, Subcategory, Product
+from .helpers import add_get_params, session_scope
 import traceback, logging
 
 
@@ -19,8 +17,8 @@ def testing(request):
     # Build the POST parameters
     if request.method == 'POST':
         try:
-            
-            user_region = request.POST.get('user_region')
+            data = request.data
+            user_region = data.get('user_region')
             response = JsonResponse({'Answer': "Success", })
             # response.status_code=501
             add_get_params(response)
@@ -45,6 +43,9 @@ def testing(request):
         return response
 
 
+# @login_required
+@csrf_exempt
+@require_http_methods(["POST"])
 def get_all_products_by_subcategory_name(request):
     """
     This function returns all products that belong to a subcategory by given subcategory name.
@@ -53,37 +54,36 @@ def get_all_products_by_subcategory_name(request):
     If the subcategory_name parameter is not provided in the GET request, it returns a JSON response with an 'error' message.
     """
     # Get the subcategory name from the GET request
-    subcategory_name = request.GET.get('subcategory_name')
+    data = request.data
+    subcategory_name = data.get('subcategory_name')
     
     # Check if the subcategory_name parameter was provided in the GET request
     if not subcategory_name:
         response = JsonResponse({'error': 'subcategory_name is a required parameter'}, status=400)
 
     # Create a session to interact with the database
-    
-    session = sessionmaker(bind=engine)() # start a new session
+    with session_scope() as session:
 
+        # Try to find the subcategory by name in both the Category and Subcategory tables
+        existing_category = (session.query(Category)
+                            .filter_by(names=subcategory_name)
+                            .one_or_none() or
+                            session.query(Subcategory)
+                            .filter_by(names=subcategory_name)
+                            .one_or_none())
 
-    # Try to find the subcategory by name in both the Category and Subcategory tables
-    existing_category = (session.query(Category)
-                        .filter_by(name=subcategory_name)
-                        .one_or_none() or
-                        session.query(Subcategory)
-                        .filter_by(name=subcategory_name)
-                        .one_or_none())
-
-    if existing_category:
-        all_products = (session.query(Product)
-                        .filter_by(subcategory_id=existing_category.id)
-                        .all())
-        products_data = [{'name': product.name, 'description': product.description, 'price': product.price} for product in all_products]
-        response = JsonResponse({'data': products_data}, status=200)
-        add_get_params(response)
-        return response
-    else:
-        response = JsonResponse({'data': 'Is empty'}, status=200)
-        add_get_params(response)
-        return response
+        if existing_category:
+            all_products = (session.query(Product)
+                            .filter_by(subcategory_id=existing_category.id)
+                            .all())
+            products_data = [{'name': product.name, 'description': product.description, 'price': product.price} for product in all_products]
+            response = JsonResponse({'data': products_data}, status=200)
+            add_get_params(response)
+            return response
+        else:
+            response = JsonResponse({'data': 'Is empty'}, status=200)
+            add_get_params(response)
+            return response
 
 def get_products_by_category_name(request):
     """
@@ -99,12 +99,15 @@ def get_products_by_category_name(request):
         return response
 
 
-    session = sessionmaker(bind=engine)() # start a new session
+    # start a new session
+    with session_scope() as session:
+        # Get the category object
+        category = session.query(Category).filter_by(name=category_name).first()
+        if not category:
+            response = JsonResponse({'error': f"{category_name} does not exist in the category table."}, status=404)
+            add_get_params(response)
+            return response
 
-
-    # Get the category object
-    category = session.query(Category).filter_by(name=category_name).first()
-    if category:
         # Get the ids of all subcategories under the specified category
         subcategory_ids = (session.query(Subcategory.id)
                             .filter_by(category_id=category.id)
@@ -115,14 +118,11 @@ def get_products_by_category_name(request):
                     .filter(Product.subcategory_id.in_(subcategory_ids))
                     .all())
         products_data = [{'name': product.name, 'description': product.description, 'price': product.price} for product in products]
+
         response = JsonResponse({'data': products_data}, status=200)
         add_get_params(response)
         return response
-    else:
-        response = JsonResponse({'error': f"{category_name} does not exist in the category table."}, status=404)
-        add_get_params(response)
-        return response
-
+            
 
 def get_categories_and_subcategories(request):
     """
@@ -130,9 +130,10 @@ def get_categories_and_subcategories(request):
     
     :return: list of dictionaries, each representing a category and its subcategories
     """
-    session = sessionmaker(bind=engine)() # start a new session
-
-    categories = session.query(Category).all()
+    # start a new session
+    with session_scope() as session:
+        categories = session.query(Category).all()
+    
     categories_data = []
     for category in categories:
         subcategories = session.query(Subcategory).filter(Subcategory.category_id == category.id).all()

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from DjApp import management_of_inventory, management_of_mail_sender, management_of_roles, management_of_sms_sender, management_of_user, views, views_user
+from DjApp import management_of_inventory, management_of_location, management_of_mail_sender, management_of_persons, management_of_product_discount, management_of_roles, management_of_sms_sender, views, views_person
 
 urlpatterns = [
     # Views product
@@ -10,7 +10,7 @@ urlpatterns = [
     path('get_categories_and_subcategories/', views.get_categories_and_subcategories, name="Get all categories and subcategories name"),    
 
     # Views users 
-    path('get_user/', views_user.get_user_data_by_username, name="Get user info."),    
+    path('get_person/', views_person.get_person_data_by_username, name="Get user info."),    
     
          
     # MANAGMENT PRODUCTS,its CATEGORİES and TABLES 
@@ -27,30 +27,37 @@ urlpatterns = [
     path('delete_product_image/', management_of_inventory.delete_product_image, name="Update image of product"),    
    
    
-    path('create_discount/', management_of_inventory.create_discount, name="Create discount"),    
-    path('discount_update/', management_of_inventory.discount_update, name="Update discount"),    
-    path('discount_delete/', management_of_inventory.discount_delete, name="Delete discount"),
-    path('add_discount_to_products/', management_of_inventory.add_discount_to_products, name="Add discount to product"),
+    path('create_discount/', management_of_product_discount.create_discount, name="Create discount"),    
+    path('discount_update/', management_of_product_discount.discount_update, name="Update discount"),    
+    path('discount_delete/', management_of_product_discount.discount_delete, name="Delete discount"),
+    path('add_discount_to_products/', management_of_product_discount.add_discount_to_products, name="Add discount to product"),
 
     path('delete_all_tables/', management_of_inventory.delete_all_tables, name="Delete all tables"),    
     path('delete_null_category_subcategories/', management_of_inventory.delete_null_category_subcategories, name="Delete all subcategories that have a null category_id"),    
     path('delete_null_subcategory_products/', management_of_inventory.delete_null_subcategory_products, name="Delete all products that have a null subcategory_id"),    
 
 
-    # MANAGMENT USER  
-    path('add_user/', management_of_user.register_user, name="Add new user."),    
-    path('login/', management_of_user.login, name="Log in."),    
-    path('change_password/', management_of_user.change_password, name="Change user password."),    
-    path('change_null_passwords/', management_of_user.change_null_password, name="Set Farid612 all passwords of users which his(her) password is null ."),    
-    path('update_user/', management_of_user.update_user, name="Update user data."),    
-    path('assign_user/', management_of_user.assign_user_to_group_role, name="Assign new role and group to user."),    
+    # MANAGMENT PERSON
+    path('create_person_registration/', management_of_persons.create_person_registration, name="Add new user."),    
+    path('login/', management_of_persons.login, name="Log in."),    
+    path('change_password/', management_of_persons.change_password, name="Change person password."),    
+    path('update_person/', management_of_persons.update_person, name="Update person data."),    
+    path('add_person_address/', management_of_persons.add_person_address, name="Add person location."),    
+    path('update_person_address/', management_of_persons.update_person_address, name="Update person location."),    
+    path('assign_user_to_group_role/', management_of_persons.assign_user_to_group_role, name="Assign new role and group to user."),    
+    path('assign_employee_to_group_role/', management_of_persons.assign_employee_to_group_role, name="Assign new role and group to employee."),    
+    path('change_null_passwords/', management_of_persons.change_null_password, name="Set Farid612 all passwords of users which his(her) password is null ."),    
+    path('send_password_reset_link/', management_of_persons.send_password_reset_link, name="Reset password"),    
     
     
     # MANAGMENT ROLE
     path('create_role/', management_of_roles.create_role, name="Create new role"),
+    path('create_roles/', management_of_roles.create_roles, name="Create new roles"),
     path('create_permission/', management_of_roles.create_permission, name="Create new permission"),
-    path('give_permission_to_role/', management_of_roles.give_permission_to_role, name="Assign permission to role"),
-    path('create_user_groups/', management_of_roles.create_user_groups, name="Create user groups"),
+    path('create_permissions/', management_of_roles.create_permissions, name="Create new permission"),
+    path('assign_permission_to_role/', management_of_roles.assign_permission_to_role, name="Assign permission to role"),
+    path('assign_permissions_to_role/', management_of_roles.assign_permissions_to_role, name="Assign permissions to role"),
+    path('create_group/', management_of_roles.create_group, name="Create user groups"),
     
     
     # MANAGMENT MAİL SENDER
@@ -61,6 +68,16 @@ urlpatterns = [
         
     # MANAGMENT SMS SENDER
     path('send_verify_from_twilio/', management_of_sms_sender.send_verification_code_with_twilio, name="Send verification sms to user."),    
-    path('verify_twilio/', management_of_sms_sender.verify_twilio, name="Check user verification code with sms."),    
+    path('verify_twilio/', management_of_sms_sender.verify_twilio, name="Check user verification code with sms."), 
+    
+    
+    # MANAGMENT LOCATION
+    path('add_country/', management_of_location.add_country, name="Add new country."), 
+    path('add_countries/', management_of_location.add_countries, name="Add new countries."), 
+    
+    
+    
+    
+       
 
 ]

@@ -3,15 +3,15 @@ from django.http import JsonResponse
 from twilio.rest import Client
 from DjAdvanced.settings import auth_token, account_sid, verify_sid
 from django.views.decorators.csrf import csrf_exempt
-from DjApp.decorators import token_required
-from sqlalchemy.orm import sessionmaker
+from DjApp.decorators import login_required, require_http_methods
 from DjAdvanced.settings import engine
-from DjApp.helpers import GetErrorDetails, add_get_params
+from DjApp.helpers import GetErrorDetails, add_get_params, session_scope
 
 
 
 @csrf_exempt    
-@token_required
+@require_http_methods(["POST"])
+@login_required
 def send_verification_code_with_twilio(request):
     # Download the helper library from https://www.twilio.com/docs/python/install
 
@@ -36,31 +36,32 @@ def send_verification_code_with_twilio(request):
 
 
 @csrf_exempt    
-@token_required
+@require_http_methods(["POST"])
+@login_required
 def verify_twilio(request):
 
     # decode the token to retrieve the user's id
-    session = sessionmaker(bind=engine)()
 
     try:
-        client = Client(account_sid, auth_token)
+        with session_scope() as session:
+            client = Client(account_sid, auth_token)
 
-        verified_number = request.user.telephone
-        otp_code = request.POST.get('otp_code')
+            verified_number = request.user.telephone
+            data = request.data
+            otp_code = data.get('otp_code')
 
-        verification_check = client.verify.v2.services(verify_sid) \
-        .verification_checks \
-        .create(to=verified_number, code=otp_code)
-        
-        
-        if verification_check.status != "Approved":
-            response = JsonResponse({"answer":"False","message":"The verification code is incorrect.","verification_check.status":verification_check.status},status=200)
-            add_get_params(response)
-            return response
-        
-        user = request.user
-        user.phone_verify = True
-        session.commit()
+            verification_check = client.verify.v2.services(verify_sid) \
+            .verification_checks \
+            .create(to=verified_number, code=otp_code)
+            
+            
+            if verification_check.status != "Approved":
+                response = JsonResponse({"answer":"False","message":"The verification code is incorrect.","verification_check.status":verification_check.status},status=200)
+                add_get_params(response)
+                return response
+            
+            user = request.user
+            user.phone_verify = True
     
         response = JsonResponse({"answer":"True","message":"Your phone number has been verified successfully.","verification_check.status":verification_check.status},status=200)
         add_get_params(response)

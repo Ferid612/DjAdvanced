@@ -1,7 +1,6 @@
 from django.http import JsonResponse
-from sqlalchemy.orm import sessionmaker
 from django.views.decorators.csrf import csrf_exempt
-from DjApp.decorators import permission_required, token_required
+from DjApp.decorators import permission_required, login_required,require_http_methods
 from DjApp.helpers import GetErrorDetails, add_get_params
 from DjAdvanced.settings import engine
 # from .models import Users
@@ -9,8 +8,10 @@ from DjAdvanced.settings import engine
 
 
 @csrf_exempt
-@token_required
-def get_user_data_by_username(request):
+@require_http_methods(["POST"])
+@login_required
+@permission_required("")
+def get_person_data_by_username(request):
     """
     API endpoint to retrieve user information by username.
     The user data includes the following fields:
@@ -27,20 +28,22 @@ def get_user_data_by_username(request):
     """
     try:
         # Get the user object associated with the request
-        user = request.user
+        person = request.person
 
         # Build the user data dictionary
         user_data = {
-            "id": user.id,
-            "username": user.username,
-            "usermail": user.usermail,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "telephone": user.telephone,
-            "created_at": user.created_at,
-            "modified_at": user.modified_at,
-            "active": user.active,
-            "phone_verify": user.phone_verify
+            "id": person.id,
+            "username":person.username,
+            "usermail":person.email,
+            "first_name": person.first_name,
+            "last_name": person.last_name,
+            "phone_number_id": person.phone_number_id,
+            "location_id": person.location_id,
+            "created_at": person.created_at,
+            "modified_at": person.updated_at,
+            "active": person.active,
+            "phone_verify": person.phone_verify,
+            "person_type": person.person_type
         }
 
         # Return a JSON response with the user data

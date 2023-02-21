@@ -971,7 +971,7 @@ def distribute_users():
         
         
         
-        def token_required(func):
+        def login_required(func):
         """
     A decorator function that verifies the authenticity of the JWT token and username.
 
@@ -1144,6 +1144,377 @@ def add_products_to_subcategory(request):
     response =  JsonResponse({'existing_products': existing_products,'added_products':added_products}, status=200)
     add_get_params(response)
     return response
-        
+    
+    
+    from django.core.mail import send_mail
+from django.db import transaction
+from rest_framework import serializers
 
+class PersonSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    phone_number = serializers.CharField()
+    country_code = serializers.CharField()
+    person_type = serializers.ChoiceField(choices=['user', 'employee'])
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def create_person_registration(request):
+    """
+    This function handles person registration by creating a new person account and sending a verification code to the person's email.
+    The function receives the following parameters from the request object:
+    - username: the desired username for the new account
+    - email: the email address of the new person
+    - password: the desired password for the new account
+    - first_name: the first name of the new person
+    - last_name: the last name of the new person
+    - phone_number: the phone_number of the new person
+    - country_code: the country code of the new person's phone number
+    - person_type: the type of person to create, either 'user' or 'employee'
+
+    If the account creation is successful, the function returns a JSON response with a success message.
+    If an error occurs during the account creation process, the function raises an exception.
+    """
+    try:
+        serializer = PersonSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        with transaction.atomic():
+            # Check if the country code exists
+            country = Country.objects.filter(country_code=data['country_code']).first()
+            if not country:
+                raise serializers.ValidationError("Invalid country code")
+
+            # Check if the phone number already exists
+            if PhoneNumber.objects.filter(phone_number=data['phone_number']).exists():
+                raise serializers.ValidationError("This phone number belongs to another account.")
+
+            # Create new phone number object
+            phone_number = PhoneNumber.objects.create(
+                phone_number=data['phone_number'],
+                country_code=country,
+                phone_type_id=1,
+            )
+
+            # Create new person object
+            person = Person.objects.create(
+                username=data['username'],
+                email=data['email'],
+                first_name=data['first_name'],
+                last_name=data['last_name'],
+                phone_number=phone_number,
+            )
+            person.set_password(data['password'])
+            person.token = jwt.encode(
+                {"username": person.username, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=2)},
+                SECRET_KEY,
+
+        
+        
+{
+"username":"Farid2",
+"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkZhcmlkMiIsImV4cCI6MTY3NzgxMzcwOX0.PQWO8sUmfZlJLzDrNYAvK_qMJzr5B4w3HDv8ldBr-xA",
+ "roles":
+[{"role_type": "user_role", "role_name": "Customer", "role_description": "Standard customer role."},
+{"role_type": "user_role", "role_name": "Gold Customer", "role_description": "Customer with high spending."},
+{"role_type": "user_role", "role_name": "Platinum Customer", "role_description": "Customer with the highest spending."},
+{"role_type": "employee_role", "role_name": "Administrator", "role_description": "Full access to all parts of the website."},
+{"role_type": "employee_role", "role_name": "Product Manager", "role_description": "Can add and edit product information."},
+{"role_type": "employee_role", "role_name": "Order Manager", "role_description": "Can view and manage customer orders."},
+{"role_type": "user_role", "role_name": "Wholesaler", "role_description": "Special customer role for wholesale purchases."},
+{"role_type": "user_role", "role_name": "VIP Customer", "role_description": "Customer with exclusive access to certain products and deals."},
+{"role_type": "employee_role", "role_name": "Marketing Manager", "role_description": "Can create and manage marketing campaigns."},
+{"role_type": "employee_role", "role_name": "Shipping Manager", "role_description": "Can manage the shipping process for orders."},
+{"role_type": "user_role", "role_name": "Guest", "role_description": "Default role for new or unregistered users."},
+{"role_type": "user_role", "role_name": "Registered User", "role_description": "Role for users who have created an account."},
+{"role_type": "employee_role", "role_name": "Customer Service Representative", "role_description": "Can assist customers with inquiries and issues."},
+{"role_type": "employee_role", "role_name": "Technical Support Specialist", "role_description": "Can assist customers with technical issues."},
+{"role_type": "user_role", "role_name": "Member", "role_description": "Default role for members of a loyalty program."},
+{"role_type": "user_role", "role_name": "Elite Member", "role_description": "Member with high spending and more benefits."},
+{"role_type": "employee_role", "role_name": "Financial Analyst", "role_description": "Can analyze and report on financial data."},
+{"role_type": "employee_role", "role_name": "Web Developer", "role_description": "Can develop and maintain the website."},
+{"role_type": "user_role", "role_name": "Subscriber", "role_description": "Role for users who have subscribed to a service."},
+{"role_type": "user_role", "role_name": "Premium Subscriber", "role_description": "Subscriber with access to premium content and features."}]
+}
+
+[
+  {
+    "name": "view_product_details",
+    "description": "View details and information about a product"
+  },
+  {
+    "name": "add_product_to_cart",
+    "description": "Add a product to the user's shopping cart"
+  },
+  {
+    "name": "remove_product_from_cart",
+    "description": "Remove a product from the user's shopping cart"
+  },
+  {
+    "name": "view_cart",
+    "description": "View the user's shopping cart"
+  },
+  {
+    "name": "place_order",
+    "description": "Place an order for the products in the user's shopping cart"
+  },
+  {
+    "name": "view_order_history",
+    "description": "View the user's order history"
+  },
+  {
+    "name": "cancel_order",
+    "description": "Cancel an order that has been placed"
+  },
+  {
+    "name": "view_wishlist",
+    "description": "View the user's wishlist of products"
+  },
+  {
+    "name": "add_to_wishlist",
+    "description": "Add a product to the user's wishlist"
+  },
+  {
+    "name": "remove_from_wishlist",
+    "description": "Remove a product from the user's wishlist"
+  },
+  {
+    "name": "view_payment_info",
+    "description": "View the user's payment information"
+  },
+  {
+    "name": "update_payment_info",
+    "description": "Update the user's payment information"
+  },
+  {
+    "name": "view_shipping_info",
+    "description": "View the user's shipping information"
+  },
+  {
+    "name": "update_shipping_info",
+    "description": "Update the user's shipping information"
+  },
+  {
+    "name": "view_discounts",
+    "description": "View available discounts and coupons"
+  },
+  {
+    "name": "apply_discount",
+    "description": "Apply a discount or coupon to an order"
+  },
+  {
+    "name": "view_product_reviews",
+    "description": "View reviews of a product"
+  },
+  {
+    "name": "submit_product_review",
+    "description": "Submit a review of a product"
+  },
+  {
+    "name": "view_account_info",
+    "description": "View the user's account information"
+  },
+  {
+    "name": "update_account_info",
+    "description": "Update the user's account information"
+  },
+  {
+    "name": "view_order_status",
+    "description": "View the status of an order"
+  },
+  {
+    "name": "view_sales_reports",
+    "description": "View sales reports and analytics"
+  },
+  {
+    "name": "manage_inventory",
+    "description": "Add, update, or remove products from inventory"
+  },
+  {
+    "name": "manage_orders",
+    "description": "View, update, or cancel orders"
+  },
+  {
+    "name": "manage_discounts",
+    "description": "Create, update, or remove discounts and coupons"
+  },
+  {
+    "name": "manage_users",
+    "description": "View, create, update, or remove user accounts"
+  },
+  {
+    "name": "view_dashboard",
+    "description": "View the website's dashboard and analytics"
+  },
+  {
+    "name": "view_admin_settings",
+    "description": "View and update website settings for administrators"
+  }]
+
+{
+ "countries":
+[{
+    "country_code": 90,
+    "country_name": "Turkey",
+    "currency_code": "TRY"
+}, {
+    "country_code": 994,
+    "country_name": "Azerbaijan",
+    "currency_code": "AZN"
+}, {
+    "country_code": 1,
+    "country_name": "United States",
+    "currency_code": "USD"
+}, {
+    "country_code": 86,
+    "country_name": "China",
+    "currency_code": "CNY"
+}, {
+    "country_code": 33,
+    "country_name": "France",
+    "currency_code": "EUR"
+}, {
+    "country_code": 49,
+    "country_name": "Germany",
+    "currency_code": "EUR"
+}, {
+    "country_code": 81,
+    "country_name": "Japan",
+    "currency_code": "JPY"
+}, {
+    "country_code": 7,
+    "country_name": "Russia",
+    "currency_code": "RUB"
+}, {
+    "country_code": 44,
+    "country_name": "United Kingdom",
+    "currency_code": "GBP"
+}, {
+    "country_code": 55,
+    "country_name": "Brazil",
+    "currency_code": "BRL"
+}]
+}
+
+
+[
+  {
+    "name": "manage_discounts",
+    "description": "Create, update, or remove discounts and coupons"
+  },
+  {
+    "name": "manage_orders",
+    "description": "View, edit, and manage orders"
+  },
+  {
+    "name": "manage_customers",
+    "description": "View, edit, and manage customer information"
+  },
+  {
+    "name": "manage_products",
+    "description": "Create, edit, and manage product information"
+  },
+  {
+    "name": "view_sales_reports",
+    "description": "View sales reports and analytics"
+  },
+  {
+    "name": "manage_shipping",
+    "description": "Create, edit, and manage shipping options and rates"
+  },
+  {
+    "name": "view_customer_support_tickets",
+    "description": "View customer support tickets and respond to inquiries"
+  },
+  {
+    "name": "manage_user_roles",
+    "description": "Create, edit, and manage user roles and permissions"
+  },
+  {
+    "name": "manage_financial_reports",
+    "description": "View and analyze financial reports and metrics"
+  },
+  {
+    "name": "manage_ad_campaigns",
+    "description": "Create and manage advertising campaigns"
+  },
+  {
+    "name": "manage_website_content",
+    "description": "Create and manage website content, such as blog posts and articles"
+  },
+  {
+    "name": "view_technical_support_tickets",
+    "description": "View and respond to technical support tickets"
+  },
+  {
+    "name": "manage_product_catalog",
+    "description": "Create and manage the product catalog"
+  },
+  {
+    "name": "manage_web_design",
+    "description": "Create and manage website design and layout"
+  },
+  {
+    "name": "view_customer_feedback",
+    "description": "View and analyze customer feedback and reviews"
+  },
+  {
+    "name": "manage_returns",
+    "description": "View and manage product returns and refunds"
+  },
+  {
+    "name": "manage_inventory",
+    "description": "View and manage product inventory"
+  },
+  {
+    "name": "manage_warehouse_operations",
+    "description": "View and manage warehouse operations, such as shipping and receiving"
+  },
+  {
+    "name": "manage_customer_accounts",
+    "description": "Create, edit, and manage customer accounts"
+  },
+  {
+    "name": "view_financial_dashboards",
+    "description": "View financial dashboards and metrics"
+  },
+  {
+    "name": "manage_order_fulfillment",
+    "description": "Manage the order fulfillment process"
+  },
+  {
+    "name": "manage_product_reviews",
+    "description": "Create and manage product reviews and ratings"
+  },
+  {
+    "name": "view_website_analytics",
+    "description": "View website analytics and metrics"
+  },
+  {
+    "name": "manage_crm",
+    "description": "Create and manage customer relationship management (CRM) systems"
+  },
+  {
+    "name": "manage_email_marketing",
+    "description": "Create and manage email marketing campaigns"
+  },
+  {
+    "name": "manage_social_media",
+    "description": "Create and manage social media marketing campaigns"
+  },
+  {
+    "name": "manage_affiliate_program",
+    "description": "Create and manage affiliate marketing programs"
+  },
+  {
+    "name": "view_trends_and_forecasts",
+    "description": "View market trends and
+}]
+
+[{"id":71,"name":"view_product_details","description":"View details and information about a product"},{"id":2,"name":"add_product_to_cart","description":"Add a product to the user's shopping cart"},{"id":3,"name":"remove_product_from_cart","description":"Remove a product from the user's shopping cart"},{"id":72,"name":"view_cart","description":"View the user's shopping cart"},{"id":5,"name":"place_order","description":"Place an order for the products in the user's shopping cart"},{"id":73,"name":"view_order_history","description":"View the user's order history"},{"id":7,"name":"cancel_order","description":"Cancel an order that has been placed"},{"id":74,"name":"view_wishlist","description":"View the user's wishlist of products"},{"id":9,"name":"add_to_wishlist","description":"Add a product to the user's wishlist"},{"id":10,"name":"remove_from_wishlist","description":"Remove a product from the user's wishlist"},{"id":75,"name":"view_payment_info","description":"View the user's payment information"},{"id":12,"name":"update_payment_info","description":"Update the user's payment information"},{"id":76,"name":"view_shipping_info","description":"View the user's shipping information"},{"id":14,"name":"update_shipping_info","description":"Update the user's shipping information"},{"id":77,"name":"view_discounts","description":"View available discounts and coupons"},{"id":16,"name":"apply_discount","description":"Apply a discount or coupon to an order"},{"id":78,"name":"view_product_reviews","description":"View reviews of a product"},{"id":79,"name":"submit_product_review","description":"Submit a review of a product"},{"id":80,"name":"view_account_info","description":"View the user's account information"},{"id":20,"name":"update_account_info","description":"Update the user's account information"},{"id":81,"name":"view_order_status","description":"View the status of an order"},{"id":82,"name":"view_sales_reports","description":"View sales reports and analytics"},{"id":23,"name":"manage_inventory","description":"Add, update, or remove products from inventory"},{"id":24,"name":"manage_orders","description":"View, update, or cancel orders"},{"id":25,"name":"manage_discounts","description":"Create, update, or remove discounts and coupons"},{"id":26,"name":"manage_users","description":"View, create, update, or remove user accounts"},{"id":83,"name":"view_dashboard","description":"View the website's dashboard and analytics"},{"id":84,"name":"view_admin_settings","description":"View and update website settings for administrators"},{"id":85,"name":"manage_customers","description":"View, edit, and manage customer information"},{"id":86,"name":"manage_products","description":"Create, edit, and manage product information"},{"id":87,"name":"manage_shipping","description":"Create, edit, and manage shipping options and rates"},{"id":88,"name":"view_customer_support_tickets","description":"View customer support tickets and respond to inquiries"},{"id":89,"name":"manage_user_roles","description":"Create, edit, and manage user roles and permissions"},{"id":90,"name":"manage_financial_reports","description":"View and analyze financial reports and metrics"},{"id":91,"name":"manage_ad_campaigns","description":"Create and manage advertising campaigns"},{"id":92,"name":"manage_website_content","description":"Create and manage website content, such as blog posts and articles"},{"id":93,"name":"view_technical_support_tickets","description":"View and respond to technical support tickets"},{"id":94,"name":"manage_product_catalog","description":"Create and manage the product catalog"},{"id":95,"name":"manage_web_design","description":"Create and manage website design and layout"},{"id":96,"name":"view_customer_feedback","description":"View and analyze customer feedback and reviews"},{"id":97,"name":"manage_returns","description":"View and manage product returns and refunds"},{"id":98,"name":"manage_warehouse_operations","description":"View and manage warehouse operations, such as shipping and receiving"},{"id":99,"name":"manage_customer_accounts","description":"Create, edit, and manage customer accounts"},{"id":100,"name":"view_financial_dashboards","description":"View financial dashboards and metrics"},{"id":101,"name":"manage_order_fulfillment","description":"Manage the order fulfillment process"},{"id":102,"name":"manage_product_reviews","description":"Create and manage product reviews and ratings"},{"id":103,"name":"view_website_analytics","description":"View website analytics and metrics"},{"id":104,"name":"manage_crm","description":"Create and manage customer relationship management (CRM) systems"},{"id":105,"name":"manage_email_marketing","description":"Create and manage email marketing campaigns"},{"id":106,"name":"manage_social_media","description":"Create and manage social media marketing campaigns"},{"id":107,"name":"manage_affiliate_program","description":"Create and manage affiliate marketing programs"},{"id":108,"name":"view_trends_and_forecasts","description":"View market trends and forecasts."}]
 '''
+

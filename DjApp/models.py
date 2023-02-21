@@ -1,10 +1,9 @@
-from sqlalchemy import ForeignKeyConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL
+from sqlalchemy import CheckConstraint, ForeignKeyConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from DjAdvanced.settings import engine
 from sqlalchemy_utils import EncryptedType
 from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
 from passlib.context import CryptContext
 
 Base = declarative_base()
@@ -35,10 +34,11 @@ class Location(Base, TimestampMixin):
     city = Column(EncryptedType(String, 'AES'), nullable=False)
     state = Column(EncryptedType(String, 'AES'), nullable=False)
     district = Column(EncryptedType(String, 'AES'))
-    location_type_code = Column(EncryptedType(String, 'AES'))
+    location_type_code = Column(String)
     postal_code = Column(EncryptedType(Integer, 'AES'),nullable=False)
     description = Column(EncryptedType(String, 'AES'))
     
+    persons = relationship('Person', back_populates='location')
     supplier = relationship('Supplier', back_populates='location')
     country = relationship('Country', back_populates='locations')
 
@@ -47,7 +47,7 @@ class PhoneNumber(Base, TimestampMixin):
     
     __tablename__ = 'phone_number'
     id = Column(Integer, primary_key=True)
-    phone_number = Column(EncryptedType(Integer, 'AES'),nullable=False, unique=True)
+    phone_number = Column(EncryptedType(Integer, 'AES'),nullable=False, unique=True, cache_ok=True)
     country_code = Column(Integer, ForeignKey('country.country_code'),nullable=False)
     phone_type_id = Column(Integer)
 
@@ -157,7 +157,7 @@ class ProductFag(Base, TimestampMixin):
     """
     A table representing the question and answer section of product.
     """
-    
+
     __tablename__ = 'product_fag'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
@@ -173,7 +173,6 @@ class ProductFag(Base, TimestampMixin):
 
 
 class ProductImage(Base, TimestampMixin):
-    
     __tablename__ = 'product_image'
     id = Column(Integer, primary_key=True)
     product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
@@ -213,14 +212,19 @@ class Person(Base, TimestampMixin):
     username = Column(String, unique=True,nullable=False)
     first_name = Column(String,nullable=False)
     last_name = Column(String,nullable=False)
-    active = Column(Boolean,default=False)
-    phone_verify = Column(Boolean,default=False)
+    email = Column(EncryptedType(String, 'AES'), unique=True, nullable=False, cache_ok=True)
     _password =Column(String, nullable=False)
-    email = Column(EncryptedType(String, 'AES'), unique=True, nullable=False)
+    location_id =  Column(Integer, ForeignKey('location.id'),unique=True)
     phone_number_id = Column(Integer, ForeignKey('phone_number.id'),unique=True)
+    person_type = Column(String, CheckConstraint("person_type IN ('user', 'employee')"), nullable=False, default='user')
     
+    phone_verify = Column(Boolean,default=False)
+    active = Column(Boolean,default=False)
+
     token  = Column(String)
     
+    
+    location = relationship('Location', back_populates='persons')  
     phone_number = relationship('PhoneNumber', back_populates='person')
     employee = relationship('Employees', back_populates='person')
     user = relationship('Users', back_populates='person')
@@ -337,7 +341,7 @@ class UserUserGroupRole(Base, TimestampMixin):
     
     user_id = Column(Integer, ForeignKey('users.id'),unique=True,nullable=False)
     user_group_id = Column(Integer, ForeignKey('user_group.id'))
-    role_id = Column(Integer, ForeignKey('user_roles.id'))
+    user_role_id = Column(Integer, ForeignKey('user_roles.id'))
     
     users = relationship('Users', back_populates='user_user_group_role')
     user_group = relationship('UserGroup', back_populates='user_user_group_role')
@@ -377,6 +381,7 @@ class RolePermission(Base, TimestampMixin):
     user_role_id = Column(Integer, ForeignKey(UserRole.id))
     employee_role_id = Column(Integer, ForeignKey(EmployeeRole.id))
     permission_id = Column(Integer, ForeignKey(Permission.id),nullable=False)
+    
     
     user_roles = relationship("UserRole", back_populates='roles')
     employee_roles = relationship("EmployeeRole", back_populates='roles')

@@ -3,14 +3,12 @@ from django.http import JsonResponse
 import datetime 
 import jwt
 from DjAdvanced.settings import EMAIL_HOST_USER, SECRET_KEY,HOST_URL
-from DjApp.decorators import token_required
-from DjApp.helpers import GetErrorDetails, add_get_params 
+from DjApp.decorators import login_required, require_http_methods
+from DjApp.helpers import GetErrorDetails, add_get_params, session_scope 
 from django.views.decorators.csrf import csrf_exempt
-from sqlalchemy.orm import sessionmaker
 from DjAdvanced.settings import engine
 # from DjApp.models import Users
 from django.core.mail import send_mail
-
 
 
 def send_email(usermail, subject, body):
@@ -48,8 +46,9 @@ def send_verification_code(request,token):
     """
     try:
         # Get the username and email from the request object 
-        username = request.POST.get('username')
-        usermail = request.POST.get('usermail')
+        data = request.data
+        username = data.get('username')
+        usermail = data.get('usermail')
 
         # Create the link to verify the account using the token and username 
         token_with_url = HOST_URL + "/get_verification/?token=" + token + "&username=" + username
@@ -116,7 +115,8 @@ def send_verification_code(request,token):
 
 
 @csrf_exempt
-@token_required
+@require_http_methods(["POST"])
+@login_required
 def send_verification_code_after_login(request):
     """
     Sends a verification email to the user with a link to verify their account.
@@ -128,8 +128,9 @@ def send_verification_code_after_login(request):
     """
     try:
         # Get the username and email from the request object 
-        username = request.POST.get('username')
-        usermail = request.POST.get('usermail')
+        data = request.data
+        username = data.get('username')
+        usermail = data.get('usermail')
 
 
         expiration_time = datetime.datetime.utcnow() + datetime.timedelta(hours=2)
@@ -200,17 +201,19 @@ def send_verification_code_after_login(request):
 
 
 @csrf_exempt
-@token_required
+@require_http_methods(["POST"])
+@login_required
 def verify_account(request):
     try:
         # decode the token to retrieve the user's id
-        session = sessionmaker(bind=engine)()
 
 
-        # query the user with the id
-        user = request.user
-        user.active = True
-        session.commit()
+        with session_scope() as session:
+
+            # query the user with the id
+            person = request.person
+            person.active = True
+
         # db.session.commit()
         response = JsonResponse({"answer":"True","message":"Your account has been verified. Please log in to continue.",},status=200)
         add_get_params(response)
@@ -229,6 +232,7 @@ def verify_account(request):
 
 
 @csrf_exempt
+@require_http_methods(["POST"])
 def contact_us(request):
     """
     A view function that allows a user to send an email through the contact us form.
@@ -240,10 +244,11 @@ def contact_us(request):
     
     try:
         # Get the form data from the request object
-        full_name = request.POST.get('name')
-        email = request.POST.get('email')
-        subject = request.POST.get('subject')
-        message = request.POST.get('message')
+        data = request.data
+        full_name = data.get('name')
+        email = data.get('email')
+        subject = data.get('subject')
+        message = data.get('message')
         
         # Compose the subject and message
         subject = f"From contact us. Sender: {full_name} Sender email: {email} Subject: {subject}"

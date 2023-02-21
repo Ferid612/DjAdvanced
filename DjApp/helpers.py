@@ -1,6 +1,9 @@
 from django.utils.html import escape
 from django.http import JsonResponse
+from sqlalchemy.orm import  sessionmaker
+from contextlib import contextmanager
 import json, traceback
+from DjAdvanced.settings import engine
 
 
 
@@ -21,6 +24,23 @@ def add_get_params(resp):
     resp["Access-Control-Allow-Origin"] = "*"
     resp["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS, PUT"
     resp["Access-Control-Allow-Headers"] = "X-Requested-With, Content-Type"
+
+
+
+
+
+@contextmanager
+def session_scope():
+    
+    session = sessionmaker(bind=engine)()
+    """Provide a transactional scope around a series of operations."""
+    try:
+        yield session
+        session.commit()
+    except:
+        raise
+    finally:
+        session.close()
 
 
 def serializer(rows) -> list:
