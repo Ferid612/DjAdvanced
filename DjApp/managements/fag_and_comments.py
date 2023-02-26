@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required, require_http_methods
 from DjApp.helpers import GetErrorDetails, add_get_params, session_scope
-from .models import  Product, ProductComment, Users
+from ..models import  Product, ProductComment, Users
 from DjAdvanced.settings import engine
 
 
@@ -21,59 +21,45 @@ def add_comment_to_product(request):
     If the comment is added successfully, the function returns a JSON response with a success message and the comment's information.
     If an error occurs during the comment creation process, the function returns a JSON response with an error message and the error details.
     """
-    try:
-        # Get the parameters from the request object
-        data = request.data
-        
-        user_id = request.user.id
-        product_id = data.get('product_id')
-        comment_text = data.get('comment')
-        rate = data.get('rate')
-
-        if not (user_id and product_id and comment_text and rate):
-            response = JsonResponse({'message': 'Missing data error. User ID, product ID, comment text and rate must be filled.'}, status=400)
-            return response
-
-        with session_scope() as session:
-            
-            # Check if the user and product exist
-            user = session.query(Users).get(user_id)
-            product = session.query(Product).get(product_id)
-            if not (user and product):
-                response = JsonResponse({'message': 'User or product not found.'}, status=404)
-                return response
+    # Parse request data
+    data = request.data
+    user_id = request.person.user[0].id
+    product_id = data.get('product_id')
+    session = request.session
+    comment_text = data.get('comment')
+    rate = data.get('rate')
 
 
-            # Check if the user comment exist in product
-            # user_comment_in_product = session.query(ProductComment).filter(and_(ProductComment.user_id=user_id , ProductComment.product_id=product_id))
-            user_comment_in_product = session.query(ProductComment).filter_by(user_id=user_id , product_id=product_id).first()
-            if user_comment_in_product:
-                response = JsonResponse({'message': 'User comment already exist.'}, status=404)
-                return response
+    product = session.query(Product).get(product_id).one_or_none()
+    
+    # Check if all required data is present
+    if not (user_id and product_id and comment_text and rate and product):
+        return JsonResponse({'message': 'Missing data error. User ID, product ID or product, comment text and rate must be filled.'}, status=400)
 
 
-            # Create a new comment object with the given parameters
-            new_comment = ProductComment(
-                user_id=user_id,
-                product_id=product_id,
-                ip=request.META.get('REMOTE_ADDR', ''),
-                comment=comment_text,
-                rate=rate,
-                status='published'
-            )
+    # Check if comment already exists, or return 404 error if found
+    if session.query(ProductComment).filter_by(user_id=user_id, product_id=product_id).exists():
+        return JsonResponse({'message': 'User comment already exists.'}, status=404)
 
-            # Add the new comment to the database and commit the changes
-            session.add(new_comment)
-            
-            
-        # Return a JSON response with a success message and the comment's information
-        response = JsonResponse({'message': 'Comment added successfully.', 'comment_id': new_comment.id, 'user_id': user_id, 'product_id': product_id, 'comment': comment_text, 'rate': rate}, status=200)
-        return response
+    # Create a new comment object with the given parameters
+    new_comment = ProductComment(
+        user_id=user_id,
+        product_id=product_id,
+        ip=request.META.get('REMOTE_ADDR', ''),
+        comment=comment_text,
+        status='published'
+    )
+    new_comment.rate = rate
 
-    except Exception as e:
-        # Return a JSON response with an error message and the error details
-        response = GetErrorDetails('Something went wrong when adding the comment.', e, 500)
-        return response
+    # Add the new comment to the database and commit the changes
+    session.add(new_comment)
+    
+    
+    # Return a JSON response with a success message and the comment's information
+    return JsonResponse({'message': 'Comment added successfully.', 'comment_id': new_comment.id, 'user_id': user_id, 'product_id': product_id, 'comment': comment_text, 'rate': rate}, status=200)
+
+
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -93,32 +79,31 @@ def update_comment_product(request):
     try:
         # Get the parameters from the request object
         data = request.data
-        
-        user_id = request.user.id
+        session = request.session
+        user_id = request.person.user[0].id
         comment_id = data.get('comment_id')
-        comment = data.get('comment')
+        comment_text = data.get('comment')
         rate = data.get('rate')
         status = data.get('status')
         
-        if not (comment_id and comment and rate and status):
+        if not (comment_id and comment_text and rate and status):
             response = JsonResponse({'answer': 'False', 'message': 'Missing data error. Comment ID, comment text, rate and status must be filled.'}, status=400)
             add_get_params(response)
             return response
         
-        # Use session_scope to manage the database session
-        with session_scope() as session:
-            # Query the comment by ID
-            comment_obj = session.query(ProductComment).filter_by(id=comment_id, user_id=user_id).first()
-            if not comment_obj:
-                response = JsonResponse({'answer':'False', 'message':'Comment not found or you do not have permission to this comment.'}, status=404)
-                add_get_params(response)
-                return response
 
-            # Update the comment object with the new parameters
-            comment_obj.comment = comment
-            comment_obj.rate = rate
-            comment_obj.status = status
+        # Query the comment by ID
+        comment_obj = session.query(ProductComment).get(comment_id)
+        if not (comment_obj and (comment_id.user_id == user_id)):
+            response = JsonResponse({'answer':'False', 'message':'Comment not found or you do not have permission to this comment.'}, status=404)
+            add_get_params(response)
+            return response
 
+        # Update the comment object with the new parameters
+        comment_obj.comment = comment_text
+        comment_obj.rate = rate
+        
+        
         # Return a JSON response with a success message and the updated comment's information
         response = JsonResponse({'answer': 'True', 'message': 'Comment has been successfully updated.', 'comment_id': comment_obj.id, 'comment': comment_obj.comment, 'rate': comment_obj.rate, 'status': comment_obj.status}, status=200)
         add_get_params(response)
@@ -129,7 +114,6 @@ def update_comment_product(request):
         response = GetErrorDetails('Something went wrong when updating the comment.', e, 500)
         add_get_params(response)
         return response
-
 
 
 
@@ -145,24 +129,24 @@ def delete_comment_product(request):
     """
     try:
         data = request.data
-        user_id = request.user.id
+        user_id = request.person.user[0].id
         comment_id = data.get('comment_id')
-
-        if not (comment_id or user_id):
+        session = request.session
+    
+        if not (comment_id and user_id):
             response = JsonResponse({'answer':'False', 'message':'Missing data error. Comment ID must be provided.'}, status=404)            
             add_get_params(response)
             return response
         
-        with session_scope(bind=engine) as session:
-            # Check if the comment exists
-            comment_obj = session.query(ProductComment).filter_by(id=comment_id, user_id=user_id).first()
-            if not comment_obj:
-                response = JsonResponse({'answer':'False', 'message':'Comment not found or you do not have permission to this comment.'}, status=404)
-                add_get_params(response)
-                return response
+        # Check if the comment exists
+        comment_obj = session.query(ProductComment).get(comment_id)
+        if not (comment_obj and (comment_obj.user_id == user_id)):
+            response = JsonResponse({'answer':'False', 'message':'Comment not found or you do not have permission to this comment.'}, status=404)
+            add_get_params(response)
+            return response
 
-            # Delete the comment from the database
-            session.delete(comment_obj)
+        # Delete the comment from the database
+        session.delete(comment_obj)
 
         # Return a JSON response with a success message
         response = JsonResponse({"Success":"Comment deleted successfully."}, status=200)

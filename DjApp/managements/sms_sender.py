@@ -35,42 +35,37 @@ def send_verification_code_with_twilio(request):
 
 
 
+
 @csrf_exempt    
 @require_http_methods(["POST"])
 @login_required
 def verify_twilio(request):
+    session = request.session
 
     # decode the token to retrieve the user's id
-
-    try:
-        with session_scope() as session:
-            client = Client(account_sid, auth_token)
-
-            verified_number = request.user.telephone
-            data = request.data
-            otp_code = data.get('otp_code')
-
-            verification_check = client.verify.v2.services(verify_sid) \
-            .verification_checks \
-            .create(to=verified_number, code=otp_code)
-            
-            
-            if verification_check.status != "Approved":
-                response = JsonResponse({"answer":"False","message":"The verification code is incorrect.","verification_check.status":verification_check.status},status=200)
-                add_get_params(response)
-                return response
-            
-            user = request.user
-            user.phone_verify = True
+    client = Client(account_sid, auth_token)
+    person = request.person
+    country_code = person.phone_number_id[0].country_code
+    verified_number =str(country_code) + str(person.phone_number_id[0].phone_number)
     
-        response = JsonResponse({"answer":"True","message":"Your phone number has been verified successfully.","verification_check.status":verification_check.status},status=200)
-        add_get_params(response)
-        return response
+    data = request.data
+    otp_code = data.get('otp_code')
 
-    except Exception as e:
-        response = GetErrorDetails("Somethink went wrong at verification time.",e,404)
+    verification_check = client.verify.v2.services(verify_sid) \
+    .verification_checks \
+    .create(to=verified_number, code=otp_code)
+    
+    
+    if verification_check.status != "Approved":
+        response = JsonResponse({"answer":"False","message":"The verification code is incorrect.","verification_check.status":verification_check.status},status=400)
         add_get_params(response)
         return response
+    
+    
+    person.phone_verify = True
+    response = JsonResponse({"answer":"True","message":"Your phone number has been verified successfully.","verification_check.status":verification_check.status},status=200)
+    add_get_params(response)
+    return response
 
     # print(verification_check.send_code_attempts)
   

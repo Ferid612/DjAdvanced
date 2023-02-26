@@ -10,19 +10,33 @@
 -- UPDATE permissions SET name = 'edit products' WHERE  name = 'edit';
 -- ALTER table category alter column NAME set not null;
 -- delete from users where username= 'Farid502' ;
--- select * from roles;
+select * from employee_roles;
 -- DELETE FROM user_user_group_role WHERE id NOT IN (SELECT MIN(id) FROM user_user_group_role GROUP BY user_id, user_group_id, role_id);
--- DELETE FROM role_permission WHERE id NOT IN (SELECT MIN(id) FROM role_permission GROUP BY  employee_role_id, permission_id);
--- select * name from permissions;
+DELETE FROM role_permission WHERE id NOT IN (SELECT MIN(id) FROM role_permission GROUP BY  employee_role_id, permission_id);
+select name from permissions;
 -- select * from phone_number;
 -- ALTER TABLE persons ADD COLUMN person_type VARCHAR(20) NOT NULL CHECK (person_type IN ('user', 'employee'));
 -- ALTER TABLE persons ADD COLUMN person_type VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (person_type IN ('user', 'employee'));
 
-select * from persons; 
+-- DELETE FROM phone_number WHERE phone_number LIKE '%333563%';
+
+
+-- DELETE FROM phone_number WHERE id IN (
+--   SELECT phone_number_id FROM persons WHERE username LIKE '%Farid4%'
+-- );
+
+-- DELETE FROM employees WHERE person_id IN (
+--   SELECT id FROM persons WHERE username LIKE '%Farid4%'
+-- );
+-- DELETE FROM persons WHERE username LIKE '%Farid4%';
+
+-- select email from persons; 
+
 -- select username, email from persons;  
-select * from permissions;
-select name from user_roles;
-select name from employee_roles;
+-- select * from permissions;
+-- select name from user_roles;
+-- select name from employee_roles;
+-- select id, name from employee_group;
 -- select id, name from user_group;
 -- select * from user_user_group_role;
 
@@ -35,9 +49,9 @@ select name from employee_roles;
            
 --          ))
 -- FROM permissions;
-SELECT json_agg(json_build_object(
-           'employee_role_id',employee_role_id,
-           'permission_id',permission_id
+-- SELECT json_agg(json_build_object(
+--            'employee_role_id',employee_role_id,
+--            'permission_id',permission_id
            
-         ))
-FROM role_permission;
+--          ))
+-- FROM role_permission;

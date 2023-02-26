@@ -1,16 +1,17 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required,require_http_methods
-from DjApp.helpers import GetErrorDetails, add_get_params
+from DjApp.helpers import GetErrorDetails, add_get_params, session_scope
 from DjAdvanced.settings import engine
-# from .models import Users
+from DjApp.models import Person
+# from ..models import Users
 
 
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["POST","GET"])
 @login_required
-@permission_required("")
+# @permission_required("")
 def get_person_data_by_username(request):
     """
     API endpoint to retrieve user information by username.
@@ -31,20 +32,7 @@ def get_person_data_by_username(request):
         person = request.person
 
         # Build the user data dictionary
-        user_data = {
-            "id": person.id,
-            "username":person.username,
-            "usermail":person.email,
-            "first_name": person.first_name,
-            "last_name": person.last_name,
-            "phone_number_id": person.phone_number_id,
-            "location_id": person.location_id,
-            "created_at": person.created_at,
-            "modified_at": person.updated_at,
-            "active": person.active,
-            "phone_verify": person.phone_verify,
-            "person_type": person.person_type
-        }
+        user_data = person.to_json()
 
         # Return a JSON response with the user data
         response = JsonResponse(user_data, status=200)
@@ -56,3 +44,33 @@ def get_person_data_by_username(request):
         response = GetErrorDetails("An error occurred while getting user information.", e, 500)
         add_get_params(response)
         return response
+
+
+
+
+@csrf_exempt
+@require_http_methods(["GET","POST"])
+@login_required
+def get_all_persons_data(request):
+    """
+    API endpoint to retrieve all person data in JSON format.
+    """
+    # Get all persons from the database
+    session = request.session
+    
+    persons = session.query(Person).all()
+
+    # Build a list of person data dictionaries
+    persons_data = []
+    for person in persons:
+        person_data = person.to_json()
+        persons_data.append(person_data)
+
+    # Return a JSON response with the person data
+    response_data = {
+        "persons": persons_data
+    }
+    response = JsonResponse(response_data, status=200)
+    add_get_params(response)
+    return response
+

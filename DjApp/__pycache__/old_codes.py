@@ -371,7 +371,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 from DjAdvanced.settings import engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.schema import MetaData, Table
-from .helpers import GetErrorDetails
+from ..helpers import GetErrorDetails
 
 
 Base = automap_base()  # Create a new base class for automapping
@@ -1516,5 +1516,98 @@ def create_person_registration(request):
 }]
 
 [{"id":71,"name":"view_product_details","description":"View details and information about a product"},{"id":2,"name":"add_product_to_cart","description":"Add a product to the user's shopping cart"},{"id":3,"name":"remove_product_from_cart","description":"Remove a product from the user's shopping cart"},{"id":72,"name":"view_cart","description":"View the user's shopping cart"},{"id":5,"name":"place_order","description":"Place an order for the products in the user's shopping cart"},{"id":73,"name":"view_order_history","description":"View the user's order history"},{"id":7,"name":"cancel_order","description":"Cancel an order that has been placed"},{"id":74,"name":"view_wishlist","description":"View the user's wishlist of products"},{"id":9,"name":"add_to_wishlist","description":"Add a product to the user's wishlist"},{"id":10,"name":"remove_from_wishlist","description":"Remove a product from the user's wishlist"},{"id":75,"name":"view_payment_info","description":"View the user's payment information"},{"id":12,"name":"update_payment_info","description":"Update the user's payment information"},{"id":76,"name":"view_shipping_info","description":"View the user's shipping information"},{"id":14,"name":"update_shipping_info","description":"Update the user's shipping information"},{"id":77,"name":"view_discounts","description":"View available discounts and coupons"},{"id":16,"name":"apply_discount","description":"Apply a discount or coupon to an order"},{"id":78,"name":"view_product_reviews","description":"View reviews of a product"},{"id":79,"name":"submit_product_review","description":"Submit a review of a product"},{"id":80,"name":"view_account_info","description":"View the user's account information"},{"id":20,"name":"update_account_info","description":"Update the user's account information"},{"id":81,"name":"view_order_status","description":"View the status of an order"},{"id":82,"name":"view_sales_reports","description":"View sales reports and analytics"},{"id":23,"name":"manage_inventory","description":"Add, update, or remove products from inventory"},{"id":24,"name":"manage_orders","description":"View, update, or cancel orders"},{"id":25,"name":"manage_discounts","description":"Create, update, or remove discounts and coupons"},{"id":26,"name":"manage_users","description":"View, create, update, or remove user accounts"},{"id":83,"name":"view_dashboard","description":"View the website's dashboard and analytics"},{"id":84,"name":"view_admin_settings","description":"View and update website settings for administrators"},{"id":85,"name":"manage_customers","description":"View, edit, and manage customer information"},{"id":86,"name":"manage_products","description":"Create, edit, and manage product information"},{"id":87,"name":"manage_shipping","description":"Create, edit, and manage shipping options and rates"},{"id":88,"name":"view_customer_support_tickets","description":"View customer support tickets and respond to inquiries"},{"id":89,"name":"manage_user_roles","description":"Create, edit, and manage user roles and permissions"},{"id":90,"name":"manage_financial_reports","description":"View and analyze financial reports and metrics"},{"id":91,"name":"manage_ad_campaigns","description":"Create and manage advertising campaigns"},{"id":92,"name":"manage_website_content","description":"Create and manage website content, such as blog posts and articles"},{"id":93,"name":"view_technical_support_tickets","description":"View and respond to technical support tickets"},{"id":94,"name":"manage_product_catalog","description":"Create and manage the product catalog"},{"id":95,"name":"manage_web_design","description":"Create and manage website design and layout"},{"id":96,"name":"view_customer_feedback","description":"View and analyze customer feedback and reviews"},{"id":97,"name":"manage_returns","description":"View and manage product returns and refunds"},{"id":98,"name":"manage_warehouse_operations","description":"View and manage warehouse operations, such as shipping and receiving"},{"id":99,"name":"manage_customer_accounts","description":"Create, edit, and manage customer accounts"},{"id":100,"name":"view_financial_dashboards","description":"View financial dashboards and metrics"},{"id":101,"name":"manage_order_fulfillment","description":"Manage the order fulfillment process"},{"id":102,"name":"manage_product_reviews","description":"Create and manage product reviews and ratings"},{"id":103,"name":"view_website_analytics","description":"View website analytics and metrics"},{"id":104,"name":"manage_crm","description":"Create and manage customer relationship management (CRM) systems"},{"id":105,"name":"manage_email_marketing","description":"Create and manage email marketing campaigns"},{"id":106,"name":"manage_social_media","description":"Create and manage social media marketing campaigns"},{"id":107,"name":"manage_affiliate_program","description":"Create and manage affiliate marketing programs"},{"id":108,"name":"view_trends_and_forecasts","description":"View market trends and forecasts."}]
+
+
+def login_required(func):
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        # Get the token and username from the request
+
+        data = request.data
+        input_token = data.get('token')
+        
+        
+        # Check if either the token or username is missing
+        if not input_token:
+            response = JsonResponse({'answer':"False",'message': 'Missing token or username'}, status=401)
+            add_get_params(response)
+            return response
+        
+        
+        with session_scope() as session:       
+            
+            try:
+                decoded_token = jwt.decode(input_token, SECRET_KEY, algorithms=["HS256"])
+
+            except jwt.exceptions.ExpiredSignatureError:
+                # Handle the case where the token has expired
+                response =  JsonResponse({'answer':"False",'message': 'Token has expired'}, status=401)
+                add_get_params(response)
+                return response
+            
+            username = decoded_token.get('username')
+            person = session.query(Person).filter_by(username=username).first()
+    
+            # Add the user to the request object
+            request.person = person
+            
+            return func(request, *args, **kwargs)
+    
+    return wrapper
+
+
+
+def refresh_token_rotation(func):
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        # Get the token and username from the request
+        data = request.data
+        input_token = data.get('token')
+
+        # Check if either the token or username is missing
+        if not input_token:
+            response = JsonResponse({'answer':"False",'message': 'Missing token or username'}, status=401)
+            add_get_params(response)
+            return response
+
+        try:
+            decoded_token = jwt.decode(input_token, SECRET_KEY, algorithms=["HS256"])
+            username = decoded_token.get('username')
+
+            with session_scope() as session:
+                person = session.query(Person).filter_by(username=username).first()
+
+                if not person:
+                    response = JsonResponse({'answer': "False", 'message': 'Invalid user'}, status=401)
+                    add_get_params(response)
+                    return response
+
+                request.person = person
+
+                # Check if the token is about to expire and generate a new token if necessary
+                expiration_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+                if decoded_token['exp'] <= expiration_time.timestamp():
+                    new_token = jwt.encode(
+                        {"username": username, "exp": expiration_time}, SECRET_KEY, algorithm="HS256")
+                    response = func(request, new_token, *args, **kwargs)
+                else:
+                    response = func(request, input_token, *args, **kwargs)
+
+                return response
+
+        except jwt.exceptions.ExpiredSignatureError:
+            # Handle the case where the token has expired
+            response =  JsonResponse({'answer':"False",'message': 'Token has expired'}, status=401)
+            add_get_params(response)
+            return response
+
+        except Exception as e:
+            # Handle any other exceptions that might occur
+            response = GetErrorDetails("Something went wrong.", e, 500)
+            return response
+
+    return wrapper
+
+
 '''
 

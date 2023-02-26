@@ -4,9 +4,9 @@ from sqlalchemy import DECIMAL, Boolean, DateTime, Float, Column, ForeignKey, In
 import json
 
 from DjAdvanced.settings import engine
-from .decorators import permission_required, login_required, require_http_methods
-from .helpers import GetErrorDetails, add_get_params, session_scope
-from .models import Base , Category, ProductImage, Subcategory, Product, Supplier
+from ..decorators import permission_required, login_required, require_http_methods
+from ..helpers import GetErrorDetails, add_get_params, session_scope
+from ..models import Base , Category, ProductImage, Subcategory, Product, Supplier
 
 
 
@@ -140,7 +140,7 @@ def add_subcategory(request):
         sub_parent = session.query(Subcategory).filter_by(name=parent_name).one_or_none()
         parent = session.query(Category).filter_by(name=parent_name).one_or_none()
 
-    if not ( parent or sub_parent):
+    if not ( parent and sub_parent):
         return JsonResponse({'error': f"Parent {parent_name} does not exist."}, status=400)
 
     elif sub_parent:
@@ -169,10 +169,10 @@ def add_subcategory(request):
 
 
 
-# @login_required
 @csrf_exempt
 @require_http_methods(["POST"])
-@permission_required("Manage products")
+@login_required
+@permission_required("manage_products")
 def add_products(request):
     """
     This function is used to add products to a specific subcategory.
@@ -183,6 +183,8 @@ def add_products(request):
     """
     
     data = request.data
+    session = request.session
+    
     subcategory_name = data.get('subcategory_name')
     supplier_name = data.get('supplier_name')
     product_list = data.get('product_list')
@@ -194,42 +196,43 @@ def add_products(request):
         return response
 
 
-    with session_scope() as session:
-         # Get or create supplier
-        supplier = session.query(Supplier).filter_by(name=supplier_name).one_or_none()
+        # Get or create supplier
+    supplier = session.query(Supplier).filter_by(name=supplier_name).one_or_none()
 
-        if not supplier:
-            response = JsonResponse({'error': f'There is no Supplier named {supplier_name}'}, status=400)
-            add_get_params(response)
-            return response
+    if not supplier:
+        response = JsonResponse({'error': f'There is no Supplier named {supplier_name}'}, status=400)
+        add_get_params(response)
+        return response
 
-        subcategory = session.query(Subcategory).filter_by(name=subcategory_name).one_or_none()
-        if not subcategory:
-            response = JsonResponse({'error': f'There is no sub_category named {subcategory_name}'}, status=400)
-            add_get_params(response)
-            return response
-        
+    subcategory = session.query(Subcategory).filter_by(name=subcategory_name).one_or_none()
+    if not subcategory:
+        response = JsonResponse({'error': f'There is no sub_category named {subcategory_name}'}, status=400)
+        add_get_params(response)
+        return response
     
-        # Get the names of existing products
-        existing_products = [p.name for p in session.query(Product.name).filter(
-            Product.name.in_([p['name'] for p in product_list])).all()]
 
-        # Filter out existing products from the product list
-        new_products = [p for p in product_list if p['name'] not in existing_products]
+    # Get the names of existing products
+    existing_products = [p.name for p in session.query(Product.name).filter(
+        Product.name.in_([p['name'] for p in product_list])).all()]
+
+    # Filter out existing products from the product list
+    new_products = [p for p in product_list if p['name'] not in existing_products]
 
 
-        # Create a list of Product objects from the new products
-        products_to_add = [Product(
-                                name=p['name'],
-                                price=p['price'],
-                                SKU=p['SKU'],
-                                description=p['description'],
-                                supplier=supplier, 
-                                subcategory=subcategory,
-                                ) for p in new_products]
+    # Create a list of Product objects from the new products
+    products_to_add = [Product(
+                            name=p['name'],
+                            price=p['price'],
+                            SKU=p['SKU'],
+                            description=p['description'],
+                            supplier=supplier, 
+                            supplier_id=supplier.id, 
+                            subcategory=subcategory,
+                            subcategory_id=subcategory.id,
+                            ) for p in new_products]
 
-        # Add the new products to the session
-        session.bulk_save_objects(products_to_add)
+    # Add the new products to the session
+    session.bulk_save_objects(products_to_add)
 
 
         # Create the response
@@ -253,6 +256,8 @@ def update_product(request):
     """
     
     data = request.data
+    session = request.session
+
     product_name = data.get('product_name')
     new_values = data.get('new_values')
     
@@ -261,20 +266,19 @@ def update_product(request):
         add_get_params(response)
         return response
     
-    with session_scope() as session:
 
 
 
-        # Get the product with the given id
-        product = session.query(Product).filter_by(name=product_name).one_or_none()
-        if not product:
-            response = JsonResponse({'error': 'A product with the given id does not exist'}, status=400)
-            add_get_params(response)
-            return response
-        
-        # Update the values for each column in the product table
-        for column_name, new_value in new_values.items():
-            setattr(product, column_name, new_value)
+    # Get the product with the given id
+    product = session.query(Product).filter_by(name=product_name).one_or_none()
+    if not product:
+        response = JsonResponse({'error': 'A product with the given id does not exist'}, status=400)
+        add_get_params(response)
+        return response
+    
+    # Update the values for each column in the product table
+    for column_name, new_value in new_values.items():
+        setattr(product, column_name, new_value)
 
     response = JsonResponse({'Success': 'The product has been successfully updated'}, status=200)
 
@@ -295,15 +299,15 @@ def delete_product(request):
 
     data = request.data
     product_name = data.get('product_name')
+    session = request.session
     
-    with session_scope() as session:
-        product = session.query(Product).filter_by(name=product_name).first()
-    
-        if not product:
-            response = JsonResponse({'error': f'No product found with product.name {product_name}'}, status=404)
-            add_get_params(response)
-            return response
-        session.delete(product)
+    product = session.query(Product).filter_by(name=product_name).first()
+
+    if not product:
+        response = JsonResponse({'error': f'No product found with product.name {product_name}'}, status=404)
+        add_get_params(response)
+        return response
+    session.delete(product)
     
 
     response = JsonResponse({'message': f'Product with product.name {product_name} has been successfully deleted.'}, status=200)
@@ -333,32 +337,33 @@ def add_product_image(request):
         product_id = data.get('product_id')
         image_url = data.get('image_url')
         title = data.get('title')
+        session = request.session
         
         if not (product_id and image_url and title):
             response = JsonResponse({'answer':'False', 'message':'Missing data error. Product ID, Image URL and Title must be filled'}, status=404)
             add_get_params(response)
             return response
-        with session_scope() as session:
+
 
 
         
         # Check if the product exists
-            product = session.query(Product).filter_by(id=product_id).first()
-            if not product:
-                response = JsonResponse({'answer':'False', 'message':'Product with the given ID does not exist'}, status=404)
-                add_get_params(response)
-                return response
-            
-            # Create a new image object with the given parameters
-            new_image = ProductImage(
-                product_id=product_id,
-                image_url=image_url,
-                title=title
-            )
-            
-            # Add the new image to the database and commit the changes
-            session.add(new_image)
+        product = session.query(Product).filter_by(id=product_id).first()
+        if not product:
+            response = JsonResponse({'answer':'False', 'message':'Product with the given ID does not exist'}, status=404)
+            add_get_params(response)
+            return response
         
+        # Create a new image object with the given parameters
+        new_image = ProductImage(
+            product_id=product_id,
+            image_url=image_url,
+            title=title
+        )
+        
+        # Add the new image to the database and commit the changes
+        session.add(new_image)
+    
         # Return a JSON response with a success message and the new image's information
         response = JsonResponse({"Success":"The new image has been successfully added to the product.", "product_id": product_id, "image_url": image_url, "title": title}, status=200)
         add_get_params(response)
@@ -389,6 +394,7 @@ def update_product_image(request):
     try:
         # Get the parameters from the request object
         data = request.data
+        session = request.session
         image_id = data.get('image_id')
         title = data.get('title')
         image_url = data.get('image_url')
@@ -398,22 +404,22 @@ def update_product_image(request):
             add_get_params(response)
             return response
     
-        with session_scope() as session:
 
-            # Get the product image object with the given ID
-            product_image = session.query(ProductImage).filter_by(id=image_id).first()
 
-            if not product_image:
+        # Get the product image object with the given ID
+        product_image = session.query(ProductImage).filter_by(id=image_id).first()
 
-                response = JsonResponse({'answer': 'False', 'message': 'Invalid image ID. No product image was found with the given ID.'}, status=404)
-                add_get_params(response)
-                return response
+        if not product_image:
 
-            # Update the product image's title and/or image URL if new values are provided
-            if title:
-                product_image.title = title
-            if image_url:
-                product_image.image_url = image_url
+            response = JsonResponse({'answer': 'False', 'message': 'Invalid image ID. No product image was found with the given ID.'}, status=404)
+            add_get_params(response)
+            return response
+
+        # Update the product image's title and/or image URL if new values are provided
+        if title:
+            product_image.title = title
+        if image_url:
+            product_image.image_url = image_url
 
            
         # Return a JSON response with a success message and the updated product image's information
@@ -443,6 +449,8 @@ def delete_product_image(request):
     try:
         # Get the image ID from the request object
         data = request.data
+        session = request.session
+        
         image_id = data.get('image_id')
         
         if not image_id:
@@ -450,18 +458,16 @@ def delete_product_image(request):
             add_get_params(response)
             return response
 
-        with session_scope() as session:
-            
-            # Get the image object from the database
-            image = session.query(ProductImage).filter_by(id=image_id).first()
-            
-            if not image:
-                response = JsonResponse({'answer':'False', 'message':'The image with the specified ID does not exist in the database.'}, status=404)
-                add_get_params(response)
-                return response
+        # Get the image object from the database
+        image = session.query(ProductImage).filter_by(id=image_id).first()
         
-            # Delete the image from the database and commit the changes
-            session.delete(image)
+        if not image:
+            response = JsonResponse({'answer':'False', 'message':'The image with the specified ID does not exist in the database.'}, status=404)
+            add_get_params(response)
+            return response
+    
+        # Delete the image from the database and commit the changes
+        session.delete(image)
     
         
         # Return a JSON response with a success message
@@ -498,23 +504,25 @@ def delete_all_tables(request):
 
 
 @csrf_exempt
+@require_http_methods(["POST"])
 @login_required
 @permission_required("Manage product categories")
 def delete_null_category_subcategories(request):
     """
     This function deletes all subcategories that have a null category_id.
     """
-    with session_scope() as session:
+    session = request.session
 
-        # query to get all products that have a null subcategory_id
-        null_category_subcategories = session.query(
-            Subcategory).filter(Subcategory.category_id == None).all()
-        # Iterate through the products and delete them one by one
-        for category in null_category_subcategories:
-            session.delete(category)
-            print(
-                f"Deleted {len(null_category_subcategories)} products with null subcategory_id")
-            # Return the number of deleted products for confirmation
+
+    # query to get all products that have a null subcategory_id
+    null_category_subcategories = session.query(
+        Subcategory).filter(Subcategory.category_id == None).all()
+    # Iterate through the products and delete them one by one
+    for category in null_category_subcategories:
+        session.delete(category)
+        print(
+            f"Deleted {len(null_category_subcategories)} products with null subcategory_id")
+        # Return the number of deleted products for confirmation
         
     response = JsonResponse({"message":"deleted all subcategories that have a null category_id succesfully.", "length_of_null_category_subcategories": len(null_category_subcategories)},status=200)
     add_get_params(response)
@@ -523,25 +531,25 @@ def delete_null_category_subcategories(request):
 
 
 @csrf_exempt
-@login_required
 @require_http_methods(["POST", "GET"])
+@login_required
 @permission_required("Manage products")
 def delete_null_subcategory_products(request):
     """
     This function deletes all products that have a null subcategory_id.
     """
-    with session_scope() as session:
-        # query to get all products that have a null subcategory_id
-        null_subcategory_products = session.query(
-            Product).filter(Product.subcategory_id == None).all()
-        # Iterate through the products and delete them one by one
-        for product in null_subcategory_products:
-            session.delete(product)
-            session.commit()
-            print(
-                f"Deleted {len(null_subcategory_products)} products with null subcategory_id")
-            # Return the number of deleted products for confirmation
-            
+    session = request.session
+    # query to get all products that have a null subcategory_id
+    null_subcategory_products = session.query(
+        Product).filter(Product.subcategory_id == None).all()
+    # Iterate through the products and delete them one by one
+    for product in null_subcategory_products:
+        session.delete(product)
+        session.commit()
+        print(
+            f"Deleted {len(null_subcategory_products)} products with null subcategory_id")
+        # Return the number of deleted products for confirmation
+        
     response = JsonResponse({"message":"deleted all products that have a null subcategory_id succesfully.", "lentgth of null_subcategory_products": len(null_subcategory_products)},status=200)
     add_get_params(response)
     return response

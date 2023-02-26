@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from sqlalchemy.orm import  sessionmaker
 from contextlib import contextmanager
 import json, traceback
-from DjAdvanced.settings import engine
+from DjAdvanced.settings import SECRET_KEY, engine
 
 
 

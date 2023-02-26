@@ -2,11 +2,13 @@ import datetime
 from functools import wraps
 import json
 import time
+import uuid
 from django.http import JsonResponse
 from DjAdvanced.settings import engine,SECRET_KEY
 import jwt
-from DjApp.helpers import GetErrorDetails, add_get_params, session_scope
-from DjApp.models import  EmployeeEmployeeGroupRole, EmployeeRole, RolePermission, UserRole, UserUserGroupRole, Person
+from DjApp.helpers import  add_get_params, session_scope
+from DjApp.managements.tokens import get_person_from_access_token
+from DjApp.models import EmployeeEmployeeGroupRole, EmployeeRole, RolePermission, UserRole, UserUserGroupRole, Person
 from django.utils.log import log_response
 from django.http import HttpResponseNotAllowed
 
@@ -59,77 +61,44 @@ def require_http_methods(request_method_list):
 
 
 
+
+
 def login_required(func):
-    """
-    A decorator function that verifies the authenticity of the JWT token and username.
-
-    This function checks if the `token` and `username` are present in the request.
-    If either of them is missing, it returns a JSON response with status 401 (Unauthorized).
-    Then, it decodes the token using the secret key. If the token is invalid, it returns a JSON response with status 401.
-    If the decoded token's `username` does not match the `username` in the request, it returns a JSON response with status 401.
-    Finally, it retrieves the user with the `username` from the database and adds it to the request object as `request.person`.
-    If the user does not exist, it returns a JSON response with status 401.
-
-    Args:
-        func (function): The view function that this decorator wraps.
-
-    Returns:
-        wrapper (function): The decorated function.
-    """
     @wraps(func)
     def wrapper(request, *args, **kwargs):
-        # Get the token and username from the request
-
         data = request.data
-        username = data.get('username')
-        input_token = data.get('token')
+        access_token = data.get('access_token')
         
-            
-    
-        # Check if either the token or username is missing
-        if not input_token or not username:
-            response = JsonResponse({'answer':"False",'message': 'Missing token or username'}, status=401)
+        if not access_token:
+            response = JsonResponse({'answer':"False",'message': 'Missing token'}, status=401)
             add_get_params(response)
             return response
         
-        
-        try:
-            decoded = jwt.decode(input_token, SECRET_KEY, algorithms=['HS256'], options={'verify_exp': True})
-
-        except jwt.exceptions.ExpiredSignatureError:
-            # Handle the case where the token has expired
-            response =  JsonResponse({'answer':"False",'message': 'Token has expired'}, status=401)
-            add_get_params(response)
-            return response
-        
-
-        # Convert the expiration time from integer to datetime
-        exp_time = datetime.datetime.fromtimestamp(decoded['exp'])
-
-        # Compare the current time with the expiration time
-        if datetime.datetime.utcnow() >= exp_time:
-            response = JsonResponse({'answer':"False",'message': 'Token has expired'}, status=401)
-            add_get_params(response)
-            return response
         
         with session_scope() as session:
-            person = session.query(Person).filter_by(username=username).first()
+            request.session = session
+            person_and_tokens =  get_person_from_access_token(request,session, access_token)
+            person = person_and_tokens.get('person')
+            if not person:
+                return JsonResponse({'answer':"False",'message': 'Invalid token'}, status=401)
 
-            if person.token != input_token:
-                response =  JsonResponse({'answer':"False",'message': 'Token mismatch.Token mismatch. Your token may have been changed or corrupted. Please refresh your page.'}, status=401)
-                add_get_params(response)
-                return response
-            
-    
-            # user = person.user
-            # employee = person.employee
-            
-            # Add the user to the request object
             request.person = person
             
-            return func(request, *args, **kwargs)
+            access_token = person_and_tokens.get('access_token')
+            refresh_token = person_and_tokens.get('refresh_token')
+        
+                        
+            response = func(request,*args, **kwargs) 
+            
+            response.set_cookie('access_token', access_token)            
+            response.set_cookie('refresh_token', refresh_token)
+            
+            return response
     
     return wrapper
+
+
+
 
 
 def permission_required(*permission_names):
@@ -143,38 +112,38 @@ def permission_required(*permission_names):
         @wraps(f)
         def wrapper(request, *args, **kwargs):
             # Create a session
-            # Get the username from the request
+            # Get the person id from the request
 
             person = request.person
              
-            with session_scope() as session:
-                # Get the user's permissions
-                if person.person_type == "user":
-                    person_permissions = session.query(RolePermission)\
-                        .join(UserRole)\
-                        .join(UserUserGroupRole)\
-                        .filter(UserUserGroupRole.user_id == person.user[0].id)\
-                        .all()
-                else:
-                    person_permissions = session.query(RolePermission)\
-                    .join(EmployeeRole)\
-                    .join(EmployeeEmployeeGroupRole)\
-                    .filter(EmployeeEmployeeGroupRole.employee_id == person.employee[0].id)\
+            session = request.session
+            # Get the user's permissions
+            if person.person_type == "user":
+                person_permissions = session.query(RolePermission)\
+                    .join(UserRole)\
+                    .join(UserUserGroupRole)\
+                    .filter(UserUserGroupRole.user_id == person.user[0].id)\
                     .all()
-                    
-                    
-                # Extract the names of the user's permissions
-                person_permission_names = [p.permission.name for p in person_permissions]
+            else:
+                person_permissions = session.query(RolePermission)\
+                .join(EmployeeRole)\
+                .join(EmployeeEmployeeGroupRole)\
+                .filter(EmployeeEmployeeGroupRole.employee_id == person.employee[0].id)\
+                .all()
                 
-                print("person_permission_names: ",person_permission_names )
+                
+            # Extract the names of the user's permissions
+            person_permission_names = [p.permissions.name for p in person_permissions]
             
-                # Check if the user has all of the required permissions
-                if not all(name in person_permission_names for name in permission_names):
-                    response =  JsonResponse({'answer':"False",'message': 'You do not have permission to access this resource.'}, status=401)
-                    add_get_params(response)
-                    return response
-                    
-                # Call the original function if the user has all of the required permissions
-                return f(request,*args, **kwargs)
+            print("person_permission_names: ",person_permission_names )
+        
+            # Check if the user has all of the required permissions
+            if not all(name in person_permission_names for name in permission_names):
+                response =  JsonResponse({'answer':"False",'message': 'You do not have permission to access this resource.'}, status=401)
+                add_get_params(response)
+                return response
+                
+            # Call the original function if the user has all of the required permissions
+            return f(request,*args, **kwargs)
         return wrapper
     return decorator

@@ -13,6 +13,7 @@ class TimestampMixin:
     updated_at = Column(DateTime, nullable=False, server_default='now()', onupdate='now()')
     deleted_at = Column(DateTime, nullable=True)
 
+
 class Country(Base, TimestampMixin):
     __tablename__ = 'country'
     id = Column(Integer, primary_key=True)
@@ -95,13 +96,24 @@ class Supplier(Base, TimestampMixin):
     __tablename__ = 'supplier'
     id = Column(Integer, primary_key=True)
     name = Column(String,unique=True,nullable=False)
-    location_id =  Column(Integer, ForeignKey('location.id'),nullable=False, unique=True)
-    phone_number_id = Column(Integer, ForeignKey('phone_number.id'),nullable=False, unique=True)
+    location_id =  Column(Integer, ForeignKey('location.id'), unique=True)
+    phone_number_id = Column(Integer, ForeignKey('phone_number.id'), unique=True)
     description = Column(String)
     
     products = relationship('Product', back_populates='supplier')  
     phone_number = relationship('PhoneNumber', back_populates='supplier')
     location = relationship('Location', back_populates='supplier')  
+  
+    def to_json(self):
+            return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'location_id': self.location_id,
+            'phone_number_id': self.phone_number_id,
+        }
+        
+  
 
 class Product(Base, TimestampMixin):
     """
@@ -122,6 +134,7 @@ class Product(Base, TimestampMixin):
     subcategory = relationship('Subcategory', back_populates='product')
     comments = relationship('ProductComment', back_populates='product')
     fags = relationship('ProductFag', back_populates='product')
+    questions = relationship('ProductQuestion', back_populates='product')
     
     discount = relationship('ProductDiscount', back_populates='products')
     card_items = relationship('CardItem', back_populates='product')
@@ -131,8 +144,7 @@ class Product(Base, TimestampMixin):
 class ProductComment(Base, TimestampMixin):
     """
     A table representing the comments of product.
-    """
-    
+    """ 
     __tablename__ = 'product_comment'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
@@ -151,24 +163,55 @@ class ProductComment(Base, TimestampMixin):
     @rate.setter
     def rate(self, rate):
         self._rate = min(max(rate, 0), 5);
+
             
 
 class ProductFag(Base, TimestampMixin):
     """
-    A table representing the question and answer section of product.
+    A table representing the fag section of product.
     """
-
     __tablename__ = 'product_fag'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
-    ip = Column(String, nullable=False)
     question = Column(String, nullable=False)
     answer = Column(String, nullable=False)
     status = Column(String, nullable=False)
-
+    
     product = relationship('Product', back_populates='fags')
-    user = relationship('Users', back_populates='fags')
+    
+
+
+class ProductQuestion(Base, TimestampMixin):
+    """
+    A table representing the question and answer section of product.
+    """
+    __tablename__ = 'product_question'
+    id = Column(Integer, primary_key=True)
+    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    question_text = Column(String, nullable=False)
+    status = Column(String, nullable=False)
+
+    product = relationship('Product', back_populates='questions')
+    answers = relationship('AnswersToQuestions', back_populates='question')
+    user = relationship('Users', back_populates='questions')
+
+
+
+class AnswersToQuestions(Base, TimestampMixin):
+    """
+    A table representing the answer to question section of product.
+    """
+    __tablename__ = 'answers_to_questions'
+    id = Column(Integer, primary_key=True)
+    question_id = Column(Integer, ForeignKey('product_question.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    answer_text = Column(String, nullable=False)
+    status = Column(String, nullable=False)
+    
+    user = relationship('Users', back_populates='answers')
+    question = relationship('ProductQuestion', back_populates='answers')
+
 
 
 
@@ -193,6 +236,17 @@ class Discount(Base, TimestampMixin):
     product_discount = relationship("ProductDiscount", back_populates='discount')
 
 
+    def to_json(self):
+        return {
+        'id': self.id,
+        'name': self.name,
+        'description': self.description,
+        'discount_percent': self.discount_percent,
+        'active': self.active,
+        'product_discount': self.product_discount,
+    }
+    
+
 class ProductDiscount(Base, TimestampMixin):
     
     __tablename__ = 'product_discount'
@@ -201,7 +255,6 @@ class ProductDiscount(Base, TimestampMixin):
     discount_id = Column(Integer, ForeignKey('discount.id'),nullable=False)
     discount = relationship("Discount", back_populates='product_discount')
     products = relationship("Product", back_populates='discount')
-
 
 
 
@@ -217,17 +270,15 @@ class Person(Base, TimestampMixin):
     location_id =  Column(Integer, ForeignKey('location.id'),unique=True)
     phone_number_id = Column(Integer, ForeignKey('phone_number.id'),unique=True)
     person_type = Column(String, CheckConstraint("person_type IN ('user', 'employee')"), nullable=False, default='user')
-    
     phone_verify = Column(Boolean,default=False)
     active = Column(Boolean,default=False)
+    refresh_token_id = Column(String, unique=True)
 
-    token  = Column(String)
-    
-    
     location = relationship('Location', back_populates='persons')  
     phone_number = relationship('PhoneNumber', back_populates='person')
     employee = relationship('Employees', back_populates='person')
     user = relationship('Users', back_populates='person')
+    
     
     def hash_password(self, password):
         password = password.encode('utf-8')
@@ -239,6 +290,27 @@ class Person(Base, TimestampMixin):
         return pwd_context.verify(password, self._password)
 
 
+    def __str__(self):
+        return f"username:{self.username} {self.first_name} {self.last_name}"
+    
+    
+    def to_json(self):
+        return {
+        'id': self.id,
+        'username': self.username,
+        'first_name': self.first_name,
+        'last_name': self.last_name,
+        'email': self.email,
+        'location_id': self.location_id,
+        'phone_number_id': self.phone_number_id,
+        'person_type': self.person_type,
+        'phone_verify': self.phone_verify,
+        'active': self.active,
+        'created_at': self.created_at.isoformat(),
+        'updated_at': self.updated_at.isoformat(),
+    }
+    
+  
 
 pwd_context = CryptContext(
         schemes=["bcrypt"],
@@ -275,7 +347,8 @@ class Users(Base, TimestampMixin):
     shopping_session = relationship('ShoppingSession', back_populates='user')
     orders =  relationship('OrderDetails', back_populates='user')
     comments = relationship('ProductComment', back_populates='user')
-    fags = relationship('ProductFag', back_populates='user')
+    questions = relationship('ProductQuestion', back_populates='user')
+    answers = relationship('AnswersToQuestions', back_populates='user')
 
 
 class Employees(Base, TimestampMixin):
@@ -339,11 +412,11 @@ class UserUserGroupRole(Base, TimestampMixin):
     __tablename__ = 'user_user_group_role'
     id = Column(Integer, primary_key=True)
     
-    user_id = Column(Integer, ForeignKey('users.id'),unique=True,nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'),nullable=False)
     user_group_id = Column(Integer, ForeignKey('user_group.id'))
     user_role_id = Column(Integer, ForeignKey('user_roles.id'))
     
-    users = relationship('Users', back_populates='user_user_group_role')
+    users = relationship('Users', back_populates='user_user_group_role') 
     user_group = relationship('UserGroup', back_populates='user_user_group_role')
     user_roles = relationship('UserRole', back_populates='user_user_group_role')
     
@@ -353,7 +426,7 @@ class EmployeeEmployeeGroupRole(Base, TimestampMixin):
     __tablename__ = 'employee_employee_group_role'
     
     id = Column(Integer, primary_key=True)
-    employee_id = Column(Integer, ForeignKey('employees.id'),unique=True,nullable=False)
+    employee_id = Column(Integer, ForeignKey('employees.id'),nullable=False)
     employee_group_id = Column(Integer, ForeignKey('employee_group.id'))
     employee_role_id = Column(Integer, ForeignKey('employee_roles.id'))
   
