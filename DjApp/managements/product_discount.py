@@ -8,7 +8,7 @@ from ..models import  Discount, Product, ProductDiscount
 @csrf_exempt
 @require_http_methods(["POST","GET"])
 @login_required
-@permission_required("Manage discounts")
+@permission_required("manage_discounts")
 def create_discount(request):
     """
     This function handles discount creation by creating a new discount and adding it to the product.
@@ -30,12 +30,20 @@ def create_discount(request):
     discount_percent = data.get('discount_percent') 
     active = data.get('active') 
     
-    
+    active =  True if (active == "True") or  (active == True) else False
+
     
     if not (discount_name and discount_percent and active):
         response = JsonResponse({'answer':'False', 'message':'Missing data error. Product ID, Name, Discount Percentage and Active status must be filled'}, status=404)            
         add_get_params(response)
         return response
+    
+    discount = session.query(Discount).filter_by(name=discount_name).one_or_none()
+    if (discount):
+        response = JsonResponse({'answer':'False', 'message':'The discount name already exists in this name.'}, status=404)            
+        add_get_params(response)
+        return response
+    
     
     
     # Create a new discount object with the given parameters
@@ -48,69 +56,18 @@ def create_discount(request):
     
     # Add the new discount to the database and commit the changes
     session.add(new_discount)
-    
+    session.commit()
     # Return a JSON response with a success message and the new discount's information
-    response = JsonResponse({"Success":"The new discount has been successfully created.", "name": discount_name, "description": discount_description, "discount_percent": discount_percent, "active": active}, status=200)
+    response = JsonResponse({"Success":"The new discount has been successfully created.", "discount_detail" : new_discount.to_json() }, status=200)
     add_get_params(response)
     return response
-
-
-
-
-@csrf_exempt
-@require_http_methods(["POST","GET"])
-@login_required
-@permission_required("Manage discounts")
-def add_discount_to_products(request):
-    """
-    This function adds the specified discount to the products with the specified IDs.
-    The function receives the following parameters:
-    - discount_id: the ID of the discount to add
-    - product_ids: a list of product IDs to add the discount to
-    If the discount is added to all the specified products successfully, the function returns a JSON response with a success message.
-    If an error occurs during the discount addition process, the function returns a JSON response with an error message and the error details.
-    """
-    
-
-    data = request.data
-    session = request.session
-
-    product_names = data.getlist('product_names') 
-    discount_name = data.get('name')
-    
-    # Get the discount and the products from the database
-    discount = session.query(Discount).filter_by(name=discount_name).first()
-    products = session.query(Product).filter(Product.name.in_(product_names)).all()
-    
-    # Check if the discount and the products exist
-    if not discount:
-        response = JsonResponse({'Success':'False', 'message':'The discount with the specified ID does not exist.'}, status=404)            
-        add_get_params(response)
-        return response
-    
-    if not products:
-        response = JsonResponse({'Success':'False', 'message':'None of the specified product IDs exist.'}, status=404)            
-        add_get_params(response)
-        return response
-    
-    # Add the discount to the products and commit the changes
-    for product in products:
-        product_discount = ProductDiscount(discount_id=discount.id, product_id=product.id)
-        session.add(product_discount)
-
-
-    # Return a JSON response with a success message
-    response = JsonResponse({'Success':'True', 'message':'The discount has been added to the specified products successfully.'}, status=200)
-    add_get_params(response)
-    return response
-
 
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-@permission_required("Manage discounts")
+@permission_required("manage_discounts")
 def discount_update(request):
     """
     This function updates an existing discount by its ID. The function receives the following parameters from the request object:
@@ -133,6 +90,8 @@ def discount_update(request):
     discount_percent = data.get('discount_percent')
     active = data.get('active')
 
+    active =  True if (active == "True") or  (active == True) else False
+
     if not discount_id:
         response = JsonResponse({'answer': 'False', 'message': 'Missing data error. Discount ID must be filled'}, status=404)
         add_get_params(response)
@@ -141,11 +100,12 @@ def discount_update(request):
 
 
     # Check if the discount exists
-    discount = session.query(Discount).filter_by(id=discount_id).first()
+    discount = session.query(Discount).get(discount_id)
     if not discount:
         response = JsonResponse({'answer': 'False', 'message': 'Discount not found'}, status=404)
         add_get_params(response)
         return response
+
 
     # Update the discount object with the given parameters
     if discount_name:
@@ -160,8 +120,7 @@ def discount_update(request):
 
     # Return a JSON response with a success message and the updated discount's information
     response = JsonResponse({
-        'answer': 'True',
-        'message': 'The discount has been successfully updated.',
+        'answer': 'The discount has been successfully updated.' ,
         'id': discount_id,
         'name': discount.name,
         'description': discount.description,
@@ -173,10 +132,12 @@ def discount_update(request):
 
 
 
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-@permission_required("Manage discounts")
+@permission_required("manage_discounts")
 def discount_delete(request):
     """
     This function handles the deletion of a discount from a product.
@@ -213,3 +174,102 @@ def discount_delete(request):
     return response
 
 
+
+
+
+@csrf_exempt
+@require_http_methods(["POST","GET"])
+@login_required
+@permission_required("manage_discounts")
+def add_discount_to_products_by_name(request):
+    """
+    This function adds the specified discount to the products with the specified IDs.
+    The function receives the following parameters:
+    - discount_id: the ID of the discount to add
+    - product_ids: a list of product IDs to add the discount to
+    If the discount is added to all the specified products successfully, the function returns a JSON response with a success message.
+    If an error occurs during the discount addition process, the function returns a JSON response with an error message and the error details.
+    """
+
+    data = request.data
+    session = request.session
+
+    product_names = data.get('product_names') 
+    discount_name = data.get('name')
+    
+    # Get the discount and the products from the database
+    discount = session.query(Discount).filter_by(name=discount_name).first()
+    products = session.query(Product).filter(Product.name.in_(product_names)).all()
+    
+    # Check if the discount and the products exist
+    if not discount:
+        response = JsonResponse({'Success':'False', 'message':'The discount with the specified ID does not exist.'}, status=404)            
+        add_get_params(response)
+        return response
+    
+    if not products:
+        response = JsonResponse({'Success':'False', 'message':'None of the specified product IDs exist.'}, status=404)            
+        add_get_params(response)
+        return response
+    
+    # Add the discount to the products and commit the changes
+    for product in products:
+        product_discount = ProductDiscount(discount_id=discount.id, product_id=product.id)
+        session.add(product_discount)
+
+
+    # Return a JSON response with a success message
+    response = JsonResponse({'Success':'True', 'message':'The discount has been added to the specified products successfully.'}, status=200)
+    add_get_params(response)
+    return response
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST","GET"])
+@login_required
+@permission_required("manage_discounts")
+def add_discount_to_products_by_id(request):
+    """
+    This function adds the specified discount to the products with the specified IDs.
+    The function receives the following parameters:
+    - discount_id: the ID of the discount to add
+    - product_ids: a list of product IDs to add the discount to
+    If the discount is added to all the specified products successfully, the function returns a JSON response with a success message.
+    If an error occurs during the discount addition process, the function returns a JSON response with an error message and the error details.
+    """
+
+    data = request.data
+    session = request.session
+
+    discount_id = data.get('discount_id')
+    product_ids = data.get('product_ids') 
+    
+    
+    # Get the discount and the products from the database
+    discount = session.query(Discount).get(discount_id)
+    products = session.query(Product).filter(Product.id.in_(product_ids)).all()
+    
+    
+    # Check if the discount and the products exist
+    if not discount:
+        response = JsonResponse({'Success':'False', 'message':'The discount with the specified ID does not exist.'}, status=404)            
+        add_get_params(response)
+        return response
+    
+    if not products:
+        response = JsonResponse({'Success':'False', 'message':'None of the specified product IDs exist.'}, status=404)            
+        add_get_params(response)
+        return response
+    
+    # Add the discount to the products and commit the changes
+    for product in products:
+        product_discount = ProductDiscount(discount_id=discount.id, product_id=product.id)
+        session.add(product_discount)
+
+
+    # Return a JSON response with a success message
+    response = JsonResponse({'Success':'True', 'message':'The discount has been added to the specified products successfully.'}, status=200)
+    add_get_params(response)
+    return response

@@ -1,3 +1,4 @@
+from sqlalchemy import event
 from sqlalchemy import CheckConstraint, ForeignKeyConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -132,25 +133,25 @@ class Product(Base, TimestampMixin):
     image = relationship('ProductImage', back_populates='product')
     supplier = relationship('Supplier', back_populates='products')
     subcategory = relationship('Subcategory', back_populates='product')
-    comments = relationship('ProductComment', back_populates='product')
+    comments = relationship('ProductRate', back_populates='product')
     fags = relationship('ProductFag', back_populates='product')
     questions = relationship('ProductQuestion', back_populates='product')
     
     discount = relationship('ProductDiscount', back_populates='products')
-    card_items = relationship('CardItem', back_populates='product')
+    cart_items = relationship('cartItem', back_populates='product')
     order_item = relationship('OrderItem', back_populates='product')
        
         
-class ProductComment(Base, TimestampMixin):
+class ProductRate(Base, TimestampMixin):
     """
     A table representing the comments of product.
     """ 
-    __tablename__ = 'product_comment'
+    __tablename__ = 'product_rate'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
     ip = Column(String, nullable=False)
-    comment = Column(String, nullable=False)
+    rate_comment = Column(String, nullable=False)
     _rate = Column(Integer, nullable=False)
     status = Column(String, nullable=False)
     product = relationship('Product', back_populates='comments')
@@ -236,14 +237,14 @@ class Discount(Base, TimestampMixin):
     product_discount = relationship("ProductDiscount", back_populates='discount')
 
 
+
     def to_json(self):
         return {
         'id': self.id,
         'name': self.name,
         'description': self.description,
         'discount_percent': self.discount_percent,
-        'active': self.active,
-        'product_discount': self.product_discount,
+        'active': self.active
     }
     
 
@@ -346,7 +347,7 @@ class Users(Base, TimestampMixin):
     payments =  relationship('UserPayment', back_populates='user')
     shopping_session = relationship('ShoppingSession', back_populates='user')
     orders =  relationship('OrderDetails', back_populates='user')
-    comments = relationship('ProductComment', back_populates='user')
+    comments = relationship('ProductRate', back_populates='user')
     questions = relationship('ProductQuestion', back_populates='user')
     answers = relationship('AnswersToQuestions', back_populates='user')
 
@@ -449,20 +450,14 @@ class Permission(Base, TimestampMixin):
 class RolePermission(Base, TimestampMixin):
     
     __tablename__ = 'role_permission'
-    
     id = Column(Integer, primary_key=True)
     user_role_id = Column(Integer, ForeignKey(UserRole.id))
     employee_role_id = Column(Integer, ForeignKey(EmployeeRole.id))
     permission_id = Column(Integer, ForeignKey(Permission.id),nullable=False)
     
-    
     user_roles = relationship("UserRole", back_populates='roles')
     employee_roles = relationship("EmployeeRole", back_populates='roles')
     permissions = relationship("Permission", back_populates='roles')
-    
-
-
-
 
 
 
@@ -484,22 +479,25 @@ class ShoppingSession(Base, TimestampMixin):
     __tablename__ = 'shopping_session'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
-    total = Column(DECIMAL, default=0)
     
     user = relationship('Users', back_populates='shopping_session')
-    card_items = relationship('CardItem', back_populates='shopping_session')
+    cart_items = relationship('cartItem', back_populates='shopping_session')
+  
+    def total(self):
+        return sum([item.product.price * item.quantity for item in self.cart_items])
+      
   
   
-class CardItem(Base, TimestampMixin):
+class cartItem(Base, TimestampMixin):
     
-    __tablename__ = 'card_item'
+    __tablename__ = 'cart_item'
     id = Column(Integer, primary_key=True)
     session_id = Column(Integer, ForeignKey('shopping_session.id'),nullable=False)
     product_id = Column(Integer, ForeignKey('product.id'),nullable=False)
     _quantity= Column(Integer)
     
-    shopping_session = relationship("ShoppingSession", back_populates='card_items')
-    product = relationship("Product", back_populates='card_items')
+    shopping_session = relationship("ShoppingSession", back_populates='cart_items')
+    product = relationship("Product", back_populates='cart_items')
 
 
     @hybrid_property
@@ -509,7 +507,15 @@ class CardItem(Base, TimestampMixin):
     @quantity.setter
     def quantity(self, quantity):
         self._quantity = min(max(quantity, 0), 10000);
-            
+     
+     
+    
+    def total(self):
+        return (self._quantity)*(self.product.price)
+    
+        
+      
+        
 
 class PaymentDetails(Base, TimestampMixin):
     

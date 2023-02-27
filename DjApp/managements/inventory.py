@@ -246,7 +246,7 @@ def add_products(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-@permission_required("Manage products")
+@permission_required("manage_products")
 def update_product(request):
     """
     This function is used to update an existing product in the database.
@@ -258,36 +258,63 @@ def update_product(request):
     data = request.data
     session = request.session
 
-    product_name = data.get('product_name')
+    product_id = data.get('product_id')
     new_values = data.get('new_values')
     
-    if not product_name or not new_values:
+    if not product_id or not new_values:
         response = JsonResponse({'error': 'product_id and new_values are required fields'}, status=400)
         add_get_params(response)
         return response
     
-
-
-
     # Get the product with the given id
-    product = session.query(Product).filter_by(name=product_name).one_or_none()
+    product = session.query(Product).get(product_id)
     if not product:
         response = JsonResponse({'error': 'A product with the given id does not exist'}, status=400)
         add_get_params(response)
         return response
     
+    
     # Update the values for each column in the product table
-    for column_name, new_value in new_values.items():
-        setattr(product, column_name, new_value)
+    not_allowed_columns = ['id']
+    response_details = []
+    for index, new_value in enumerate(new_values): # iterate through new_values
+        for column_name, value in new_value.items(): # iterate through the columns in the new_value
+            if column_name in not_allowed_columns:
+                response = JsonResponse({'error': f"Cannot update {column_name} through this endpoint."}, status=400)
+                add_get_params(response)
+                return response
+            if column_name == "supplier_name":
+                supplier = session.query(Supplier).filter_by(name=value).one_or_none()
+                if not supplier:
+                    response_details.append(f"{value} supplier does not exist")
+                    print(f"{value} supplier does not exist")
+                else:
+                    product.supplier_id = supplier.id
+                continue
+            
+            if column_name == "subcategory_name":
+                subcategory = session.query(Subcategory).filter_by(name=value).one_or_none()
+                if not subcategory:
+                    response_details.append(f"{value} subcategory does not exist")
+                    print(f"{value} subcategory does not exist")
+                else:
+                    product.subcategory_id = subcategory.id
+                continue
+                    
+            setattr(product, column_name, value)
 
-    response = JsonResponse({'Success': 'The product has been successfully updated'}, status=200)
+
+
+    response = JsonResponse({'Success': 'The product has been successfully updated',"response_details":response_details}, status=200)
+    add_get_params(response)
+    return response
 
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-@permission_required("Manage products")
+@permission_required("manage_products")
 def delete_product(request):
     """
     This function is used to delete a specific product.
@@ -319,7 +346,7 @@ def delete_product(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-@permission_required("Manage products")
+@permission_required("manage_products")
 def add_product_image(request):
     """
     This function handles the addition of a new image to a product.
@@ -380,7 +407,7 @@ def add_product_image(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-@permission_required("Manage products")
+@permission_required("manage_products")
 def update_product_image(request):
     """
     This function handles updating a product image by changing its title and/or image URL.
@@ -437,7 +464,7 @@ def update_product_image(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-@permission_required("Manage products")
+@permission_required("manage_products")
 def delete_product_image(request):
     """
     Deletes a product image from the database.
@@ -533,7 +560,7 @@ def delete_null_category_subcategories(request):
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
 @login_required
-@permission_required("Manage products")
+@permission_required("manage_products")
 def delete_null_subcategory_products(request):
     """
     This function deletes all products that have a null subcategory_id.

@@ -45,7 +45,8 @@ def get_all_products_by_subcategory_name(request):
         all_products = (session.query(Product)
                         .filter_by(subcategory_id=existing_category.id)
                         .all())
-        products_data = [{'name': product.name, 'description': product.description, 'price': product.price} for product in all_products]
+        
+        products_data = [{'id':product.id, 'name': product.name, 'description': product.description, 'price': product.price} for product in all_products]
         response = JsonResponse({'data': products_data}, status=200)
         add_get_params(response)
         return response
@@ -91,7 +92,7 @@ def get_products_by_category_name(request):
     products = (session.query(Product)
                 .filter(Product.subcategory_id.in_(subcategory_ids))
                 .all())
-    products_data = [{'name': product.name, 'description': product.description, 'price': product.price} for product in products]
+    products_data = [{'id':product.id, 'name': product.name, 'description': product.description, 'price': product.price} for product in products]
 
     response = JsonResponse({'data': products_data}, status=200)
     add_get_params(response)

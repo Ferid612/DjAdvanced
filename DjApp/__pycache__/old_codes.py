@@ -708,7 +708,7 @@ add_new_permission("Cancel orders","This permission allows a user to cancel orde
 add_new_permission("Refund orders","Ability to process refunds for customers, for example, when a product is damaged or the customer has changed their mind.")
 add_new_permission("Manage orders","Allows a user to view, process, and manage orders on the website.")
 add_new_permission("Manage customers","Allows a user to view and manage customer information on the website.")
-add_new_permission("Manage discounts","Allows a user to manage discounts and promo codes on the website.")
+add_new_permission("manage_discounts","Allows a user to manage_discounts and promo codes on the website.")
 add_new_permission("Manage shipping","Allows a user to manage shipping options and shipping rates on the website.")
 add_new_permission("Manage payment","Allows a user to manage payment options and payment processing on the website.")
 add_new_permission("View reports","Allows a user to view and generate various reports related to sales, customers, and products on the website.")
@@ -835,7 +835,7 @@ permission= [
 {'id': 21, 'name': "Refund orders"}, 
 {'id': 22, 'name': "Manage orders"},  
 {'id': 23, 'name': "Manage customers"},  
-{'id': 24, 'name': "Manage discounts"},  
+{'id': 24, 'name': "manage_discounts"},  
 {'id': 25, 'name': "Manage shipping"},  
 {'id': 26, 'name': "Manage payment"},  
 {'id': 27, 'name': "View reports"},  
