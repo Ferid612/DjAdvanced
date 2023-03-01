@@ -4,11 +4,11 @@ from django.http import JsonResponse
 import datetime
 import json
 import jwt
-from DjAdvanced.settings import HOST_URL, engine, SECRET_KEY
+from DjAdvanced.settings import HOST_URL, PROFIL_IMAGE_ROOT, engine, SECRET_KEY
 from DjApp.managements.location import add_address_to_object, update_object_address
 from .mail_sender import create_html_message_with_token, send_verification_code
-from ..helpers import GetErrorDetails, add_get_params, session_scope
-from ..models import Country, Employees, Location, Person, PhoneNumber, Supplier
+from ..helpers import GetErrorDetails, add_get_params, save_uploaded_image, session_scope
+from ..models import Country, Employees, Location, Person, PhoneNumber, ProfilImage, Supplier
 from ..decorators import permission_required, login_required, require_http_methods
 from .tokens import  generate_new_refresh_token,generate_new_access_token 
 from .mail_sender import send_email
@@ -98,6 +98,85 @@ def registration_of_supplier(request):
         return response
 
 
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def add_or_change_supplier_profile_image(request):
+    """
+    This function handles adding or changing a supplier's profile image by receiving a file containing the new image.
+    The function receives the following parameters from the request object:
+    - image: the file containing the new image
+
+    If the image upload is successful, the function returns a JSON response with a success message and the new user's updated information.
+    If an error occurs during the image upload process, the function returns a JSON response with an error message and the error details.
+    """
+    try:
+        # Get the parameters from the request object
+        session = request.session
+        
+        image_file = request.FILES.get('image')
+        image_title = request.data.get("image_title")
+        supplier_id = request.data.get("supplier_id")
+        
+        
+        supplier = session.query(Supplier).get(supplier_id)
+        if not supplier:
+            # If supplier not found
+            response = JsonResponse(
+                {"error": "Supplier id is not correct."},
+                status=400
+            )
+            return response
+
+
+        if not image_file:
+            # If no image file is provided, return an error response
+            response = JsonResponse(
+                {"error": "No image file provided."},
+                status=400
+            )
+            return response
+
+
+        # Save the image file to the server
+        path = PROFIL_IMAGE_ROOT / 'persons'
+        image_path = save_uploaded_image(image_file, path)
+
+
+        
+        old_profil_image = session.query(ProfilImage).filter_by(supplier_id = supplier.id).one_or_none()
+        if old_profil_image:
+            session.delete(old_profil_image)
+            session.commit()
+
+
+        image_data = {
+            "image_url" : image_path,                
+            "title" : image_title,     
+            "supplier_id" : supplier.id 
+        }
+        
+        profil_image = ProfilImage(**image_data)                
+        # Commit the session to the database
+        session.add(profil_image)
+        session.commit()
+
+
+        # Return a success response
+        response = JsonResponse(
+            {"answer": "The profile image has been updated successfully.",
+             "supplier_profil_image": image_data},
+            status=200
+        )
+
+        return response
+    except Exception as e:
+        # Return an error response
+        response = GetErrorDetails(
+            "Something went wrong when updating the profile image.", e, 500)
+        return response    
 
 
 

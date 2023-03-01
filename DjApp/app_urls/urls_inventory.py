@@ -8,6 +8,7 @@ urlpatterns = [
     # VIEWS inventory 
     path('get_products_by_subcategory/', views_inventory.get_all_products_by_subcategory_name, name="Get all products by subcategory name"),
     path('get_products_by_category/', views_inventory.get_products_by_category_name, name="Get all products by category name"),    
+    path('get_products_by_supplier/', views_inventory.get_all_products_by_supplier_name, name="Get all products by supplier name"),    
     path('get_categories_and_subcategories/', views_inventory.get_categories_and_subcategories, name="Get all categories and subcategories name"),    
 
 

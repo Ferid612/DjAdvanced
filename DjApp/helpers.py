@@ -1,8 +1,11 @@
+import os
+import uuid
 from django.utils.html import escape
 from django.http import JsonResponse
 from sqlalchemy.orm import  sessionmaker
 from contextlib import contextmanager
 import json, traceback
+from DjAdvanced import settings
 from DjAdvanced.settings import SECRET_KEY, engine
 
 
@@ -41,6 +44,31 @@ def session_scope():
         raise
     finally:
         session.close()
+
+
+
+def save_uploaded_image(image_file, path ):
+    """
+    Saves an uploaded image file to the server and returns the file path.
+
+    Args:
+        image_file: The uploaded image file.
+
+    Returns:
+        The file path of the saved image.
+    """
+    # Generate a unique filename for the image
+    filename = f"{uuid.uuid4()}.{image_file.name.split('.')[-1]}"
+    # Define the path where the image will be saved
+    save_path = os.path.join(path, filename)
+    # Open a new file and write the uploaded image data to it
+    with open(save_path, 'wb+') as destination:
+        for chunk in image_file.chunks():
+            destination.write(chunk)
+    # Return the file path of the saved image
+    return save_path
+
+
 
 
 def serializer(rows) -> list:

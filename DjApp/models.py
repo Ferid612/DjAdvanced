@@ -100,18 +100,30 @@ class Supplier(Base, TimestampMixin):
     location_id =  Column(Integer, ForeignKey('location.id'), unique=True)
     phone_number_id = Column(Integer, ForeignKey('phone_number.id'), unique=True)
     description = Column(String)
+    cargo_min_limit = Column(Float)
+    cargo_percent = Column(DECIMAL)
     
     products = relationship('Product', back_populates='supplier')  
     phone_number = relationship('PhoneNumber', back_populates='supplier')
     location = relationship('Location', back_populates='supplier')  
+    profil_image = relationship('ProfilImage', back_populates='supplier')  
   
     def to_json(self):
-            return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'location_id': self.location_id,
-            'phone_number_id': self.phone_number_id,
+        if self.profil_image:
+            profil_image_url = self.profil_image[0].image_url 
+            profil_image_title = self.profil_image[0].title 
+        else:
+            profil_image_url= "Not"
+            profil_image_title = "Not" 
+       
+        return {
+        'id': self.id,
+        'name': self.name,
+        'description': self.description,
+        'profil_image': profil_image_url,
+        'profil_image_title': profil_image_title,
+        'location_id': self.location_id,
+        'phone_number_id': self.phone_number_id,
         }
         
   
@@ -130,18 +142,34 @@ class Product(Base, TimestampMixin):
     SKU = Column(String,unique=True,nullable=False)
     description = Column(String)
     
+    cargo_active = Column(Boolean,default=True)
+    
+    
+    
     image = relationship('ProductImage', back_populates='product')
     supplier = relationship('Supplier', back_populates='products')
     subcategory = relationship('Subcategory', back_populates='product')
     comments = relationship('ProductRate', back_populates='product')
     fags = relationship('ProductFag', back_populates='product')
     questions = relationship('ProductQuestion', back_populates='product')
-    
     discount = relationship('ProductDiscount', back_populates='products')
-    cart_items = relationship('cartItem', back_populates='product')
+    cart_items = relationship('CartItem', back_populates='product')
     order_item = relationship('OrderItem', back_populates='product')
        
-        
+    def to_json(self):
+        return {
+        'id': self.id,
+        'name': self.name,
+        'description': self.description,
+        'supplier_id': self.supplier_id,
+        'subcategory_id': self.subcategory_id,
+        'price': self.price,
+        'SKU': self.SKU,
+        'cargo_active': self.cargo_active,
+    }
+              
+              
+              
 class ProductRate(Base, TimestampMixin):
     """
     A table representing the comments of product.
@@ -279,6 +307,7 @@ class Person(Base, TimestampMixin):
     phone_number = relationship('PhoneNumber', back_populates='person')
     employee = relationship('Employees', back_populates='person')
     user = relationship('Users', back_populates='person')
+    profil_image = relationship('ProfilImage', back_populates='person')
     
     
     def hash_password(self, password):
@@ -296,6 +325,12 @@ class Person(Base, TimestampMixin):
     
     
     def to_json(self):
+        if self.profil_image:
+            profil_image_url = self.profil_image[0].image_url 
+            profil_image_title = self.profil_image[0].title 
+        else:
+            profil_image_url= "Not"
+            profil_image_title = "Not" 
         return {
         'id': self.id,
         'username': self.username,
@@ -307,6 +342,10 @@ class Person(Base, TimestampMixin):
         'person_type': self.person_type,
         'phone_verify': self.phone_verify,
         'active': self.active,
+
+        'profil_image': profil_image_url,
+        'profil_image_title': profil_image_title,
+    
         'created_at': self.created_at.isoformat(),
         'updated_at': self.updated_at.isoformat(),
     }
@@ -321,6 +360,31 @@ pwd_context = CryptContext(
 
 
 
+class ProfilImage(Base, TimestampMixin):
+    __tablename__ = 'profil_image'
+    id = Column(Integer, primary_key=True)
+    image_url = Column(String, nullable=False)
+    title = Column(String, nullable=False)  
+    
+    person_id = Column(Integer, ForeignKey('persons.id'), unique=True)
+    supplier_id = Column(Integer, ForeignKey('supplier.id'), unique=True) 
+    
+    supplier = relationship('Supplier', back_populates='profil_image')
+    person = relationship('Person', back_populates='profil_image')
+
+
+    def to_json(self):
+        return {
+        'id': self.id,
+        'image_url': self.image_url,
+        'title': self.title,
+        'person_id': self.person_id,
+        'supplier_id': self.supplier_id,
+        'created_at': self.created_at.isoformat(),
+        'updated_at': self.updated_at.isoformat(),
+    }
+        
+        
 class EmploymentJobs(Base, TimestampMixin):
     
     __tablename__ = 'employment_jobs'
@@ -481,14 +545,15 @@ class ShoppingSession(Base, TimestampMixin):
     user_id = Column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
     
     user = relationship('Users', back_populates='shopping_session')
-    cart_items = relationship('cartItem', back_populates='shopping_session')
+    cart_items = relationship('CartItem', back_populates='shopping_session')
   
     def total(self):
         return sum([item.product.price * item.quantity for item in self.cart_items])
       
   
   
-class cartItem(Base, TimestampMixin):
+  
+class CartItem(Base, TimestampMixin):
     
     __tablename__ = 'cart_item'
     id = Column(Integer, primary_key=True)

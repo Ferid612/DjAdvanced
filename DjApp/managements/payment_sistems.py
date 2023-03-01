@@ -2,7 +2,7 @@ import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjAdvanced.settings import engine
-from DjApp.models import CardItem, ShoppingSession, UserPayment
+from DjApp.models import CartItem, ShoppingSession, UserPayment
 from ..helpers import GetErrorDetails, add_get_params, session_scope
 from ..decorators import login_required, require_http_methods
 

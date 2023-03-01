@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from sqlalchemy import func
 from django.views.decorators.csrf import csrf_exempt
 from DjAdvanced.settings import engine
-from DjApp.models import cartItem, Discount, Product, ProductDiscount, ShoppingSession, UserPayment
+from DjApp.models import CartItem, Discount, Product, ProductDiscount, ShoppingSession, UserPayment
 from ..helpers import GetErrorDetails, add_get_params, session_scope
 from ..decorators import login_required, require_http_methods
 
@@ -62,7 +62,7 @@ def update_shopping_session(request):
             create_shopping_session(request)
             shopping_session = request.shopping_session
             
-        total_of_all_items = session.query(func.sum(Product.price)).join(cartItem).filter(cartItem.session_id==shopping_session.id).all()
+        total_of_all_items = session.query(func.sum(Product.price)).join(CartItem).filter(CartItem.session_id==shopping_session.id).all()
         
         print(total_of_all_items)
         
@@ -119,10 +119,10 @@ def add_or_change_product_in_shopping_session(request):
             return response
 
 
-        cart_item = session.query(cartItem).filter_by(session_id=shopping_session.id, product_id=product_id).first()
+        cart_item = session.query(CartItem).filter_by(session_id=shopping_session.id, product_id=product_id).first()
         if not cart_item:
             # Add the product to the shopping session with the specified quantity
-            cart_item = cartItem(session_id=shopping_session.id, product_id=product_id, quantity=quantity)
+            cart_item = CartItem(session_id=shopping_session.id, product_id=product_id, quantity=quantity)
             session.add(cart_item)
             session.commit()
         else:
@@ -197,7 +197,7 @@ def delete_cart_item(request):
             return response
         
         # Get the cart item to delete
-        cart_item = session.query(cartItem).get(cart_item_id)
+        cart_item = session.query(CartItem).get(cart_item_id)
         if not cart_item:
             response = JsonResponse({'answer': "The cart item could not be found."}, status=400)
             return response

@@ -10,10 +10,12 @@
 -- UPDATE permissions SET name = 'edit products' WHERE  name = 'edit';
 -- ALTER table category alter column NAME set not null;
 -- delete from users where username= 'Farid502' ;
-select * from employee_roles;
+UPDATE supplier SET cargo_percent = 0.4 WHERE  name = 'Samsungs';
+select * from supplier;
+
 -- DELETE FROM user_user_group_role WHERE id NOT IN (SELECT MIN(id) FROM user_user_group_role GROUP BY user_id, user_group_id, role_id);
-DELETE FROM role_permission WHERE id NOT IN (SELECT MIN(id) FROM role_permission GROUP BY  employee_role_id, permission_id);
-select name from permissions;
+-- DELETE FROM role_permission WHERE id NOT IN (SELECT MIN(id) FROM role_permission GROUP BY  employee_role_id, permission_id);
+-- select name from permissions;
 -- select * from phone_number;
 -- ALTER TABLE persons ADD COLUMN person_type VARCHAR(20) NOT NULL CHECK (person_type IN ('user', 'employee'));
 -- ALTER TABLE persons ADD COLUMN person_type VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (person_type IN ('user', 'employee'));

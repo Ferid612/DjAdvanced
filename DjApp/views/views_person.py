@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required,require_http_methods
 from DjApp.helpers import GetErrorDetails, add_get_params, session_scope
 from DjAdvanced.settings import engine
-from DjApp.models import Person
+from DjApp.models import Person, ProfilImage
 # from ..models import Users
 
 
@@ -74,3 +74,38 @@ def get_all_persons_data(request):
     add_get_params(response)
     return response
 
+
+
+
+@csrf_exempt
+@require_http_methods(["GET","POST"])
+def get_person_profil_image(request):
+    data = request.data
+    session = request.session
+    person_id = data.get("person_id")
+    
+    # Query for the user object
+    person = session.query(Person).get(person_id)
+    if not person:
+        # If user is not found, return an error response
+        response = JsonResponse(
+            {'error': "Invalid person id."}, status=401)
+        return response
+
+    
+    profil_image = session.query(ProfilImage).filter_by(person_id=person_id).one_or_none()
+    
+    if not profil_image:
+            # If user is not found, return an error response
+        response = JsonResponse(
+            {'error': "Profil image don't exist."}, status=501)
+        return response
+
+    
+    # Return a success response
+    response = JsonResponse(
+        {"profil_image": profil_image.to_json()},
+        status=200
+    )
+    add_get_params(response)
+    return response

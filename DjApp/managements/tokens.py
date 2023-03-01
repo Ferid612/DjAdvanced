@@ -120,7 +120,7 @@ def check_refresh_token(refresh_token, decoded_refresh_token, person, session):
     """
     
     # Generate a new refresh token if current refresh token has expired
-    refresh_token_expiration_time = datetime.datetime.utcnow() + datetime.timedelta(days=REFRESH_TOKEN_EXPIRATION_TIME)
+    refresh_token_expiration_time = datetime.datetime.utcnow() + datetime.timedelta(days=3)
     if decoded_refresh_token['exp'] <= refresh_token_expiration_time.timestamp():
         refresh_token = generate_new_refresh_token(person, session).get('token')
         

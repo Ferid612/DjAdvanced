@@ -2,7 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import HttpResponse
 from django.http import JsonResponse
 from DjApp.decorators import login_required, require_http_methods
-from ..models import Category, Subcategory, Product
+from ..models import Category, Subcategory, Product, Supplier
 from ..helpers import add_get_params, session_scope
 import traceback, logging
 
@@ -118,5 +118,48 @@ def get_categories_and_subcategories(request):
         subcategories_data = [{'name': subcategory.name} for subcategory in subcategories]
         categories_data.append({'category': category.name, 'subcategories': subcategories_data})
     response = JsonResponse({'data': categories_data}, status=200)
+    add_get_params(response)
+    return response
+
+
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST","GET"])
+@login_required
+def get_all_products_by_supplier_name(request):
+    """
+    This function returns all products that belong to a supplier by given supplier name.
+    The supplier name is passed as a query parameter in the GET request.
+    If the supplier does not exist, it returns a JSON response with an 'Is empty' message.
+    If the supplier_name parameter is not provided in the GET request, it returns a JSON response with an 'error' message.
+    """
+    # Get the subcategory name from the GET request
+    data = request.data
+    session = request.session
+    supplier_name = data.get('supplier_name')
+    supplier_id = data.get('supplier_id')
+    
+    # Check if the supplier_name parameter was provided in the GET request
+    if not (supplier_name or supplier_id):
+       response = JsonResponse({'error': 'supplier_name is a required parameter'}, status=400)
+       add_get_params(response)    
+       return response         
+   
+    supplier = session.query(Supplier).filter_by(name=supplier_name).one_or_none()
+    supplier = supplier or session.query(Supplier).get(supplier_id)
+    
+    if not supplier:
+        response = JsonResponse({'error': 'Supplier does not exist'}, status=400)
+        add_get_params(response)
+        return response
+
+    
+    all_products = session.query(Product).filter_by(supplier_id=supplier.id).all()
+    
+    products_data = [product.to_json() for product in all_products]
+    response = JsonResponse({f'{supplier.name} products': products_data}, status=200)
     add_get_params(response)
     return response

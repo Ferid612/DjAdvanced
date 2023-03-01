@@ -52,6 +52,9 @@ def require_http_methods(request_method_list):
 
             # for the standardization of functions
             request.data = data
+            
+            with session_scope() as session:
+                request.session = session
         
             return func(request, *args, **kwargs)
 
@@ -75,25 +78,24 @@ def login_required(func):
             return response
         
         
-        with session_scope() as session:
-            request.session = session
-            person_and_tokens =  get_person_from_access_token(request,session, access_token)
-            person = person_and_tokens.get('person')
-            if not person:
-                return JsonResponse({'answer':"False",'message': 'Invalid token'}, status=401)
+        session = request.session
+        person_and_tokens =  get_person_from_access_token(request,session, access_token)
+        person = person_and_tokens.get('person')
+        if not person:
+            return JsonResponse({'answer':"False",'message': 'Invalid token'}, status=401)
 
-            request.person = person
-            
-            access_token = person_and_tokens.get('access_token')
-            refresh_token = person_and_tokens.get('refresh_token')
+        request.person = person
         
-                        
-            response = func(request,*args, **kwargs) 
-            
-            response.set_cookie('access_token', access_token)            
-            response.set_cookie('refresh_token', refresh_token)
-            
-            return response
+        access_token = person_and_tokens.get('access_token')
+        refresh_token = person_and_tokens.get('refresh_token')
+    
+                    
+        response = func(request,*args, **kwargs) 
+        
+        response.set_cookie('access_token', access_token)            
+        response.set_cookie('refresh_token', refresh_token)
+        
+        return response
     
     return wrapper
 

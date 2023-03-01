@@ -4,9 +4,12 @@ from DjApp.views import views_supplier
 
 urlpatterns = [
     
-    path('get_all_suppliers/',views_supplier.get_all_suppliers , name="Get alll supplier"),
+    path('get_all_suppliers/',views_supplier.get_all_suppliers , name="Get all supplier"),
+    path('get_suppplier_profil_image/',views_supplier.get_suppplier_profil_image , name="Get supplier profil image"),
     
     path('registration_of_supplier/',suppliers.registration_of_supplier , name="Create new supplier"),
+    path('add_or_change_supplier_profile_image/', suppliers.add_or_change_supplier_profile_image, name="Add profil image to supplier."),    
+    
     path('update_supplier/',suppliers.update_supplier_data , name="Update supplier data"),
     path('delete_supplier/',suppliers.delete_supplier , name="Delete supplier data"),
     

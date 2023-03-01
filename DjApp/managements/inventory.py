@@ -1,11 +1,12 @@
+import os
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from sqlalchemy import DECIMAL, Boolean, DateTime, Float, Column, ForeignKey, Integer, String
 import json
 
-from DjAdvanced.settings import engine
+from DjAdvanced.settings import MEDIA_ROOT, engine
 from ..decorators import permission_required, login_required, require_http_methods
-from ..helpers import GetErrorDetails, add_get_params, session_scope
+from ..helpers import GetErrorDetails, add_get_params, save_uploaded_image, session_scope
 from ..models import Base , Category, ProductImage, Subcategory, Product, Supplier
 
 
@@ -360,39 +361,46 @@ def add_product_image(request):
     try:
         # Get the parameters from the request object
 
+        session = request.session
         data = request.data
         product_id = data.get('product_id')
-        image_url = data.get('image_url')
-        title = data.get('title')
-        session = request.session
+        image_title = request.data.get("image_title")
+        image_file = request.FILES.get('image')
         
-        if not (product_id and image_url and title):
+    
+        if not (product_id or image_file ):
             response = JsonResponse({'answer':'False', 'message':'Missing data error. Product ID, Image URL and Title must be filled'}, status=404)
             add_get_params(response)
             return response
 
-
-
         
         # Check if the product exists
-        product = session.query(Product).filter_by(id=product_id).first()
+        product = session.query(Product).get(product_id)
+        
         if not product:
             response = JsonResponse({'answer':'False', 'message':'Product with the given ID does not exist'}, status=404)
             add_get_params(response)
             return response
+
+        # Check if the folder for the product images exists, and create it if it doesn't
+        folder_path = MEDIA_ROOT / 'product_images' / product.supplier.name
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        image_path = save_uploaded_image(image_file, folder_path)
         
         # Create a new image object with the given parameters
         new_image = ProductImage(
             product_id=product_id,
-            image_url=image_url,
-            title=title
+            image_url=image_path,
+            title=image_title
         )
         
         # Add the new image to the database and commit the changes
         session.add(new_image)
     
         # Return a JSON response with a success message and the new image's information
-        response = JsonResponse({"Success":"The new image has been successfully added to the product.", "product_id": product_id, "image_url": image_url, "title": title}, status=200)
+        response = JsonResponse({"Success":"The new image has been successfully added to the product.", "product_id": product_id, "image_url": image_path, "title": image_title}, status=200)
         add_get_params(response)
         return response
 
