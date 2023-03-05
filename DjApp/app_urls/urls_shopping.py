@@ -1,6 +1,6 @@
 from django.urls import  path
 from DjApp.views import views_shopping 
-from DjApp.managements import shopping 
+from DjApp.managements_controller import shopping 
 
 urlpatterns = [
     # VIEWS SHOPPING

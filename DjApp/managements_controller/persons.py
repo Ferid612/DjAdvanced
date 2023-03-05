@@ -5,7 +5,7 @@ import datetime
 import json
 import jwt
 from DjAdvanced.settings import HOST_URL, PROFIL_IMAGE_ROOT, engine, SECRET_KEY
-from DjApp.managements.location import add_address_to_object, update_object_address
+from DjApp.managements_controller.location import add_address_to_object, update_object_address
 from .mail_sender import create_html_message_with_token, send_verification_code
 from ..helpers import GetErrorDetails, add_get_params, save_uploaded_image, session_scope
 from ..models import Country, Employees, Location, Person, PhoneNumber, ProfilImage, Users

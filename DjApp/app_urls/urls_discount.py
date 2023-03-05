@@ -1,6 +1,6 @@
 from django.urls import  path
 from DjApp.views import views_discount
-from DjApp.managements import product_discount 
+from DjApp.managements_controller import product_discount 
 
 
 urlpatterns = [

@@ -1,6 +1,6 @@
 
 from django.urls import  path
-from DjApp.managements import inventory 
+from DjApp.managements_controller import inventory 
 from DjApp.views import views_inventory
 
 urlpatterns = [

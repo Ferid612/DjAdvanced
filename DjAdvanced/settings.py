@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY") or ""
 
@@ -54,6 +53,21 @@ auth_token = os.getenv("auth_token")
 verify_sid = os.getenv("verify_sid") 
 
 
+# AUTH0
+# AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
+# AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
+# AUTH0_CLIENT_ID="FKxBLxDlHpptOBG3oc0f5gRG1ys5svmx"
+# AUTH0_DOMAIN="dev-xrvdjg4v1xa41kws.eu.auth0.com"
+
+
+AUTH0_CLIENT_ID="ualhORzYGKAOIqk3yy9c0xVO0nNJHPuv"
+APP_SECRET_KEY="ALongRandomlyGeneratedString"
+AUTH0_CLIENT_SECRET="jPKrWxGTCzdPg8azDGqs4Sq0eZpKwBwgrPhOXGkoISzuf23mknxd7of_1KDsiwh0"
+AUTH0_DOMAIN="dev-xrvdjg4v1xa41kws.eu.auth0.com"
+
+
+
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -79,7 +93,7 @@ ROOT_URLCONF = 'DjAdvanced.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR,'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -101,13 +115,15 @@ WSGI_APPLICATION = 'DjAdvanced.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': DATABASE_NAME,
+        'NAME': 'postgres',
+        # 'NAME':DATABASE_NAME,
         'USER': DATABASE_USER,
         'PASSWORD': DATABASE_PASSWORD,
         'HOST': DATABASE_SERVER,
         'PORT': DATABASE_PORT,
     }
 }
+
 
 
 # Password validation
@@ -148,7 +164,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+

@@ -1,5 +1,5 @@
 from django.urls import path
-from DjApp.managements import suppliers
+from DjApp.managements_controller import suppliers
 from DjApp.views import views_supplier
 
 urlpatterns = [

@@ -1,6 +1,6 @@
 from django.urls import  path
 from DjApp.views import views_roles_and_groups
-from DjApp.managements import roles_and_groups 
+from DjApp.managements_controller import roles_and_groups 
 
 
 urlpatterns = [

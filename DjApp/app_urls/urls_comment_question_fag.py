@@ -1,5 +1,5 @@
 from django.urls import  path
-from DjApp.managements import fag_and_comments 
+from DjApp.managements_controller import fag_and_comments 
 
 urlpatterns = [
         
