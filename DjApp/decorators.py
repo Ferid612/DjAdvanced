@@ -141,7 +141,7 @@ def permission_required(*permission_names):
         
             # Check if the user has all of the required permissions
             if not all(name in person_permission_names for name in permission_names):
-                response =  JsonResponse({'answer':"False",'message': 'You do not have permission to access this resource.'}, status=401)
+                response =  JsonResponse({'answer':"False",'message': 'You do not have permission to access this resource.'}, status=403)
                 add_get_params(response)
                 return response
                 

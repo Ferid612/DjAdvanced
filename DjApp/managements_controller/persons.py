@@ -273,7 +273,7 @@ def update_person_address(request):
 
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["POST", "OPTIONS"])
 def login(request):
     """
     This function handles user login by authenticating the user's credentials and returning a JWT token and a refresh token.
@@ -289,6 +289,15 @@ def login(request):
     username = data.get('username')
     password = data.get('password')
 
+    if not (username and password):
+        # If user is not found, return an error response
+        response = JsonResponse(
+            {'error': "Username and password must be include."}, status=411)
+        
+        add_get_params(response)
+        return response
+    
+    
     # Start a new database session
     with session_scope() as session:
 
@@ -298,24 +307,28 @@ def login(request):
         if not person:
             # If user is not found, return an error response
             response = JsonResponse(
-                {'error': "Invalid username."}, status=401)
+                {'error': "Invalid username."}, status=411)
+            
+            add_get_params(response)
             return response
 
         if not person.verify_password(password):
             # If password is incorrect, return an error response
             response = JsonResponse(
                 {'error': "Invalid password."}, status=401)
+            add_get_params(response)
             return response
 
- 
+
 
         refresh_token = generate_new_refresh_token(person,session).get('token')
         access_token = generate_new_access_token(person.id).get('token')
 
 
+
         # Return the access token and the refresh token in the response
         response = JsonResponse(
-            {"answerr": "Login successful.",
+            {"answer": "Login successful.",
             'person': person.to_json(),
             "access_token": access_token,
             "refresh_token": refresh_token},
@@ -329,7 +342,7 @@ def login(request):
         
         add_get_params(response)
         return response
-
+   
 
 
 @csrf_exempt
