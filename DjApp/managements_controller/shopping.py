@@ -116,6 +116,8 @@ def add_or_change_product_in_shopping_session(request):
         if not product:
             # If phone number already exists, return an error response
             response = JsonResponse({'answer': "Invalid product id."}, status=400)
+
+            add_get_params(response)
             return response
 
 
@@ -160,6 +162,7 @@ def add_or_change_product_in_shopping_session(request):
              },
             status=200
         )
+        add_get_params(response)
         
         return response
 
@@ -194,12 +197,15 @@ def delete_cart_item(request):
         shopping_session = session.query(ShoppingSession).filter_by(user_id=user.id).first()
         if not shopping_session:
             response = JsonResponse({'answer': "The session data of the user could not be found."}, status=400)
+            add_get_params(response)
+        
             return response
         
         # Get the cart item to delete
         cart_item = session.query(CartItem).get(cart_item_id)
         if not cart_item:
             response = JsonResponse({'answer': "The cart item could not be found."}, status=400)
+            add_get_params(response)
             return response
         
         # Delete the cart item
@@ -216,6 +222,8 @@ def delete_cart_item(request):
             status=200
         )
         
+            
+        add_get_params(response)
         return response
         
     except Exception as e:

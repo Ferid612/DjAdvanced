@@ -95,6 +95,7 @@ def login_required(func):
         response.set_cookie('access_token', access_token)            
         response.set_cookie('refresh_token', refresh_token)
         
+        add_get_params(response)
         return response
     
     return wrapper
@@ -149,3 +150,4 @@ def permission_required(*permission_names):
             return f(request,*args, **kwargs)
         return wrapper
     return decorator
+

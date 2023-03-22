@@ -29,6 +29,7 @@ def add_country(request):
 
         if not (country_code and country_name and currency_code):
             response = JsonResponse({'message': 'Missing data error. Country code, country name, and currency code must be filled.'}, status=400)
+            add_get_params(response)
             return response
 
         # Create a new country object with the given parameters
@@ -44,11 +45,15 @@ def add_country(request):
 
         # Return a JSON response with a success message and the country's information
         response = JsonResponse({'message': 'Country added successfully.', 'country_id': new_country.id, 'country_code': country_code, 'country_name': country_name, 'currency_code': currency_code}, status=200)
+        add_get_params(response)
+      
         return response
 
     except Exception as e:
         # Return a JSON response with an error message and the error details
         response = GetErrorDetails('Something went wrong when adding the country.', e, 500)
+        add_get_params(response)
+      
         return response
 
 
@@ -206,7 +211,7 @@ def update_object_address(request,updated_object):
     new_values = data.get('new_values')
     if not new_values:
         response = JsonResponse(
-            {'error': 'new_values are required fields'}, status=400)
+            {'answer': 'new_values are required fields'}, status=400)
         add_get_params(response)
         return response
 

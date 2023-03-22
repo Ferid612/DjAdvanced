@@ -152,11 +152,15 @@ def send_verification_code_after_login(request):
         response = JsonResponse({
             "answer": f"The new token has been successfully sent to {email}. Please check your email account and verify your account."
         }, status=200)
+
+        add_get_params(response)
         return response
 
     except Exception as e:
         # If there was an error sending the email, return the error details 
         response = GetErrorDetails("Something went wrong when sending verification code.", e, 500)
+        add_get_params(response)
+
         return response
 
 
@@ -174,16 +178,17 @@ def verify_account(request):
         # db.session.commit()
         response = JsonResponse({"answer":"True","message":"Your account has been verified. Please log in to continue.",},status=200)
         add_get_params(response)
+     
         return response
 
 
     except jwt.ExpiredSignatureError:
-        response =  JsonResponse({"answer":"False",'Error':'The verification link has expired. Please register again.',},status=400)
+        response =  JsonResponse({"answer":"False",'answer':'The verification link has expired. Please register again.',},status=400)
         add_get_params(response)        
         return response
     
     except jwt.InvalidTokenError:
-        response =  JsonResponse({"answer":"False",'Error':'Invalid token.'},status=400)
+        response =  JsonResponse({"answer":"False",'answer':'Invalid token.'},status=400)
         add_get_params(response)
         return response
 

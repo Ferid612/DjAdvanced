@@ -1112,7 +1112,7 @@ def add_products_to_subcategory(request):
     subcategory_name = request.POST.get('subcategory_name')
     product_list = request.POST.getlist('product_list')
     if not subcategory_name or not product_list:
-        response =  JsonResponse({'error': 'subcategory_name and product_list are required fields'}, status=400)
+        response =  JsonResponse({'answer': 'subcategory_name and product_list are required fields'}, status=400)
         add_get_params(response)
         return response
     

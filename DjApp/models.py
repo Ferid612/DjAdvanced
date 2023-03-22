@@ -345,7 +345,8 @@ class Person(Base, TimestampMixin):
 
         'profil_image': profil_image_url,
         'profil_image_title': profil_image_title,
-    
+        'access_token':'',
+        'refresh_token':'',
         'created_at': self.created_at.isoformat(),
         'updated_at': self.updated_at.isoformat(),
     }

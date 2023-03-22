@@ -2,7 +2,9 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import requests
+from DjApp.helpers import add_get_params
 from DjApp.decorators import require_http_methods
+
 
 
 def get_client_ip(request):
@@ -30,6 +32,7 @@ def get_person_location(request):
     resp_text = json.loads(response.text)
         
     response = JsonResponse({"ip_data": resp_text},status=200)
+    add_get_params(response)
     
     return response
 
@@ -59,6 +62,8 @@ def image_search(request):
         
     response = JsonResponse({"ip_data": resp_text},status=200)
     
+    add_get_params(response)
+    
     return response
 
 
@@ -85,6 +90,7 @@ def web_search(request):
         
     response = JsonResponse({"ip_data": resp_text},status=200)
     
+    add_get_params(response)
     return response
 
 

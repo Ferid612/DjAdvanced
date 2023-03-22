@@ -21,7 +21,7 @@ def get_all_products_by_subcategory_name(request):
     This function returns all products that belong to a subcategory by given subcategory name.
     The subcategory name is passed as a query parameter in the GET request.
     If the subcategory does not exist, it returns a JSON response with an 'Is empty' message.
-    If the subcategory_name parameter is not provided in the GET request, it returns a JSON response with an 'error' message.
+    If the subcategory_name parameter is not provided in the GET request, it returns a JSON response with an 'answer' message.
     """
     # Get the subcategory name from the GET request
     data = request.data
@@ -30,7 +30,7 @@ def get_all_products_by_subcategory_name(request):
     
     # Check if the subcategory_name parameter was provided in the GET request
     if not subcategory_name:
-        response = JsonResponse({'error': 'subcategory_name is a required parameter'}, status=400)
+        response = JsonResponse({'answer': 'subcategory_name is a required parameter'}, status=400)
 
 
     # Try to find the subcategory by name in both the Category and Subcategory tables
@@ -72,14 +72,14 @@ def get_products_by_category_name(request):
     category_name = data.get('category_name')
     
     if not category_name:
-        response = JsonResponse({'error': 'category_name is a required parameter'}, status=400)
+        response = JsonResponse({'answer': 'category_name is a required parameter'}, status=400)
         add_get_params(response)
         return response
 
     # Get the category object
     category = session.query(Category).filter_by(name=category_name).first()
     if not category:
-        response = JsonResponse({'error': f"{category_name} does not exist in the category table."}, status=404)
+        response = JsonResponse({'answer': f"{category_name} does not exist in the category table."}, status=404)
         add_get_params(response)
         return response
 
@@ -134,7 +134,7 @@ def get_all_products_by_supplier_name(request):
     This function returns all products that belong to a supplier by given supplier name.
     The supplier name is passed as a query parameter in the GET request.
     If the supplier does not exist, it returns a JSON response with an 'Is empty' message.
-    If the supplier_name parameter is not provided in the GET request, it returns a JSON response with an 'error' message.
+    If the supplier_name parameter is not provided in the GET request, it returns a JSON response with an 'answer' message.
     """
     # Get the subcategory name from the GET request
     data = request.data
@@ -144,7 +144,7 @@ def get_all_products_by_supplier_name(request):
     
     # Check if the supplier_name parameter was provided in the GET request
     if not (supplier_name or supplier_id):
-       response = JsonResponse({'error': 'supplier_name is a required parameter'}, status=400)
+       response = JsonResponse({'answer': 'supplier_name is a required parameter'}, status=400)
        add_get_params(response)    
        return response         
    
@@ -152,7 +152,7 @@ def get_all_products_by_supplier_name(request):
     supplier = supplier or session.query(Supplier).get(supplier_id)
     
     if not supplier:
-        response = JsonResponse({'error': 'Supplier does not exist'}, status=400)
+        response = JsonResponse({'answer': 'Supplier does not exist'}, status=400)
         add_get_params(response)
         return response
 

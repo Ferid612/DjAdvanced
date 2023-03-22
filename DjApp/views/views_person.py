@@ -89,7 +89,7 @@ def get_person_profil_image(request):
     if not person:
         # If user is not found, return an error response
         response = JsonResponse(
-            {'error': "Invalid person id."}, status=401)
+            {'answer': "Invalid person id."}, status=401)
         return response
 
     
@@ -98,7 +98,7 @@ def get_person_profil_image(request):
     if not profil_image:
             # If user is not found, return an error response
         response = JsonResponse(
-            {'error': "Profil image don't exist."}, status=501)
+            {'answer': "Profil image don't exist."}, status=501)
         return response
 
     

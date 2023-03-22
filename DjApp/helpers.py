@@ -20,6 +20,7 @@ def GetErrorDetails(from_dev="Something went wrong.", e=Exception , status=400):
     }
     traceback.print_tb(e.__traceback__)
     response = JsonResponse(error_data,status=status)
+    add_get_params(response)
     return response
 
 

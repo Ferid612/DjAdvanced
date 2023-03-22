@@ -142,7 +142,7 @@ def add_subcategory(request):
         parent = session.query(Category).filter_by(name=parent_name).one_or_none()
 
     if not ( parent and sub_parent):
-        return JsonResponse({'error': f"Parent {parent_name} does not exist."}, status=400)
+        return JsonResponse({'answer': f"Parent {parent_name} does not exist."}, status=400)
 
     elif sub_parent:
         new_subcategories = [{'name': s, 'category_id': sub_parent.category_id , 'parent_id': sub_parent.id} for s in added_categories]
@@ -192,7 +192,7 @@ def add_products(request):
 
     
     if not (subcategory_name and product_list):
-        response = JsonResponse({'error': 'subcategory_name and product_list are required fields'}, status=400)
+        response = JsonResponse({'answer': 'subcategory_name and product_list are required fields'}, status=400)
         add_get_params(response)
         return response
 
@@ -201,13 +201,13 @@ def add_products(request):
     supplier = session.query(Supplier).filter_by(name=supplier_name).one_or_none()
 
     if not supplier:
-        response = JsonResponse({'error': f'There is no Supplier named {supplier_name}'}, status=400)
+        response = JsonResponse({'answer': f'There is no Supplier named {supplier_name}'}, status=400)
         add_get_params(response)
         return response
 
     subcategory = session.query(Subcategory).filter_by(name=subcategory_name).one_or_none()
     if not subcategory:
-        response = JsonResponse({'error': f'There is no sub_category named {subcategory_name}'}, status=400)
+        response = JsonResponse({'answer': f'There is no sub_category named {subcategory_name}'}, status=400)
         add_get_params(response)
         return response
     
@@ -263,14 +263,14 @@ def update_product(request):
     new_values = data.get('new_values')
     
     if not product_id or not new_values:
-        response = JsonResponse({'error': 'product_id and new_values are required fields'}, status=400)
+        response = JsonResponse({'answer': 'product_id and new_values are required fields'}, status=400)
         add_get_params(response)
         return response
     
     # Get the product with the given id
     product = session.query(Product).get(product_id)
     if not product:
-        response = JsonResponse({'error': 'A product with the given id does not exist'}, status=400)
+        response = JsonResponse({'answer': 'A product with the given id does not exist'}, status=400)
         add_get_params(response)
         return response
     
@@ -281,7 +281,7 @@ def update_product(request):
     for index, new_value in enumerate(new_values): # iterate through new_values
         for column_name, value in new_value.items(): # iterate through the columns in the new_value
             if column_name in not_allowed_columns:
-                response = JsonResponse({'error': f"Cannot update {column_name} through this endpoint."}, status=400)
+                response = JsonResponse({'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
                 add_get_params(response)
                 return response
             if column_name == "supplier_name":
@@ -332,7 +332,7 @@ def delete_product(request):
     product = session.query(Product).filter_by(name=product_name).first()
 
     if not product:
-        response = JsonResponse({'error': f'No product found with product.name {product_name}'}, status=404)
+        response = JsonResponse({'answer': f'No product found with product.name {product_name}'}, status=404)
         add_get_params(response)
         return response
     session.delete(product)

@@ -51,7 +51,9 @@ def registration_of_supplier(request):
         if not country:
             # If country is not found, return an error response
             response = JsonResponse(
-                {'error': "Country code not found."}, status=400)
+                {'answer': "Country code not found."}, status=400)
+
+            add_get_params(response)
             return response
 
         # Query for the phone number object
@@ -61,7 +63,9 @@ def registration_of_supplier(request):
         if phone:
             # If phone number already exists, return an error response
             response = JsonResponse(
-                {'error': "This phone number belongs to another supplier account."}, status=400)
+                {'answer': "This phone number belongs to another supplier account."}, status=400)
+    
+            add_get_params(response)
             return response
 
         # Create a new phone number object
@@ -90,11 +94,13 @@ def registration_of_supplier(request):
             status=200
         )
 
+        add_get_params(response)
         return response
     except Exception as e:
         # Return an error response
         response = GetErrorDetails(
             "Something went wrong when creating the supplier account.", e, 500)
+
         return response
 
 
@@ -128,6 +134,9 @@ def add_or_change_supplier_profile_image(request):
                 {"error": "Supplier id is not correct."},
                 status=400
             )
+            
+            add_get_params(response)
+
             return response
 
 
@@ -137,6 +146,8 @@ def add_or_change_supplier_profile_image(request):
                 {"error": "No image file provided."},
                 status=400
             )
+            add_get_params(response)
+            
             return response
 
 
@@ -171,11 +182,14 @@ def add_or_change_supplier_profile_image(request):
             status=200
         )
 
+        add_get_params(response)
         return response
     except Exception as e:
         # Return an error response
         response = GetErrorDetails(
             "Something went wrong when updating the profile image.", e, 500)
+        
+        add_get_params(response)
         return response    
 
 
@@ -212,7 +226,7 @@ def update_supplier_data(request):
     # Check that required parameters are present and valid
     if not supplier_name or not new_values:  # check if supplier_id and/or new_values are missing
         response = JsonResponse(
-            {'error': 'supplier_name and new_values are required fields'}, status=400)
+            {'answer': 'supplier_name and new_values are required fields'}, status=400)
         add_get_params(response)
         return response
 
@@ -221,7 +235,7 @@ def update_supplier_data(request):
 
     if not supplier:  # check if supplier object is found
         response = JsonResponse(
-            {'error': f"Could not find supplier with name {supplier_name}"}, status=404)
+            {'answer': f"Could not find supplier with name {supplier_name}"}, status=404)
         add_get_params(response)
         return response
 
@@ -233,7 +247,7 @@ def update_supplier_data(request):
         for column_name, value in new_value.items():
             if column_name in not_allowed_columns:  # check if the column is disallowed
                 response = JsonResponse(
-                    {'error': f"Cannot update {column_name} through this endpoint."}, status=400)
+                    {'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
                 add_get_params(response)
                 return response
 
@@ -275,7 +289,7 @@ def delete_supplier(request):
     # Check that required parameters are present and valid
     if not supplier_name:
         response = JsonResponse(
-            {'error': 'supplier_name is a required field'}, status=400)
+            {'answer': 'supplier_name is a required field'}, status=400)
         add_get_params(response)
         return response
 
@@ -285,7 +299,7 @@ def delete_supplier(request):
     # Check if the supplier exists
     if not supplier:
         response = JsonResponse(
-            {'error': f'Supplier {supplier_name} not found'}, status=404)
+            {'answer': f'Supplier {supplier_name} not found'}, status=404)
         add_get_params(response)
         return response
 

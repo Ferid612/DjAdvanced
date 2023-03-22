@@ -7,7 +7,7 @@ import jwt
 from DjAdvanced.settings import HOST_URL, PROFIL_IMAGE_ROOT, engine, SECRET_KEY
 from DjApp.managements_controller.location import add_address_to_object, update_object_address
 from .mail_sender import create_html_message_with_token, send_verification_code
-from ..helpers import GetErrorDetails, add_get_params, save_uploaded_image, session_scope
+from ..helpers import GetErrorDetails, add_get_params,  save_uploaded_image, session_scope
 from ..models import Country, Employees, Location, Person, PhoneNumber, ProfilImage, Users
 from ..decorators import permission_required, login_required, require_http_methods
 from .tokens import  generate_new_refresh_token,generate_new_access_token 
@@ -70,9 +70,11 @@ def create_person_registration(request):
     # Validate the new password meets the required complexity criteria
     if not is_valid_password(password):
         response = JsonResponse(
-            {"error": "The new password does not meet the required complexity criteria."},
+            {"answer": "The new password does not meet the required complexity criteria."},
             status=400
         )
+
+        add_get_params(response)
         return response
     
     # Start a new database session
@@ -85,7 +87,8 @@ def create_person_registration(request):
         if not country:
             # If country is not found, return an error response
             response = JsonResponse(
-                {'error': "Country code not found."}, status=400)
+                {'answer': "Country code not found."}, status=400)
+            add_get_params(response)
             return response
 
         # Query for the phone number object
@@ -95,7 +98,9 @@ def create_person_registration(request):
         if phone:
             # If phone number already exists, return an error response
             response = JsonResponse(
-                {'error': "This phone number belongs to another account."}, status=400)
+                {'answer': "This phone number belongs to another account."}, status=400)
+        
+            add_get_params(response)
             return response
 
 
@@ -106,7 +111,9 @@ def create_person_registration(request):
         if user_name:
             # If phone number already exists, return an error response
             response = JsonResponse(
-                {'error': "This username belongs to another account."}, status=400)
+                {'answer': "This username belongs to another account."}, status=400)
+          
+            add_get_params(response)
             return response
 
 
@@ -118,7 +125,8 @@ def create_person_registration(request):
         if user_mail:
             # If phone number already exists, return an error response
             response = JsonResponse(
-                {'error': "This user_mail belongs to another account."}, status=400)
+                {'answer': "This user_mail belongs to another account."}, status=400)
+            add_get_params(response)
             return response
 
 
@@ -172,11 +180,12 @@ def create_person_registration(request):
 
 
         # Return a success response
+        person_json = new_person.to_json()
+        person_json['access_token']=access_token
+        person_json['refresh_token']=refresh_token
         response = JsonResponse(
             {"answer": "The new account has been successfully created. Please check your email account and verify your account.",
-                "refresh_token":refresh_token,
-                "access_token":access_token,
-                "person":new_person.to_json(),
+                "person":person_json,
                 "send_verify_status_code":send_verify_status_code,
                 "send_verify_status_text":send_verify_status_text,
                 
@@ -188,6 +197,7 @@ def create_person_registration(request):
         response.set_cookie('access_token', access_token)            
         response.set_cookie('refresh_token', refresh_token)
         
+        add_get_params(response)
         return response
 
 
@@ -220,6 +230,8 @@ def add_or_change_person_profile_image(request):
                 {"error": "No image file provided."},
                 status=400
             )
+            add_get_params(response)
+            
             return response
 
         # Save the image file to the server
@@ -252,12 +264,14 @@ def add_or_change_person_profile_image(request):
              "person_profil_image": image_data},
             status=200
         )
-
+        
+        add_get_params(response)
         return response
     except Exception as e:
         # Return an error response
         response = GetErrorDetails(
             "Something went wrong when updating the profile image.", e, 500)
+        add_get_params(response)
         return response    
     
 
@@ -310,10 +324,11 @@ def login(request):
     if not (username and password):
         # If user is not found, return an error response
         response = JsonResponse(
-            {'error': "Username and password must be include."}, status=411)
+            {'answer': "Username and password must be include."}, status=411)
         
         add_get_params(response)
         return response
+    
     
     
     # Start a new database session
@@ -325,7 +340,7 @@ def login(request):
         if not person:
             # If user is not found, return an error response
             response = JsonResponse(
-                {'error': "Invalid username."}, status=411)
+                {'answer': "Invalid username."}, status=411)
             
             add_get_params(response)
             return response
@@ -333,7 +348,7 @@ def login(request):
         if not person.verify_password(password):
             # If password is incorrect, return an error response
             response = JsonResponse(
-                {'error': "Invalid password."}, status=401)
+                {'answer': "Invalid password."}, status=401)
             add_get_params(response)
             return response
 
@@ -345,11 +360,13 @@ def login(request):
 
 
         # Return the access token and the refresh token in the response
+        person_json = person.to_json()
+        person_json['access_token']=access_token
+        person_json['refresh_token']=refresh_token
         response = JsonResponse(
             {"answer": "Login successful.",
-            'person': person.to_json(),
-            "access_token": access_token,
-            "refresh_token": refresh_token},
+            'person': person_json,
+            },
             status=200
         )
 
@@ -389,6 +406,7 @@ def logout(request):
     response.set_cookie('access_token', '')            
     response.set_cookie('refresh_token', '')
     
+    add_get_params(response)
     return response
 
 
@@ -410,7 +428,10 @@ def change_password(request):
     if not person.verify_password(current_password):
         # If password is incorrect, return an error response
         response = JsonResponse(
-            {'error': "Invalid current_password password."}, status=401)
+            {'answer': "Invalid current_password password."}, status=401)
+
+
+        add_get_params(response)
         return response
 
 
@@ -420,6 +441,8 @@ def change_password(request):
             {"error": "The new password does not meet the required complexity criteria."},
             status=400
         )
+        
+        add_get_params(response)
         return response
     
     if confirm_new_password != new_password:
@@ -427,6 +450,8 @@ def change_password(request):
             {"error": "The new password does not meet the confirm new password."},
             status=400
         )
+        
+        add_get_params(response)
         return response
     
     
@@ -501,7 +526,7 @@ def update_person(request):
     # Check that required parameters are present and valid
     if not new_values: # check if new_values are missing
         response = JsonResponse(
-            {'error': 'new_values are required fields'}, status=400)
+            {'answer': 'new_values are required fields'}, status=400)
         add_get_params(response)
         return response
     
@@ -515,7 +540,7 @@ def update_person(request):
         for column_name, value in new_value.items(): # iterate through the columns in the new_value
             if column_name in not_allowed_column:  # check if the column is disallowed
                 response = JsonResponse(
-                {'error': f"Cannot update {column_name} through this endpoint."}, status=400)
+                {'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
                 add_get_params(response)
                 return response
 
@@ -597,7 +622,9 @@ def send_password_reset_link(request):
         if not person:
             # If user is not found, return an error response
             response = JsonResponse(
-                {'error': "No user account associated with this email address."}, status=400)
+                {'answer': "No user account associated with this email address."}, status=400)
+          
+            add_get_params(response)
             return response
 
         # Construct the password reset link
@@ -620,6 +647,7 @@ def send_password_reset_link(request):
                 "email": email},
             status=200
         )
+        add_get_params(response)
         return response
 
 
@@ -656,7 +684,8 @@ def give_reset_password_permission(request):
 
             # If user is not found, return an error response
             if not person:
-                response = JsonResponse({'error': "No person account associated with this username."}, status=400)
+                response = JsonResponse({'answer': "No person account associated with this username."}, status=400)
+                add_get_params(response)
                 return response
 
             if email:
@@ -719,6 +748,8 @@ def reset_password(request):
             {"error": "The new password does not meet the required complexity criteria."},
             status=400
         )
+        
+        add_get_params(response)
         return response
 
     # Validate the new password matches its confirmation
@@ -727,6 +758,8 @@ def reset_password(request):
             {"error": "The new password is not the same as the confirmation password."},
             status=400
         )
+        
+        add_get_params(response)
         return response
 
     person.hash_password(new_password)

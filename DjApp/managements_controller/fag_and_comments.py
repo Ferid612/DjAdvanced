@@ -193,6 +193,7 @@ def add_fag(request):
     if not product:
         # If the product doesn't exist, return an error response
         response = JsonResponse({'answer': "Invalid product id."}, status=400)
+        
         return response
 
     # Create a new fag object and add it to the product
@@ -209,6 +210,8 @@ def add_fag(request):
             },
         status=200
     )
+
+    add_get_params(response)
     return response
 
 
@@ -247,6 +250,8 @@ def update_fag(request):
     if not fag_obj:
         # If the fag object doesn't exist, return an error response
         response = JsonResponse({'answer': "Invalid fag id."}, status=400)
+        
+        add_get_params(response)
         return response
 
     # Update the fag object with the new values
@@ -298,6 +303,7 @@ def delete_fag(request):
     if not fag_obj:
         # If the fag object doesn't exist, return an error response
         response = JsonResponse({'answer': "Invalid fag id."}, status=400)
+        add_get_params(response)
         return response
 
     # Delete the fag object from the database
