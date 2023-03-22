@@ -54,110 +54,133 @@ def create_person_registration(request):
     If the account creation is successful, the function returns a JSON response with a success message and the new user's information.
     If an error occurs during the account creation process, the function returns a JSON response with an error message and the error details.
     """
-    try:
-        # Get the parameters from the request object
-        data = request.data
-        username = data.get('username')
-        email = data.get('email')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        password = data.get('password')
-        user_country_code = data.get('country_code')
-        phone_number = data.get('phone_number')
-        person_type = data.get('person_type')
+    # Get the parameters from the request object
+    data = request.data
+    username = data.get('username')
+    email = data.get('email')
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+    password = data.get('password')
+    user_country_code = data.get('country_code')
+    phone_number = data.get('phone_number')
+    person_type = data.get('person_type')
 
 
 
-        # Validate the new password meets the required complexity criteria
-        if not is_valid_password(password):
+    # Validate the new password meets the required complexity criteria
+    if not is_valid_password(password):
+        response = JsonResponse(
+            {"error": "The new password does not meet the required complexity criteria."},
+            status=400
+        )
+        return response
+    
+    # Start a new database session
+    with session_scope() as session:
+
+        # Query for the country object
+        country = session.query(Country).filter_by(
+            country_code=user_country_code).one_or_none()
+
+        if not country:
+            # If country is not found, return an error response
             response = JsonResponse(
-                {"error": "The new password does not meet the required complexity criteria."},
-                status=400
-            )
+                {'error': "Country code not found."}, status=400)
             return response
+
+        # Query for the phone number object
+        phone = session.query(PhoneNumber).filter_by(
+            phone_number=phone_number).one_or_none()
+
+        if phone:
+            # If phone number already exists, return an error response
+            response = JsonResponse(
+                {'error': "This phone number belongs to another account."}, status=400)
+            return response
+
+
+        # Query for the phone number object
+        user_name = session.query(Person).filter_by(
+            username=username).one_or_none()
+
+        if user_name:
+            # If phone number already exists, return an error response
+            response = JsonResponse(
+                {'error': "This username belongs to another account."}, status=400)
+            return response
+
+
+
+        # Query for the phone number object
+        user_mail = session.query(Person).filter_by(
+            email=email).one_or_none()
+
+        if user_mail:
+            # If phone number already exists, return an error response
+            response = JsonResponse(
+                {'error': "This user_mail belongs to another account."}, status=400)
+            return response
+
+
+        # Create a new phone number object
+        new_phone = PhoneNumber(
+            phone_number=phone_number,
+            country_code=user_country_code,
+            phone_type_id=1
+        )
+
+        # Create a new person object
+        new_person = Person(
+            username=username,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            phone_number=new_phone,
+            person_type = person_type
+        )
+
+        # Set the password for the new user object
+        new_person.hash_password(password)
+
+        # Generate a JWT token with a specified expiration time of 240 hours
         
-        # Start a new database session
-        with session_scope() as session:
+                    
 
-            # Query for the country object
-            country = session.query(Country).filter_by(
-                country_code=user_country_code).one_or_none()
-
-            if not country:
-                # If country is not found, return an error response
-                response = JsonResponse(
-                    {'error': "Country code not found."}, status=400)
-                return response
-
-            # Query for the phone number object
-            phone = session.query(PhoneNumber).filter_by(
-                phone_number=phone_number).one_or_none()
-
-            if phone:
-                # If phone number already exists, return an error response
-                response = JsonResponse(
-                    {'error': "This phone number belongs to another account."}, status=400)
-                return response
-
-            # Create a new phone number object
-            new_phone = PhoneNumber(
-                phone_number=phone_number,
-                country_code=user_country_code,
-                phone_type_id=1
-            )
-
-            # Create a new person object
-            new_person = Person(
-                username=username,
-                email=email,
-                first_name=first_name,
-                last_name=last_name,
-                phone_number=new_phone,
-                person_type = person_type
-            )
-
-            # Set the password for the new user object
-            new_person.hash_password(password)
-
-            # Generate a JWT token with a specified expiration time of 240 hours
-            
-                        
-
-            # Send the verification code to the user's email
-            session.add(new_person)
-            
-            # Commit the session to the database
-            session.commit()
-            
-            send_verify_status = send_verification_code(request, new_person.id, email)
-            send_verify_status_code = send_verify_status.status_code
-            send_verify_status_text = json.loads(send_verify_status.content)['answer']
+        # Send the verification code to the user's email
+        session.add(new_person)
+        
+        # Commit the session to the database
+        session.commit()
+        
+        send_verify_status = send_verification_code(new_person.id, email)
+        send_verify_status_code = send_verify_status.status_code
+        send_verify_status_text = json.loads(send_verify_status.content)['answer']
 
 
-            refresh_token = generate_new_refresh_token(new_person,session).get('token')
-            access_token = generate_new_access_token(new_person.id).get('token')
+        refresh_token = generate_new_refresh_token(new_person,session).get('token')
+        access_token = generate_new_access_token(new_person.id).get('token')
 
 
-            
-            # Create the appropriate user type object and add to the database
-            if person_type == "user":
-                new_user = Users(person=new_person)
-                session.add(new_user)
-            elif person_type == "employee":                
-                new_employee = Employees(person=new_person)
-                session.add(new_employee)
+        
+        # Create the appropriate user type object and add to the database
+        if person_type == "user":
+            new_user = Users(person=new_person)
+            session.add(new_user)
+        elif person_type == "employee":                
+            new_employee = Employees(person=new_person)
+            session.add(new_employee)
 
 
         # Return a success response
         response = JsonResponse(
             {"answer": "The new account has been successfully created. Please check your email account and verify your account.",
-             "refresh_token":refresh_token,
-             "access_token":access_token,
-             "person":new_person.to_json(),
-             "send_verify_status_code":send_verify_status_code,
-             "send_verify_status_text":send_verify_status_text,
-             
-             },
+                "refresh_token":refresh_token,
+                "access_token":access_token,
+                "person":new_person.to_json(),
+                "send_verify_status_code":send_verify_status_code,
+                "send_verify_status_text":send_verify_status_text,
+                
+                },
             status=200
         )
         
@@ -165,11 +188,6 @@ def create_person_registration(request):
         response.set_cookie('access_token', access_token)            
         response.set_cookie('refresh_token', refresh_token)
         
-        return response
-    except Exception as e:
-        # Return an error response
-        response = GetErrorDetails(
-            "Something went wrong when creating account.", e, 500)
         return response
 
 

@@ -325,10 +325,10 @@ class Person(Base, TimestampMixin):
     
     
     def to_json(self):
-        if self.profil_image:
+        try:
             profil_image_url = self.profil_image[0].image_url 
             profil_image_title = self.profil_image[0].title 
-        else:
+        except:
             profil_image_url= "Not"
             profil_image_title = "Not" 
         return {
