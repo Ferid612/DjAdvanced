@@ -4,7 +4,7 @@ import json
 import time
 import uuid
 from django.http import JsonResponse
-from DjAdvanced.settings import engine,SECRET_KEY
+from DjAdvanced.settings import engine, SECRET_KEY
 import jwt
 from DjApp.helpers import  add_get_params, session_scope
 from DjApp.managements_controller.tokens import get_person_from_access_token
@@ -48,8 +48,11 @@ def require_http_methods(request_method_list):
                 else:
                     data = request.POST
             else:
-                data = request.GET
-
+                auth_data = request.headers.get('Authorization');
+                
+                data = json.loads(auth_data)
+                
+                print(auth_data)
             # for the standardization of functions
             request.data = data
             
@@ -151,3 +154,16 @@ def permission_required(*permission_names):
         return wrapper
     return decorator
 
+
+# {'Content-Length': '719',
+#  'Content-Type': 'multipart/form-data; boundary=--------------------------119740250512199381149381',
+#   'Accept-Encoding': 'gzip,
+#   deflate,
+#   br',
+#   'Cookie': 'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwZXJzb25faWQiOjYsImV4cCI6MTY3OTYzMTY1MH0.Z-nVthgv65WfrTYVpsE1nA8NrxA1bpBGR0W-BeysFjg; refresh_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWZyZXNoX3Rva2VuX2lkIjoiN2FiYjZiYzQtZDg3Mi00ODU0LWExNTItOWQxYjljMGIwZGQ5IiwicGVyc29uX2lkIjo2LCJleHAiOjE2ODAyMzU1NTB9.sHjQqJReSgT7fCNU0vesqlVLoWk3Mvh9IBru9WsDgls; person_id=6',
+#   'Accept': '*/*',
+#   'User-Agent': 'Thunder Client (https://www.thunderclient.com)',
+#   'Authorization': 'Barear eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwZXJzb25faWQiOjYsImV4cCI6MTY3OTYzMTY1MH0.Z-nVthgv65WfrTYVpsE1nA8NrxA1bpBGR0W-BeysFjg',
+#   'X-Authorization': 'Barear eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwZXJzb25faWQiOjYsImV4cCI6MTY3OTYzMTY1MH0.Z-nVthgv65WfrTYVpsE1nA8NrxA1bpBGR0W-BeysFjg',
+#   'Host': '127.0.0.1:8000',
+#   'Connection': 'close'}

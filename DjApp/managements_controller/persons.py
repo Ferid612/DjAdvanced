@@ -305,7 +305,7 @@ def update_person_address(request):
 
 
 @csrf_exempt
-@require_http_methods(["POST", "OPTIONS"])
+@require_http_methods(["POST","GET", "OPTIONS"])
 def login(request):
     """
     This function handles user login by authenticating the user's credentials and returning a JWT token and a refresh token.
