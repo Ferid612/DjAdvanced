@@ -49,9 +49,11 @@ def require_http_methods(request_method_list):
                     data = request.POST
             else:
                 auth_data = request.headers.get('Authorization');
-                
-                data = json.loads(auth_data)
-                
+                if auth_data:
+                    data = json.loads(auth_data)
+                else:
+                    data = request.GET
+                    
                 print(auth_data)
             # for the standardization of functions
             request.data = data

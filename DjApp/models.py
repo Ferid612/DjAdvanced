@@ -24,7 +24,6 @@ class Country(Base, TimestampMixin):
     
     locations = relationship('Location', back_populates='country')
     employment_jobs = relationship('EmploymentJobs', back_populates='country')
-    phone_numbers = relationship('PhoneNumber', back_populates='country')
 
 
 class Location(Base, TimestampMixin):
@@ -50,12 +49,11 @@ class PhoneNumber(Base, TimestampMixin):
     __tablename__ = 'phone_number'
     id = Column(Integer, primary_key=True)
     phone_number = Column(EncryptedType(Integer, 'AES'),nullable=False, unique=True, cache_ok=True)
-    country_code = Column(Integer, ForeignKey('country.country_code'),nullable=False)
+    country_code = Column(Integer, nullable=False)
     phone_type_id = Column(Integer)
 
     person = relationship('Person', back_populates='phone_number')
     supplier = relationship('Supplier', back_populates='phone_number')
-    country = relationship('Country', back_populates='phone_numbers')
 
 
 """

@@ -21,7 +21,7 @@ def get_engine(user, passwd, host, port, db):
         create_database(url)
     engine = create_engine(url, pool_size=50, echo=False)
     return engine
-# "postgresql://postgres:Farid612@localhost:5433/FaridDB"
+
 
 
 DATABASE_NAME = os.getenv("DATABASE_NAME") 

@@ -64,6 +64,7 @@ def create_person_registration(request):
     user_country_code = data.get('country_code')
     phone_number = data.get('phone_number')
     person_type = data.get('person_type')
+    session = request.session
 
 
 
@@ -76,129 +77,116 @@ def create_person_registration(request):
 
         add_get_params(response)
         return response
-    
-    # Start a new database session
-    with session_scope() as session:
 
-        # Query for the country object
-        country = session.query(Country).filter_by(
-            country_code=user_country_code).one_or_none()
+    # Query for the country object
+    # Query for the phone number object
+    phone = session.query(PhoneNumber).filter_by(
+        phone_number=phone_number).one_or_none()
 
-        if not country:
-            # If country is not found, return an error response
-            response = JsonResponse(
-                {'answer': "Country code not found."}, status=400)
-            add_get_params(response)
-            return response
-
-        # Query for the phone number object
-        phone = session.query(PhoneNumber).filter_by(
-            phone_number=phone_number).one_or_none()
-
-        if phone:
-            # If phone number already exists, return an error response
-            response = JsonResponse(
-                {'answer': "This phone number belongs to another account."}, status=400)
-        
-            add_get_params(response)
-            return response
-
-
-        # Query for the phone number object
-        user_name = session.query(Person).filter_by(
-            username=username).one_or_none()
-
-        if user_name:
-            # If phone number already exists, return an error response
-            response = JsonResponse(
-                {'answer': "This username belongs to another account."}, status=400)
-          
-            add_get_params(response)
-            return response
-
-
-
-        # Query for the phone number object
-        user_mail = session.query(Person).filter_by(
-            email=email).one_or_none()
-
-        if user_mail:
-            # If phone number already exists, return an error response
-            response = JsonResponse(
-                {'answer': "This user_mail belongs to another account."}, status=400)
-            add_get_params(response)
-            return response
-
-
-        # Create a new phone number object
-        new_phone = PhoneNumber(
-            phone_number=phone_number,
-            country_code=user_country_code,
-            phone_type_id=1
-        )
-
-        # Create a new person object
-        new_person = Person(
-            username=username,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-            phone_number=new_phone,
-            person_type = person_type
-        )
-
-        # Set the password for the new user object
-        new_person.hash_password(password)
-
-        # Generate a JWT token with a specified expiration time of 240 hours
-        
-                    
-
-        # Send the verification code to the user's email
-        session.add(new_person)
-        
-        # Commit the session to the database
-        session.commit()
-        
-        send_verify_status = send_verification_code(new_person.id, email)
-        send_verify_status_code = send_verify_status.status_code
-        send_verify_status_text = json.loads(send_verify_status.content)['answer']
-
-
-        refresh_token = generate_new_refresh_token(new_person,session).get('token')
-        access_token = generate_new_access_token(new_person.id).get('token')
-
-
-        
-        # Create the appropriate user type object and add to the database
-        if person_type == "user":
-            new_user = Users(person=new_person)
-            session.add(new_user)
-        elif person_type == "employee":                
-            new_employee = Employees(person=new_person)
-            session.add(new_employee)
-
-
-        # Return a success response
-        person_json = new_person.to_json()
-        person_json['access_token']=access_token
-        person_json['refresh_token']=refresh_token
+    if phone:
+        # If phone number already exists, return an error response
         response = JsonResponse(
-            {"answer": "The new account has been successfully created. Please check your email account and verify your account.",
-                "person":person_json,
-                "send_verify_status_code":send_verify_status_code,
-                "send_verify_status_text":send_verify_status_text,
-                
-                },
-            status=200
-        )
-        
-        response.set_cookie('person_id', new_person.id)            
-        response.set_cookie('access_token', access_token)            
-        response.set_cookie('refresh_token', refresh_token)
+            {'answer': "This phone number belongs to another account."}, status=400)
+    
+        add_get_params(response)
+        return response
+
+
+    # Query for the phone number object
+    user_name = session.query(Person).filter_by(
+        username=username).one_or_none()
+
+    if user_name:
+        # If phone number already exists, return an error response
+        response = JsonResponse(
+            {'answer': "This username belongs to another account."}, status=400)
         
         add_get_params(response)
         return response
+
+
+
+    # Query for the phone number object
+    user_mail = session.query(Person).filter_by(
+        email=email).one_or_none()
+
+    if user_mail:
+        # If phone number already exists, return an error response
+        response = JsonResponse(
+            {'answer': "This user_mail belongs to another account."}, status=400)
+        add_get_params(response)
+        return response
+
+
+    # Create a new phone number object
+    new_phone = PhoneNumber(
+        phone_number=phone_number,
+        country_code=user_country_code,
+        phone_type_id=1
+    )
+
+    # Create a new person object
+    new_person = Person(
+        username=username,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        phone_number=new_phone,
+        person_type = person_type
+    )
+
+    # Set the password for the new user object
+    new_person.hash_password(password)
+
+    # Generate a JWT token with a specified expiration time of 240 hours
+    
+                
+
+    # Send the verification code to the user's email
+    session.add(new_person)
+    
+    # Commit the session to the database
+    session.commit()
+    
+    send_verify_status = send_verification_code(new_person.id, email)
+    send_verify_status_code = send_verify_status.status_code
+    send_verify_status_text = json.loads(send_verify_status.content)['answer']
+
+
+    refresh_token = generate_new_refresh_token(new_person,session).get('token')
+    access_token = generate_new_access_token(new_person.id).get('token')
+
+
+    
+    # Create the appropriate user type object and add to the database
+    if person_type == "user":
+        new_user = Users(person=new_person)
+        session.add(new_user)
+    elif person_type == "employee":                
+        new_employee = Employees(person=new_person)
+        session.add(new_employee)
+
+
+    # Return a success response
+    person_json = new_person.to_json()
+    person_json['access_token']=access_token
+    person_json['refresh_token']=refresh_token
+    response = JsonResponse(
+        {"answer": "The new account has been successfully created. Please check your email account and verify your account.",
+            "person":person_json,
+            "send_verify_status_code":send_verify_status_code,
+            "send_verify_status_text":send_verify_status_text,
+            
+            },
+        status=200
+    )
+    
+    response.set_cookie('person_id', new_person.id)            
+    response.set_cookie('access_token', access_token)            
+    response.set_cookie('refresh_token', refresh_token)
+    
+    add_get_params(response)
+    return response
 
 
 
@@ -320,6 +308,7 @@ def login(request):
     data = request.data
     username = data.get('username')
     password = data.get('password')
+    session = request.session
 
     if not (username and password):
         # If user is not found, return an error response
@@ -331,53 +320,50 @@ def login(request):
     
     
     
-    # Start a new database session
-    with session_scope() as session:
+    # Query for the user object
+    person = session.query(Person).filter_by(username=username).one_or_none()
 
-        # Query for the user object
-        person = session.query(Person).filter_by(username=username).one_or_none()
-    
-        if not person:
-            # If user is not found, return an error response
-            response = JsonResponse(
-                {'answer': "Invalid username."}, status=411)
-            
-            add_get_params(response)
-            return response
-
-        if not person.verify_password(password):
-            # If password is incorrect, return an error response
-            response = JsonResponse(
-                {'answer': "Invalid password."}, status=401)
-            add_get_params(response)
-            return response
-
-
-
-        refresh_token = generate_new_refresh_token(person,session).get('token')
-        access_token = generate_new_access_token(person.id).get('token')
-
-
-
-        # Return the access token and the refresh token in the response
-        person_json = person.to_json()
-        person_json['access_token']=access_token
-        person_json['refresh_token']=refresh_token
+    if not person:
+        # If user is not found, return an error response
         response = JsonResponse(
-            {"answer": "Login successful.",
-            'person': person_json,
-            },
-            status=200
-        )
-
-        
-        response.set_cookie('person_id', person.id)            
-        response.set_cookie('access_token', access_token)            
-        response.set_cookie('refresh_token', refresh_token)
+            {'answer': "Invalid username."}, status=411)
         
         add_get_params(response)
         return response
-   
+
+    if not person.verify_password(password):
+        # If password is incorrect, return an error response
+        response = JsonResponse(
+            {'answer': "Invalid password."}, status=401)
+        add_get_params(response)
+        return response
+
+
+
+    refresh_token = generate_new_refresh_token(person,session).get('token')
+    access_token = generate_new_access_token(person.id).get('token')
+
+
+
+    # Return the access token and the refresh token in the response
+    person_json = person.to_json()
+    person_json['access_token']=access_token
+    person_json['refresh_token']=refresh_token
+    response = JsonResponse(
+        {"answer": "Login successful.",
+        'person': person_json,
+        },
+        status=200
+    )
+
+    
+    response.set_cookie('person_id', person.id)            
+    response.set_cookie('access_token', access_token)            
+    response.set_cookie('refresh_token', refresh_token)
+    
+    add_get_params(response)
+    return response
+
 
 
 @csrf_exempt
@@ -614,41 +600,41 @@ def send_password_reset_link(request):
     # Get the email address from the request object
     data = request.data
     email = data.get('email')
+    session = request.session
+        
+    # Query for the user object associated with the email address
+    person = session.query(Person).filter_by(email=email).one_or_none()
 
-    with session_scope() as session:
-        # Query for the user object associated with the email address
-        person = session.query(Person).filter_by(email=email).one_or_none()
-
-        if not person:
-            # If user is not found, return an error response
-            response = JsonResponse(
-                {'answer': "No user account associated with this email address."}, status=400)
-          
-            add_get_params(response)
-            return response
-
-        # Construct the password reset link
-        reset_token = generate_new_access_token(person.id, minutes=1440).get('token')
-        reset_link = request.build_absolute_uri('/give_reset_password_permission/?reset_token=' + reset_token)
-
-        # Send the password reset link to the user's email
-        send_email(
-            email,
-            'Password reset link',
-            'Please use the following link to reset your password: ' + reset_link,
-        )
-
-        # Indicate that the email was sent successfully
-        # logger.info(f"Password reset link has been sent to {email}.")
-
-        # Return a success response
+    if not person:
+        # If user is not found, return an error response
         response = JsonResponse(
-            {"success": "A password reset link has been sent to your email account. Please check your email and follow the instructions.",
-                "email": email},
-            status=200
-        )
+            {'answer': "No user account associated with this email address."}, status=400)
+        
         add_get_params(response)
         return response
+
+    # Construct the password reset link
+    reset_token = generate_new_access_token(person.id, minutes=1440).get('token')
+    reset_link = request.build_absolute_uri('/give_reset_password_permission/?reset_token=' + reset_token)
+
+    # Send the password reset link to the user's email
+    send_email(
+        email,
+        'Password reset link',
+        'Please use the following link to reset your password: ' + reset_link,
+    )
+
+    # Indicate that the email was sent successfully
+    # logger.info(f"Password reset link has been sent to {email}.")
+
+    # Return a success response
+    response = JsonResponse(
+        {"success": "A password reset link has been sent to your email account. Please check your email and follow the instructions.",
+            "email": email},
+        status=200
+    )
+    add_get_params(response)
+    return response
 
 
 
@@ -669,6 +655,8 @@ def give_reset_password_permission(request):
         data = request.data
         reset_token = data.get('reset_token')
         email = data.get('email')
+        # Start a new database session
+        session = request.session
         
         
         
@@ -677,40 +665,39 @@ def give_reset_password_permission(request):
         decoded_token = jwt.decode(reset_token, SECRET_KEY, algorithms=["HS256"])
         person_id = decoded_token.get('person_id')
 
-        # Start a new database session
-        with session_scope() as session:
-            # Query for the user object associated with the person ID
-            person = session.query(Person).get(person_id)
+    
+        # Query for the user object associated with the person ID
+        person = session.query(Person).get(person_id)
 
-            # If user is not found, return an error response
-            if not person:
-                response = JsonResponse({'answer': "No person account associated with this username."}, status=400)
-                add_get_params(response)
-                return response
-
-            if email:
-                person.email = email
-
-
-            # Generate new access and refresh tokens for the user
-            refresh_token = generate_new_refresh_token(person, session).get('token')
-            access_token = generate_new_access_token(person.id).get('token')
-
-            # Return the access token and the refresh token in the response
-            response = JsonResponse({"answer": "Input new password.", "access_token": access_token, "refresh_token": refresh_token}, status=200)
-
-            # Set the access and refresh tokens as cookies in the response
-            response.set_cookie('person_id', person.id)
-            response.set_cookie('access_token', access_token)
-            response.set_cookie('refresh_token', refresh_token)
-
-            # Add any GET parameters to the response
+        # If user is not found, return an error response
+        if not person:
+            response = JsonResponse({'answer': "No person account associated with this username."}, status=400)
             add_get_params(response)
             return response
 
+        if email:
+            person.email = email
+
+
+        # Generate new access and refresh tokens for the user
+        refresh_token = generate_new_refresh_token(person, session).get('token')
+        access_token = generate_new_access_token(person.id).get('token')
+
+        # Return the access token and the refresh token in the response
+        response = JsonResponse({"answer": "Input new password.", "access_token": access_token, "refresh_token": refresh_token}, status=200)
+
+        # Set the access and refresh tokens as cookies in the response
+        response.set_cookie('person_id', person.id)
+        response.set_cookie('access_token', access_token)
+        response.set_cookie('refresh_token', refresh_token)
+
+        # Add any GET parameters to the response
+        add_get_params(response)
+        return response
+
     except Exception as e:
         # Return an error response if there was an error decoding the reset token
-        response = JsonResponse({"error": "Something went wrong when resetting your password.", "details": str(e)}, status=500)
+        response = JsonResponse({"error": "Something went wrong when resetting your password.", "details": str(e)}, status=400)
         add_get_params(response)
         return response
 
