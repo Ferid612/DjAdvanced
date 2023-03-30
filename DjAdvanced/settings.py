@@ -16,6 +16,7 @@ PROFIL_IMAGE_ROOT = MEDIA_ROOT / 'profil_images'
 
 # SQL Alchemy Configuration
 def get_engine(user, passwd, host, port, db):
+    print("host: "+host)
     url = f"postgresql://{user}:{passwd}@{host}:{port}/{db}"
     if not database_exists(url):
         create_database(url)
@@ -75,7 +76,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'DjApp'
+    'DjApp',
+    'DeltaConfApp'
 ]
 
 MIDDLEWARE = [
