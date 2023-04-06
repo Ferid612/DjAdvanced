@@ -10,8 +10,8 @@
 -- UPDATE permissions SET name = 'edit products' WHERE  name = 'edit';
 -- ALTER table category alter column NAME set not null;
 -- delete from users where username= 'Farid502' ;
-UPDATE supplier SET cargo_percent = 0.4 WHERE  name = 'Samsungs';
-select * from supplier;
+--UPDATE supplier SET cargo_percent = 0.4 WHERE  name = 'Samsungs';
+--select * from supplier;
 
 -- DELETE FROM user_user_group_role WHERE id NOT IN (SELECT MIN(id) FROM user_user_group_role GROUP BY user_id, user_group_id, role_id);
 -- DELETE FROM role_permission WHERE id NOT IN (SELECT MIN(id) FROM role_permission GROUP BY  employee_role_id, permission_id);
@@ -57,3 +57,5 @@ select * from supplier;
            
 --          ))
 -- FROM role_permission;
+-- select * from image_gallery;
+-- DROP TABLE slide_photos;
