@@ -2,7 +2,7 @@ import uuid
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import datetime
-from ..helpers import GetErrorDetails, add_get_params, session_scope
+from ..helpers import GetErrorDetails, add_get_params
 from ..models import Country, Location
 from ..decorators import permission_required, login_required, require_http_methods
 from .tokens import  generate_new_refresh_token,generate_new_access_token 
