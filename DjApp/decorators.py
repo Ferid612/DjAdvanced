@@ -61,7 +61,7 @@ def require_http_methods(request_method_list):
             with session_scope() as session:
                 request.session = session
         
-            return func(request, *args, **kwargs)
+                return func(request, *args, **kwargs)
 
         return inner
 
@@ -133,6 +133,7 @@ def permission_required(*permission_names):
                     .filter(UserUserGroupRole.user_id == person.user[0].id)\
                     .all()
             else:
+                
                 person_permissions = session.query(RolePermission)\
                 .join(EmployeeRole)\
                 .join(EmployeeEmployeeGroupRole)\
