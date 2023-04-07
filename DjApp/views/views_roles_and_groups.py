@@ -3,11 +3,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from sqlalchemy import func
 from DjApp.decorators import permission_required, login_required, require_http_methods
-from DjApp.helpers import GetErrorDetails, add_get_params, session_scope
+from DjApp.helpers import GetErrorDetails, add_get_params
 from DjAdvanced.settings import engine
 from ..models import EmployeeEmployeeGroupRole, Employees, Permission, Person, UserRole, RolePermission, UserGroup, UserUserGroupRole, Users
 from ..models import EmployeeRole, EmployeeGroup
-from sqlalchemy.orm import selectinload
 
 
 

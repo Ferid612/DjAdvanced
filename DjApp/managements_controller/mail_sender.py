@@ -4,7 +4,7 @@ import datetime
 import jwt
 from DjAdvanced.settings import EMAIL_HOST_USER, SECRET_KEY,HOST_URL
 from DjApp.decorators import  login_required, require_http_methods
-from DjApp.helpers import GetErrorDetails, add_get_params, session_scope
+from DjApp.helpers import GetErrorDetails, add_get_params
 from DjApp.managements_controller.tokens import generate_new_access_token 
 from django.views.decorators.csrf import csrf_exempt
 from DjAdvanced.settings import engine

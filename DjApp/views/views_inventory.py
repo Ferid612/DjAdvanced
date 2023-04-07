@@ -1,134 +1,165 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import HttpResponse
 from django.http import JsonResponse
-from DjApp.decorators import login_required, require_http_methods
-from ..models import Category, Subcategory, Product, Supplier
-from ..helpers import add_get_params, session_scope
-import traceback, logging
+from DjApp.decorators import require_http_methods
+from sqlalchemy.orm import joinedload
+from ..models import Category, Product, Supplier
+from ..helpers import add_get_params
+from typing import List
 
 
 def hello(request):
     return HttpResponse("Hello world")
 
 
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_product(request):
+    """
+    This function is used to retrieve the details of a specific product.
+    Parameters:
+        product_id (int): The id of the product to retrieve.
+    """
+    
+    product_id = request.data.get('product_id')
+    
+    if not product_id:
+        response = JsonResponse({'answer': 'product_id is a required field'}, status=400)
+        add_get_params(response)
+        return response
+    
+    
+    # Get the product from the database
+    session = request.session
+    product = session.query(Product).get(product_id)
+    
+    if not product:
+        response = JsonResponse({'answer': 'Product not found'}, status=404)
+        add_get_params(response)
+        return response
+    
+    # Get the product category chain
+    category_chain = []
+    category = product.category
+    
+    while category:
+        category_chain.append({'id': category.id, 'name': category.name})
+        category = category.parent
+    
+    # Create the response
+    response = JsonResponse({'id': product.id,
+                             'name': product.name,
+                             'price': product.price,
+                             'SKU': product.SKU,
+                             'description': product.description,
+                             'supplier_name': product.supplier.name,
+                             'supplier_id': product.supplier.id,
+                             'category_chain': category_chain[::-1]}, status=200)
+    add_get_params(response)
+    return response
 
 
 @csrf_exempt
 @require_http_methods(["POST","GET"])
-@login_required
-def get_all_products_by_subcategory_name(request):
-    """
-    This function returns all products that belong to a subcategory by given subcategory name.
-    The subcategory name is passed as a query parameter in the GET request.
-    If the subcategory does not exist, it returns a JSON response with an 'Is empty' message.
-    If the subcategory_name parameter is not provided in the GET request, it returns a JSON response with an 'answer' message.
-    """
-    # Get the subcategory name from the GET request
-    data = request.data
+def get_products_by_category(request):
     session = request.session
-    subcategory_name = data.get('subcategory_name')
+    category_name = request.data.get("category_name")
     
-    # Check if the subcategory_name parameter was provided in the GET request
-    if not subcategory_name:
-        response = JsonResponse({'answer': 'subcategory_name is a required parameter'}, status=400)
+    # Query the category by name and retrieve all associated products
+    category = session.query(Category).options(joinedload(Category.products)).filter_by(name=category_name).one()
+    products = category.products
+
+    response = JsonResponse({'category': category, 'products': products}, status=200)
+    add_get_params(response)
+    return  response
 
 
-    # Try to find the subcategory by name in both the Category and Subcategory tables
-    existing_category = (session.query(Category)
-                        .filter_by(names=subcategory_name)
-                        .one_or_none() or
-                        session.query(Subcategory)
-                        .filter_by(names=subcategory_name)
-                        .one_or_none())
-
-    if existing_category:
-        all_products = (session.query(Product)
-                        .filter_by(subcategory_id=existing_category.id)
-                        .all())
-        
-        products_data = [{'id':product.id, 'name': product.name, 'description': product.description, 'price': product.price} for product in all_products]
-        response = JsonResponse({'data': products_data}, status=200)
-        add_get_params(response)
-        return response
-    else:
-        response = JsonResponse({'data': 'Is empty'}, status=200)
-        add_get_params(response)
-        return response
 
 
 
 @csrf_exempt
 @require_http_methods(["POST","GET"])
-@login_required
-def get_products_by_category_name(request):
-    """
-    This function retrieves all products belonging to the subcategories under the specified category.
-    :param request: HTTP request containing a query parameter 'category_name'
-    :return: JsonResponse containing a list of products data in the 'data' key, or an error message if category does not exist
-    """
-    
-    data = request.data
+def get_categories(request):
     session = request.session
-    category_name = data.get('category_name')
-    
-    if not category_name:
-        response = JsonResponse({'answer': 'category_name is a required parameter'}, status=400)
-        add_get_params(response)
-        return response
+    categories = Category.get_root_categories(session)
+    result = []
 
-    # Get the category object
+    for category in categories:
+        category_dict = {"id": category.id, "name": category.name,"parent_id": category.parent_id}
+        if category.has_children:
+            child_categories = category.get_child_categories()
+            category_dict["children"] = recursive_categories(child_categories)
+        result.append(category_dict)
+
+    return JsonResponse({"categories": result}, status=200)
+
+
+def recursive_categories(categories):
+    result = []
+    for category in categories:
+        category_dict = {"id": category.id, "name": category.name}
+        if category.has_children:
+            child_categories = category.get_child_categories()
+            category_dict["children"] = recursive_categories(child_categories)
+        result.append(category_dict)
+    return result
+
+
+
+@csrf_exempt
+@require_http_methods(["POST","GET"])
+def get_subcategory_categories(request):
+    session = request.session
+    category_name = request.data.get("category_name")
+
+    # Query the category by name and retrieve its child categories
     category = session.query(Category).filter_by(name=category_name).first()
     if not category:
-        response = JsonResponse({'answer': f"{category_name} does not exist in the category table."}, status=404)
-        add_get_params(response)
-        return response
+        return JsonResponse({'error': 'Category not found'}, status=404)
 
-    # Get the ids of all subcategories under the specified category
-    subcategory_ids = (session.query(Subcategory.id)
-                        .filter_by(category_id=category.id)
-                        .all())
-    subcategory_ids = [id[0] for id in subcategory_ids]
-    # Get all products that belong to the subcategories with the retrieved ids
-    products = (session.query(Product)
-                .filter(Product.subcategory_id.in_(subcategory_ids))
-                .all())
-    products_data = [{'id':product.id, 'name': product.name, 'description': product.description, 'price': product.price} for product in products]
+    child_categories = category.get_child_categories()
+    result = []
+    for child_category in child_categories:
+        if not child_category.has_children:
+            result.append({'name': child_category.name, 'id': child_category.id, 'parent_id': child_category.parent_id})
+        else:
+            subcategories = get_subcategory_categories(request, child_category.name)
+            result += subcategories
 
-    response = JsonResponse({'data': products_data}, status=200)
+    response = JsonResponse({'categories': result}, status=200)
     add_get_params(response)
     return response
-        
+
 
 
 @csrf_exempt
 @require_http_methods(["POST","GET"])
-@login_required
-def get_categories_and_subcategories(request):
-    """
-    This function retrieves all categories and their subcategories.
-    
-    :return: list of dictionaries, each representing a category and its subcategories
-    """
+def get_first_subcategory_categories(request):
     session = request.session
-    categories = session.query(Category).all()
-    
-    categories_data = []
-    for category in categories:
-        subcategories = session.query(Subcategory).filter(Subcategory.category_id == category.id).all()
-        subcategories_data = [{'name': subcategory.name} for subcategory in subcategories]
-        categories_data.append({'category': category.name, 'subcategories': subcategories_data})
-    response = JsonResponse({'data': categories_data}, status=200)
+    category_name = request.data.get("category_name")
+
+    # Query the category by name and retrieve its child categories
+    category = session.query(Category).filter_by(name=category_name).first()
+    if not category:
+        return JsonResponse({'error': 'Category not found'}, status=404)
+
+    child_categories = category.get_child_categories()
+    result = []
+    for child_category in child_categories:
+        if not child_category.has_children:
+            result.append({'name': child_category.name, 'id': child_category.id, 'parent_id': child_category.parent_id})
+        else:
+            first_subcategory = child_category.get_child_categories()[0]
+            result.append({'name': first_subcategory.name, 'id': first_subcategory.id, 'parent_id': first_subcategory.parent_id})
+
+    response = JsonResponse({'categories': result}, status=200)
     add_get_params(response)
     return response
 
 
 
-
-
-
 @csrf_exempt
 @require_http_methods(["POST","GET"])
-@login_required
 def get_all_products_by_supplier_name(request):
     """
     This function returns all products that belong to a supplier by given supplier name.
@@ -136,7 +167,7 @@ def get_all_products_by_supplier_name(request):
     If the supplier does not exist, it returns a JSON response with an 'Is empty' message.
     If the supplier_name parameter is not provided in the GET request, it returns a JSON response with an 'answer' message.
     """
-    # Get the subcategory name from the GET request
+    # Get the supplier name from the GET request
     data = request.data
     session = request.session
     supplier_name = data.get('supplier_name')

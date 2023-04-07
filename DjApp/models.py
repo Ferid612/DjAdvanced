@@ -55,36 +55,29 @@ class PhoneNumber(Base, TimestampMixin):
     supplier = relationship('Supplier', back_populates='phone_number')
 
 
-"""
-This function creates the tables for the categories, subcategories, and products in the database.
-"""
+
 class Category(Base, TimestampMixin):
     """
     This class creates the table for the categories in the database.
     """
-    
+
     __tablename__ = 'category'
     id = Column(Integer, primary_key=True)
-    parent_id = Column(Integer, ForeignKey('category.id'))
-    name = Column(String, unique=True, nullable=False)
-    sub_categories = relationship('Subcategory', back_populates='category')
+    parent_id = Column(Integer, ForeignKey('category.id', ondelete='CASCADE'))
+    name = Column(String, unique=True, nullable=False, index=True)
+    products = relationship('Product', back_populates='category')
+    children = relationship('Category')
 
+    @property
+    def has_children(self):
+        return bool(self.children)
 
+    @classmethod
+    def get_root_categories(cls,session):
+        return session.query(cls).filter_by(parent_id=None).all()
 
-class Subcategory(Base, TimestampMixin):
-    """
-    This class creates the table for the subcategories in the database.
-    """
-    
-    __tablename__ = 'subcategory'
-    id = Column(Integer, primary_key=True)
-    name = Column(String,unique=True, nullable=False)
-    parent_id = Column(Integer, ForeignKey('subcategory.id'))
-    category_id = Column(Integer, ForeignKey('category.id'))
-    sub_categories = relationship('Subcategory', back_populates='parent', cascade='all, delete')
-    parent = relationship('Subcategory', back_populates='sub_categories', remote_side=[id])
-    category = relationship('Category', back_populates='sub_categories')
-    product = relationship('Product', back_populates='subcategory')
+    def get_child_categories(self):
+        return self.children
 
 
 class Supplier(Base, TimestampMixin):
@@ -123,7 +116,8 @@ class Supplier(Base, TimestampMixin):
         'phone_number_id': self.phone_number_id,
         }
         
-  
+
+
 
 class Product(Base, TimestampMixin):
     """
@@ -134,7 +128,7 @@ class Product(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
     supplier_id = Column(Integer, ForeignKey('supplier.id'), nullable=False) 
-    subcategory_id = Column(Integer, ForeignKey('subcategory.id'),nullable=False)
+    category_id = Column(Integer, ForeignKey('category.id'),nullable=False)
     price = Column(Float,nullable=False)
     SKU = Column(String,unique=True,nullable=False)
     description = Column(String)
@@ -145,7 +139,7 @@ class Product(Base, TimestampMixin):
     
     image = relationship('ProductImage', back_populates='product')
     supplier = relationship('Supplier', back_populates='products')
-    subcategory = relationship('Subcategory', back_populates='product')
+    category = relationship('Category', back_populates='products')
     comments = relationship('ProductRate', back_populates='product')
     fags = relationship('ProductFag', back_populates='product')
     questions = relationship('ProductQuestion', back_populates='product')
@@ -159,7 +153,7 @@ class Product(Base, TimestampMixin):
         'name': self.name,
         'description': self.description,
         'supplier_id': self.supplier_id,
-        'subcategory_id': self.subcategory_id,
+        'category_id': self.category_id,
         'price': self.price,
         'SKU': self.SKU,
         'cargo_active': self.cargo_active,
