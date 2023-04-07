@@ -6,16 +6,18 @@ from DjApp.views import views_inventory
 urlpatterns = [
 
     # VIEWS inventory 
-    path('get_products_by_subcategory/', views_inventory.get_all_products_by_subcategory_name, name="Get all products by subcategory name"),
-    path('get_products_by_category/', views_inventory.get_products_by_category_name, name="Get all products by category name"),    
+    path('get_product/', views_inventory.get_product, name="get_product_by_id"),    
+    path('get_categories/', views_inventory.get_categories, name="Get all categories"),    
+    path('get_products_by_category/', views_inventory.get_products_by_category, name="Get all products by category name"),    
     path('get_products_by_supplier/', views_inventory.get_all_products_by_supplier_name, name="Get all products by supplier name"),    
-    path('get_categories_and_subcategories/', views_inventory.get_categories_and_subcategories, name="Get all categories and subcategories name"),    
+    path('get_subcategory_categories/', views_inventory.get_subcategory_categories, name="get_subcategory_categories"),    
+    path('get_first_subcategory_categories/', views_inventory.get_first_subcategory_categories, name="get_first_subcategory_categories"),    
 
 
     # MANAGMENT PRODUCTS,its CATEGORİES and TABLES 
     path('add_column_to_table/', inventory.add_column_to_table, name="Add column to table"),    
     path('add_category/', inventory.add_category, name="Add category to category table"),    
-    path('add_subcategory/', inventory.add_subcategory, name="Add subcategory to category or subcategory table"),    
+    path('add_child_categories/', inventory.add_child_categories, name="add_child_categories"),    
     path('add_products/', inventory.add_products, name="Add products to subcategory table"),
     path('update_product/', inventory.update_product, name="Update product data"),    
     path('delete_product/', inventory.delete_product, name="Delete product by name"),    
@@ -29,7 +31,6 @@ urlpatterns = [
    
    
     path('delete_all_tables/', inventory.delete_all_tables, name="Delete all tables"),    
-    path('delete_null_category_subcategories/', inventory.delete_null_category_subcategories, name="Delete all subcategories that have a null category_id"),    
-    path('delete_null_subcategory_products/', inventory.delete_null_subcategory_products, name="Delete all products that have a null subcategory_id"),    
+    path('delete_null_category_products/', inventory.delete_null_category_products, name="Delete all products that have a null category_id"),    
 
 ]

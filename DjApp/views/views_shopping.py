@@ -3,8 +3,8 @@ from django.http import JsonResponse
 from sqlalchemy import func
 from django.views.decorators.csrf import csrf_exempt
 from DjAdvanced.settings import engine
-from DjApp.models import CartItem, Discount, Product, ProductDiscount, ShoppingSession, UserPayment
-from ..helpers import GetErrorDetails, add_get_params, session_scope
+from DjApp.models import CartItem,  Product,  ShoppingSession, UserPayment
+from ..helpers import  add_get_params
 from ..decorators import login_required, require_http_methods
 from sqlalchemy.orm import joinedload
 
@@ -117,7 +117,7 @@ def get_user_shopping_session_data(request):
     # Eager load related data
     cart_items = session.query(CartItem).options(
         joinedload(CartItem.product).joinedload(Product.supplier),
-        joinedload(CartItem.product).joinedload(Product.subcategory),
+        joinedload(CartItem.product).joinedload(Product.category),
         joinedload(CartItem.product).joinedload(Product.discount)
     ).filter_by(session_id=shopping_session.id).all()
 
@@ -151,7 +151,7 @@ def get_user_shopping_session_data(request):
                 'name': cart_item.product.name,
                 'description': cart_item.product.description,
                 'price': cart_item.product.price,
-                'subcategory_name': cart_item.product.subcategory.name
+                'category_name': cart_item.product.category.name
             }
         })
         

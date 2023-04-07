@@ -6,8 +6,8 @@ import json
 
 from DjAdvanced.settings import MEDIA_ROOT, engine
 from ..decorators import permission_required, login_required, require_http_methods
-from ..helpers import GetErrorDetails, add_get_params, save_uploaded_image, session_scope
-from ..models import Base , Category, ProductImage, Subcategory, Product, Supplier
+from ..helpers import GetErrorDetails, add_get_params, save_uploaded_image 
+from ..models import Base , Category, ProductImage, Product, Supplier
 
 
 
@@ -81,27 +81,27 @@ def add_category(request):
     If a category with the same name already exists, it will not be added again.
     """
     data = request.data
-    categories = data.getlist('categories')
+    categories = data.get('categories')
 
     added_categories = []
     existing_categories = []
-    with session_scope(engine) as session:
-        for category in categories:
-            existing_category = session.query(Category).filter_by(name=category).one_or_none()
-            existing_subcategory = session.query(Subcategory).filter_by(name=category).one_or_none()
 
-            # check if a category or subcategory with the same name already exists
-            if existing_category or existing_subcategory:
-                existing_categories.append(category)
-            else:
-                new_category = Category(name=category)
-                added_categories.append(category)
-                session.add(new_category)  # add the new category to the session
-        session.commit()  # commit the changes to the database
+    session = request.session
+    for category in categories:
+        existing_category = session.query(Category).filter_by(name=category).one_or_none()
+
+        # check if a category with the same name already exists
+        if existing_category:
+            existing_categories.append(category)
+        else:
+            new_category = Category(name=category)
+            added_categories.append(category)
+            session.add(new_category)  # add the new category to the session
+            session.commit()  # commit the changes to the database
 
     response = JsonResponse({'existing_categories': existing_categories, 'added_categories': added_categories}, status=200)
     add_get_params(response)
-    return response        
+    return response
 
 
 
@@ -109,61 +109,40 @@ def add_category(request):
 @require_http_methods(["POST"])
 @login_required
 @permission_required("Manage product categories")
-def add_subcategory(request):
+def add_child_categories(request):
     """
-    This function adds new subcategories to the given parent category or subcategory.
-    It first checks if the subcategory or category with the same name already exists,
-    and if it does, it won't add it.
-    :param parent_name: the name of the parent category or subcategory
-    :type parent_name: str
-    :param new_subcategories: the names of the subcategories to be added
-    :type new_subcategories: list
+    This function adds a new child category to an existing parent category in the 'category' table in the database.
+    If the parent category does not exist, the child category will not be added.
     """
-    # Get parent name and new subcategories from the request
-    
-    
     data = request.data
-    parent_name = data.get('parent_name')
-    new_subcategories = data.get('new_subcategories')
+    parent_name = data.get('parent')
+    child_categories = data.get('child_categories')
 
-    
-    # Create a session for database operations
+    session = request.session
 
-
-    # Lists to keep track of existing and added subcategories
-    existing_categories = []
-    added_categories = []
-
-    existing_categories = [c.name for c in session.query(Subcategory.name).filter(Subcategory.name.in_(new_subcategories)).union(session.query(Category.name).filter(Category.name.in_(new_subcategories))).all()]
-    added_categories = [s for s in new_subcategories if s not in existing_categories]
-    
-    with session_scope(engine) as session:
-        sub_parent = session.query(Subcategory).filter_by(name=parent_name).one_or_none()
-        parent = session.query(Category).filter_by(name=parent_name).one_or_none()
-
-    if not ( parent and sub_parent):
-        return JsonResponse({'answer': f"Parent {parent_name} does not exist."}, status=400)
-
-    elif sub_parent:
-        new_subcategories = [{'name': s, 'category_id': sub_parent.category_id , 'parent_id': sub_parent.id} for s in added_categories]
-    
-    elif parent:
-        new_subcategories = [{'name': s, 'category_id': parent.id } for s in added_categories]
-
-    
-    # Insert the new subcategories into the database
-    try:
-        session.bulk_insert_mappings(Subcategory, new_subcategories)
-        session.commit()
-    except Exception as e:
-        session.rollback()
-
-        response = GetErrorDetails("'Error adding subcategories.", e, 404)
+    # check if the parent category exists
+    parent_category = session.query(Category).filter_by(name=parent_name).one_or_none()
+    if not parent_category:
+        response = JsonResponse({'message': f"Parent category '{parent_name}' does not exist"}, status=400)
         add_get_params(response)
         return response
 
-    # Return a json response with the existing and added subcategories
-    response = JsonResponse({'existing_categories': existing_categories, 'added_categories': added_categories}, status=200)
+    added_categories = []
+    existing_categories = []
+
+    for child_category in child_categories:
+        # check if the child category already exists
+        existing_category = session.query(Category).filter_by(name=child_category).one_or_none()
+        if existing_category:
+            existing_categories.append(child_category)
+        else:
+            new_category = Category(name=child_category, parent_id=parent_category.id)
+            added_categories.append(child_category)
+            session.add(new_category)
+
+    session.commit()  # commit all changes to the database
+
+    response = JsonResponse({'existing_categories': existing_categories, 'added_categories': added_categories, 'parent_category': parent_name}, status=200)
     add_get_params(response)
     return response
 
@@ -176,28 +155,27 @@ def add_subcategory(request):
 @permission_required("manage_products")
 def add_products(request):
     """
-    This function is used to add products to a specific subcategory.
+    This function is used to add products to a specific category.
     It checks if a product with the same name already exists in the database and if so, it does not add it.
     Parameters:
-        subcategory_name (str): The name of the subcategory to add the products to.
-        product_list (List[Dict[str, Union[str, float, int]]]): A list of dictionaries representing the products to be added. Each dictionary should have keys 'name', 'price', and 'description'.
+        category_name (str): The name of the category to add the products to.
+        supplier_name (str): The name of the supplier for the products.
+        product_list (List[Dict[str, Union[str, float, int]]]): A list of dictionaries representing the products to be added. Each dictionary should have keys 'name', 'price', 'SKU', and 'description'.
     """
-    
+
     data = request.data
     session = request.session
-    
-    subcategory_name = data.get('subcategory_name')
+
+    category_name = data.get('category_name')
     supplier_name = data.get('supplier_name')
     product_list = data.get('product_list')
 
-    
-    if not (subcategory_name and product_list):
-        response = JsonResponse({'answer': 'subcategory_name and product_list are required fields'}, status=400)
+    if not (category_name and supplier_name and product_list):
+        response = JsonResponse({'answer': 'category_name, supplier_name, and product_list are required fields'}, status=400)
         add_get_params(response)
         return response
 
-
-        # Get or create supplier
+    # Get or create supplier
     supplier = session.query(Supplier).filter_by(name=supplier_name).one_or_none()
 
     if not supplier:
@@ -205,12 +183,12 @@ def add_products(request):
         add_get_params(response)
         return response
 
-    subcategory = session.query(Subcategory).filter_by(name=subcategory_name).one_or_none()
-    if not subcategory:
-        response = JsonResponse({'answer': f'There is no sub_category named {subcategory_name}'}, status=400)
+    # Get the category
+    category = session.query(Category).filter_by(name=category_name).one_or_none()
+    if not category:
+        response = JsonResponse({'answer': f'There is no category named {category_name}'}, status=400)
         add_get_params(response)
         return response
-    
 
     # Get the names of existing products
     existing_products = [p.name for p in session.query(Product.name).filter(
@@ -219,24 +197,22 @@ def add_products(request):
     # Filter out existing products from the product list
     new_products = [p for p in product_list if p['name'] not in existing_products]
 
-
     # Create a list of Product objects from the new products
     products_to_add = [Product(
-                            name=p['name'],
-                            price=p['price'],
-                            SKU=p['SKU'],
-                            description=p['description'],
-                            supplier=supplier, 
-                            supplier_id=supplier.id, 
-                            subcategory=subcategory,
-                            subcategory_id=subcategory.id,
-                            ) for p in new_products]
+        name=p['name'],
+        price=p['price'],
+        SKU=p['SKU'],
+        description=p['description'],
+        supplier=supplier,
+        supplier_id=supplier.id,
+        category=category,
+        category_id=category.id,
+    ) for p in new_products]
 
     # Add the new products to the session
     session.bulk_save_objects(products_to_add)
 
-
-        # Create the response
+    # Create the response
     response = JsonResponse({'existing_products': existing_products, 'added_products': [p['name'] for p in new_products]},
                             status=200)
     add_get_params(response)
@@ -274,7 +250,6 @@ def update_product(request):
         add_get_params(response)
         return response
     
-    
     # Update the values for each column in the product table
     not_allowed_columns = ['id']
     response_details = []
@@ -284,6 +259,7 @@ def update_product(request):
                 response = JsonResponse({'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
                 add_get_params(response)
                 return response
+            
             if column_name == "supplier_name":
                 supplier = session.query(Supplier).filter_by(name=value).one_or_none()
                 if not supplier:
@@ -293,18 +269,16 @@ def update_product(request):
                     product.supplier_id = supplier.id
                 continue
             
-            if column_name == "subcategory_name":
-                subcategory = session.query(Subcategory).filter_by(name=value).one_or_none()
-                if not subcategory:
-                    response_details.append(f"{value} subcategory does not exist")
-                    print(f"{value} subcategory does not exist")
+            if column_name == "category_name":
+                category = session.query(Category).filter_by(name=value).one_or_none()
+                if not category:
+                    response_details.append(f"{value} category does not exist")
+                    print(f"{value} category does not exist")
                 else:
-                    product.subcategory_id = subcategory.id
+                    product.category_id = category.id
                 continue
                     
             setattr(product, column_name, value)
-
-
 
     response = JsonResponse({'Success': 'The product has been successfully updated',"response_details":response_details}, status=200)
     add_get_params(response)
@@ -469,6 +443,7 @@ def update_product_image(request):
         return response
 
 
+
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
@@ -517,6 +492,7 @@ def delete_product_image(request):
         return response
 
 
+
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
@@ -538,54 +514,29 @@ def delete_all_tables(request):
 
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-@login_required
-@permission_required("Manage product categories")
-def delete_null_category_subcategories(request):
-    """
-    This function deletes all subcategories that have a null category_id.
-    """
-    session = request.session
-
-
-    # query to get all products that have a null subcategory_id
-    null_category_subcategories = session.query(
-        Subcategory).filter(Subcategory.category_id == None).all()
-    # Iterate through the products and delete them one by one
-    for category in null_category_subcategories:
-        session.delete(category)
-        print(
-            f"Deleted {len(null_category_subcategories)} products with null subcategory_id")
-        # Return the number of deleted products for confirmation
-        
-    response = JsonResponse({"message":"deleted all subcategories that have a null category_id succesfully.", "length_of_null_category_subcategories": len(null_category_subcategories)},status=200)
-    add_get_params(response)
-    return response
-
 
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
 @login_required
 @permission_required("manage_products")
-def delete_null_subcategory_products(request):
+def delete_null_category_products(request):
     """
-    This function deletes all products that have a null subcategory_id.
+    This function deletes all products that have a null category_id.
     """
     session = request.session
-    # query to get all products that have a null subcategory_id
-    null_subcategory_products = session.query(
-        Product).filter(Product.subcategory_id == None).all()
+    # query to get all products that have a null category_id
+    null_category_products = session.query(
+        Product).filter(Product.category_id == None).all()
     # Iterate through the products and delete them one by one
-    for product in null_subcategory_products:
+    for product in null_category_products:
         session.delete(product)
         session.commit()
         print(
-            f"Deleted {len(null_subcategory_products)} products with null subcategory_id")
+            f"Deleted {len(null_category_products)} products with null category_id")
         # Return the number of deleted products for confirmation
         
-    response = JsonResponse({"message":"deleted all products that have a null subcategory_id succesfully.", "lentgth of null_subcategory_products": len(null_subcategory_products)},status=200)
+    response = JsonResponse({"message":"deleted all products that have a null category_id succesfully.", "lentgth of null_category_products": len(null_category_products)},status=200)
     add_get_params(response)
     return response
 

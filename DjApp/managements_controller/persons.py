@@ -7,7 +7,7 @@ import jwt
 from DjAdvanced.settings import HOST_URL, PROFIL_IMAGE_ROOT, engine, SECRET_KEY
 from DjApp.managements_controller.location import add_address_to_object, update_object_address
 from .mail_sender import create_html_message_with_token, send_verification_code
-from ..helpers import GetErrorDetails, add_get_params,  save_uploaded_image, session_scope
+from ..helpers import GetErrorDetails, add_get_params,  save_uploaded_image
 from ..models import Country, Employees, Location, Person, PhoneNumber, ProfilImage, Users
 from ..decorators import permission_required, login_required, require_http_methods
 from .tokens import  generate_new_refresh_token,generate_new_access_token 

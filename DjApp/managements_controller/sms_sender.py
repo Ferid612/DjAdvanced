@@ -1,11 +1,10 @@
-import secrets
 from django.http import JsonResponse
 from twilio.rest import Client
 from DjAdvanced.settings import auth_token, account_sid, verify_sid
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import login_required, require_http_methods
 from DjAdvanced.settings import engine
-from DjApp.helpers import GetErrorDetails, add_get_params, session_scope
+from DjApp.helpers import add_get_params
 
 
 

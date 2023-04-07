@@ -30,7 +30,7 @@
 -- DELETE FROM employees WHERE person_id IN (
 --   SELECT id FROM persons WHERE username LIKE '%Farid4%'
 -- );
--- DELETE FROM persons WHERE username LIKE '%Farid4%';
+-- DELETE FROM persons WHERE username LIKE '%FaridAdmin%';
 
 -- select email from persons; 
 
@@ -58,4 +58,9 @@
 --          ))
 -- FROM role_permission;
 -- select * from image_gallery;
--- DROP TABLE slide_photos;
+-- DROP TABLE subcategory;
+
+    -- CONSTRAINT product_category_caregory_id_fkey FOREIGN KEY (category_id)
+    --     REFERENCES public.category (id) MATCH SIMPLE
+    --     ON UPDATE NO ACTION
+    --     ON DELETE NO ACTION

@@ -1697,5 +1697,48 @@ def get_user_shopping_session_data(request):
     
     return response
 
+
+
+
+@csrf_exempt
+@require_http_methods(["POST","GET"])
+def get_products_by_category_name(request):
+    """
+    This function retrieves all products belonging to the subcategories under the specified category.
+    :param request: HTTP request containing a query parameter 'category_name'
+    :return: JsonResponse containing a list of products data in the 'data' key, or an error message if category does not exist
+    """
+    
+    data = request.data
+    session = request.session
+    category_name = data.get('category_name')
+    
+    if not category_name:
+        response = JsonResponse({'answer': 'category_name is a required parameter'}, status=400)
+        add_get_params(response)
+        return response
+
+    # Get the category object
+    category = session.query(Category).filter_by(name=category_name).first()
+    if not category:
+        response = JsonResponse({'answer': f"{category_name} does not exist in the category table."}, status=404)
+        add_get_params(response)
+        return response
+
+    # Get the ids of all subcategories under the specified category
+    subcategory_ids = (session.query(Subcategory.id)
+                        .filter_by(category_id=category.id)
+                        .all())
+    subcategory_ids = [id[0] for id in subcategory_ids]
+    # Get all products that belong to the subcategories with the retrieved ids
+    products = (session.query(Product)
+                .filter(Product.subcategory_id.in_(subcategory_ids))
+                .all())
+    products_data = [{'id':product.id, 'name': product.name, 'description': product.description, 'price': product.price} for product in products]
+
+    response = JsonResponse({'data': products_data}, status=200)
+    add_get_params(response)
+    return response
+        
 '''
 
