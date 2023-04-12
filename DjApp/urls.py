@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import include, path
 from DjApp.app_urls import urls_supplier, urls_inventory, urls_person, urls_discount, urls_comment_question_fag 
-from DjApp.app_urls import urls_roles_and_groups, urls_mail, urls_sms, urls_location,urls_shopping, urls_apis
+from DjApp.app_urls import urls_roles_and_groups, urls_mail, urls_sms, urls_location,urls_shopping, urls_apis, urls_google_auth
 
 
 urlpatterns = [
@@ -17,6 +17,7 @@ urlpatterns = [
     path('shopping/', include(urls_shopping), name="Shopping urls"),
     path('comments_question_fag/', include(urls_comment_question_fag), name="Comment type sections urls"),
     path('apis/', include(urls_apis), name="APİ's urls"),
+    path('google_auth/', include(urls_google_auth), name="Google Authentication"),
 
     
     # path("", views_auth0_2.home, name="index"),
