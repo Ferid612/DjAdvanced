@@ -12,7 +12,9 @@ from DjApp.models import EmployeeEmployeeGroupRole, EmployeeRole, RolePermission
 from django.utils.log import log_response
 from django.http import HttpResponseNotAllowed
 
-
+from google.oauth2.credentials import Credentials
+from django.shortcuts import redirect
+from django.urls import reverse
 
 def require_http_methods(request_method_list):
     """
@@ -156,6 +158,27 @@ def permission_required(*permission_names):
             return f(request,*args, **kwargs)
         return wrapper
     return decorator
+
+
+# GOOGLE AUTHENTİCATİON
+def google_authenticated(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if "google_credentials" not in request.session:
+            return redirect(reverse("google_login_callback"))
+
+        credentials = Credentials.from_authorized_user_info(
+            info=request.session["google_credentials"]
+        )
+
+        if not credentials.valid:
+            return redirect(reverse("google_login_callback"))
+
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+
+
 
 
 # {'Content-Length': '719',
