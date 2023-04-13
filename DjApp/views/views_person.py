@@ -88,7 +88,7 @@ def get_person_data_by_username(request):
 
 @csrf_exempt
 @require_http_methods(["GET","POST","OPTIONS"])
-@login_required
+# @login_required
 def get_all_persons_data(request):
     """
     API endpoint to retrieve all person data in JSON format.
@@ -115,24 +115,13 @@ def get_all_persons_data(request):
 
 
 
+
 @csrf_exempt
 @require_http_methods(["GET","POST","OPTIONS"])
-def get_person_profil_image(request):
-    data = request.data
-    session = request.session
-    person_id = data.get("person_id")
+def get_person_profil_image(request,image_id):
+    session = request.session    
     
-    # Query for the user object
-    person = session.query(Person).get(person_id)
-    if not person:
-        # If user is not found, return an error response
-        response = JsonResponse(
-            {'answer': "Invalid person id."}, status=401)
-        return response
-
-    
-    profil_image = session.query(ProfilImage).filter_by(person_id=person_id).one_or_none()
-    
+    profil_image = session.query(ProfilImage).get(image_id)
     if not profil_image:
             # If user is not found, return an error response
         response = JsonResponse(

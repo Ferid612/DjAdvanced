@@ -7,10 +7,10 @@ urlpatterns = [
     
     # VIEWS PERSONS 
     path('get_person/', views_person.get_person, name="Get user info."),    
-    path('get_person_by_username/', views_person.get_person_data_by_username, name="Get user info."),    
-    path('get_all_persons_data/', views_person.get_all_persons_data, name="Get user info."),    
-    path('get_person_profil_image/', views_person.get_person_profil_image, name="Get profil image."),    
-    
+    path('get_person_by_username/', views_person.get_person_data_by_username, name="get_user_info"),    
+    path('get_all_persons_data/', views_person.get_all_persons_data, name="get_user_info"),    
+    path('profil-images/<int:image_id>/', views_person.get_person_profil_image, name='get_profil_image'),
+
          
     # MANAGMENT PERSONS
     path('create_person_registration/', persons.create_person_registration, name="Add new user."),    

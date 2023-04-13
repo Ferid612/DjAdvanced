@@ -1,11 +1,13 @@
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import HttpResponse
+from django.shortcuts import HttpResponse, redirect
 from django.http import JsonResponse
+from sqlalchemy import func
 from DjApp.decorators import require_http_methods
 from sqlalchemy.orm import joinedload
-from ..models import Category, Product, Supplier
+from ..models import Category, Product, ProductColor, ProductEntry, ProductMaterial, ProductMeasure, Supplier
 from ..helpers import add_get_params
 from typing import List
+from sqlalchemy.orm import joinedload
 
 
 def hello(request):
@@ -13,72 +15,214 @@ def hello(request):
 
 
 @csrf_exempt
-@require_http_methods(["GET"])
-def get_product(request):
+@require_http_methods(["GET","OPTIONS"])
+def get_product(request, product_id,product_entry_id=None):
     """
     This function is used to retrieve the details of a specific product.
     Parameters:
         product_id (int): The id of the product to retrieve.
     """
+    if product_entry_id:
+        return redirect('get_product_entry', product_entry_id=product_entry_id)
     
-    product_id = request.data.get('product_id')
     
     if not product_id:
         response = JsonResponse({'answer': 'product_id is a required field'}, status=400)
         add_get_params(response)
         return response
-    
-    
+
     # Get the product from the database
     session = request.session
     product = session.query(Product).get(product_id)
-    
+
     if not product:
         response = JsonResponse({'answer': 'Product not found'}, status=404)
         add_get_params(response)
         return response
-    
     # Get the product category chain
-    category_chain = []
-    category = product.category
-    
-    while category:
-        category_chain.append({'id': category.id, 'name': category.name})
-        category = category.parent
-    
-    # Create the response
-    response = JsonResponse({'id': product.id,
-                             'name': product.name,
-                             'price': product.price,
-                             'SKU': product.SKU,
-                             'description': product.description,
-                             'supplier_name': product.supplier.name,
-                             'supplier_id': product.supplier.id,
-                             'category_chain': category_chain[::-1]}, status=200)
+    product_entries = []
+    for entry in product.entries:
+        size = None
+        images = None
+        rates_data = None
+        rates = None
+        if entry.rates:
+            rates_data = entry.rates[0].get_raters_data(session,entry.id)
+            rates = [{"rate_id":rate.id, "user_id":rate.user_id, "username":rate.user.person.username,"rate_comment":rate.rate_comment, "rate":rate.rate, "status":rate.status } for rate in entry.rates]
+        if entry.size:
+            size = {"size_id": entry.size.id, "size": entry.size.value, "size_type": entry.size.measure.name}
+        
+        if entry.images:
+            images = [{"id": image.id, "url": image.image_url, "title": image.title, "entry_id":image.product_entry_id} for image in entry.images ]
+            
+        product_entries.append({
+            "entry_id": entry.id,
+            "price_prev": entry.price,
+            "quantity": entry.quantity,
+            "SKU": entry.SKU,
+            "size": size,
+            "images": images,
+            "color": {"color_id": entry.color.id, "color_name": entry.color.name, "color_code": entry.color.color_code},
+            "material": {"material_id": entry.material_id, "material_name": entry.material.name},
+            'cargo_active': entry.cargo_active,
+            "rates_data":rates_data,
+            "rates":rates,
+            
+        })
+
+    response = JsonResponse({
+        'id': product.id,
+        'name': product.name,
+        'description': product.description,
+        'supplier_data': {'supplier_id': product.supplier_id, 'supplier_name': product.supplier.name },
+        'category_data': {'category_id': product.category_id, 'category_name': product.category.name },
+        'product_enties': product_entries,
+    }, status=200)
+
     add_get_params(response)
     return response
 
 
+
+
 @csrf_exempt
-@require_http_methods(["POST","GET"])
-def get_products_by_category(request):
+@require_http_methods(["GET", "OPTIONS"])
+def get_product_entry(request, product_entry_id):
+    """
+    This function is used to retrieve the details of a specific product entry.
+    Parameters:
+        product_entry_id (int): The id of the product entry to retrieve.
+    """
+    if not product_entry_id:
+        response = JsonResponse({'answer': 'product_entry_id is a required field'}, status=400)
+        add_get_params(response)
+        return response
+
+    # Get the product entry from the database
     session = request.session
-    category_name = request.data.get("category_name")
+    entry = session.query(ProductEntry).get(product_entry_id)
+
+    if not entry:
+        response = JsonResponse({'answer': 'Product entry not found'}, status=404)
+        add_get_params(response)
+        return response
+
+    # Get the product category chain
+    size = None
+    images = None
+    rates_data = None
+    rates = None
+    if entry.rates:
+        rates_data = entry.rates[0].get_raters_data(session, entry.id)
+        rates = [{"rate_id": rate.id, "user_id": rate.user_id, "username": rate.user.person.username,
+                  "rate_comment": rate.rate_comment, "rate": rate.rate, "status": rate.status} for rate in entry.rates]
+    if entry.size:
+        size = {"size_id": entry.size.id, "size": entry.size.value, "size_type": entry.size.measure.name}
+
+    if entry.images:
+        images = [{"id": image.id, "url": image.image_url, "title": image.title, "entry_id": image.product_entry_id}
+                  for image in entry.images]
+
+
+    exist_colors = entry.product.get_exist_colors(session)        
+    exist_materials = entry.product.get_exist_materials(session)        
+
+    exist_sizes = None
+    if entry.size:
+        exist_sizes = entry.product.get_exist_sizes(session)        
+        
+
+
+    response = JsonResponse({
+        "entry_id": entry.id,
+        "product_id": entry.product_id,
+        "product_name": entry.product.name,
+        "product_description": entry.product.description,
+        "supplier_data": {'supplier_id': entry.product.supplier_id,'supplier_name': entry.product.supplier.name },
+        "category_data": {'category_id': entry.product.category_id, 'category_name': entry.product.category.name },
+        "price_prev": entry.price,
+        "quantity": entry.quantity,
+        "SKU": entry.SKU,
+        "size": size,
+        "images": images,
+        "color": {"color_id": entry.color.id, "color_name": entry.color.name, "color_code": entry.color.color_code},
+        "material": {"material_id": entry.material_id, "material_name": entry.material.name},
+        'cargo_active': entry.cargo_active,
+        "rates_data": rates_data,
+        "rates": rates,
+        "exist_colors":exist_colors,
+        "exist_materials":exist_materials,
+        "exist_sizes":exist_sizes,
+    }, status=200)
+
+    add_get_params(response)
+    return response
+
+
+
+@csrf_exempt
+@require_http_methods(["GET","OPTIONS"])
+def get_products_by_category(request,category_id, product_id=None):
+    session = request.session
+    
+    
+    if product_id:
+        return redirect('get_product', product_id=product_id)
+
+
     
     # Query the category by name and retrieve all associated products
-    category = session.query(Category).options(joinedload(Category.products)).filter_by(name=category_name).one()
-    products = category.products
+    category = session.query(Category).options(joinedload(Category.products)).get(category_id)
+    products = [{'name': product.name, 'description': product.description} for product in category.products]
 
-    response = JsonResponse({'category': category, 'products': products}, status=200)
+    response = JsonResponse({'category_id':category_id, 'products': products}, status=200)
     add_get_params(response)
     return  response
 
 
 
+@csrf_exempt
+@require_http_methods(["GET","OPTIONS"])
+def get_products_in_category(request,category_id, product_id=None):
+    
+
+    if product_id:
+        return redirect('get_product', product_id=product_id)
+
+
+    session = request.session    
+    
+    # Retrieve the parent category and its children recursively
+    category = session.query(Category).options(joinedload(Category.products)).get(category_id)
+    child_categories = category.get_child_categories()
+    
+    # Initialize a list to store all products in the parent category
+    products = []
+    
+    # Recursively traverse through the category tree and retrieve all products
+    def recursive_get_products(categories):
+        for category in categories:
+            if category.products:
+                products.extend([{'id':product.id,
+                                  'name': product.name,
+                                  'description': product.description,
+                                  'supplier_data': {'supplier_id':product.supplier_id, 'supplier_name':product.supplier.name },
+                                  'category_data': {'category_id':product.category_id, 'category_name':product.category.name },
+                                  }  for product in category.products])
+            if category.has_children:
+                child_categories = category.get_child_categories()
+                recursive_get_products(child_categories)
+                
+    recursive_get_products(child_categories)
+    
+    response = JsonResponse({'category': category.name, 'products': products}, status=200)
+    add_get_params(response)
+    return response
+
 
 
 @csrf_exempt
-@require_http_methods(["POST","GET"])
+@require_http_methods(["GET"])
 def get_categories(request):
     session = request.session
     categories = Category.get_root_categories(session)
@@ -94,6 +238,7 @@ def get_categories(request):
     return JsonResponse({"categories": result}, status=200)
 
 
+
 def recursive_categories(categories):
     result = []
     for category in categories:
@@ -107,13 +252,13 @@ def recursive_categories(categories):
 
 
 @csrf_exempt
-@require_http_methods(["POST","GET"])
-def get_subcategory_categories(request):
+@require_http_methods(["GET","OPTIONS"])
+def get_subcategory_categories(request, category_id):
     session = request.session
     category_name = request.data.get("category_name")
 
     # Query the category by name and retrieve its child categories
-    category = session.query(Category).filter_by(name=category_name).first()
+    category = session.query(Category).get(category_id)
     if not category:
         return JsonResponse({'error': 'Category not found'}, status=404)
 
@@ -134,12 +279,11 @@ def get_subcategory_categories(request):
 
 @csrf_exempt
 @require_http_methods(["POST","GET"])
-def get_first_subcategory_categories(request):
+def get_first_subcategory_categories(request,category_id):
     session = request.session
-    category_name = request.data.get("category_name")
-
+    
     # Query the category by name and retrieve its child categories
-    category = session.query(Category).filter_by(name=category_name).first()
+    category = session.query(Category).get(category_id)
     if not category:
         return JsonResponse({'error': 'Category not found'}, status=404)
 
@@ -158,9 +302,10 @@ def get_first_subcategory_categories(request):
 
 
 
+
 @csrf_exempt
-@require_http_methods(["POST","GET"])
-def get_all_products_by_supplier_name(request):
+@require_http_methods(["GET","OPTIONS"])
+def get_all_products_by_supplier(request,supplier_id):
     """
     This function returns all products that belong to a supplier by given supplier name.
     The supplier name is passed as a query parameter in the GET request.
@@ -170,27 +315,65 @@ def get_all_products_by_supplier_name(request):
     # Get the supplier name from the GET request
     data = request.data
     session = request.session
-    supplier_name = data.get('supplier_name')
-    supplier_id = data.get('supplier_id')
     
     # Check if the supplier_name parameter was provided in the GET request
-    if not (supplier_name or supplier_id):
-       response = JsonResponse({'answer': 'supplier_name is a required parameter'}, status=400)
+    if not supplier_id:
+       response = JsonResponse({'answer': 'supplier_id is not a required parameter'}, status=400)
        add_get_params(response)    
        return response         
    
-    supplier = session.query(Supplier).filter_by(name=supplier_name).one_or_none()
-    supplier = supplier or session.query(Supplier).get(supplier_id)
-    
+   
+    supplier = session.query(Supplier).get(supplier_id)
     if not supplier:
         response = JsonResponse({'answer': 'Supplier does not exist'}, status=400)
         add_get_params(response)
         return response
 
     
-    all_products = session.query(Product).filter_by(supplier_id=supplier.id).all()
+    all_products = session.query(Product).filter_by(supplier_id=supplier_id).all()
     
     products_data = [product.to_json() for product in all_products]
     response = JsonResponse({f'{supplier.name} products': products_data}, status=200)
+    add_get_params(response)
+    return response
+
+
+
+
+
+@csrf_exempt
+@require_http_methods(["GET","OPTIONS"])
+def get_product_properties(request):
+    
+    session = request.session 
+    colors_data = []
+    measure_data = []
+    materials_data = []
+  
+
+    # materials = session.query(ProductMaterial.id, ProductMaterial.name, func.count(ProductEntry.id)).outerjoin(ProductEntry.material).group_by(ProductMaterial.id).all()
+    # materials_data = [{"material_id": material[0], "material_name": material[1], "num_entries": material[2]} for material in materials]
+    
+    # Retrieve all colors and their IDs and color codes
+    materials = session.query(ProductMaterial).options(joinedload(ProductMaterial.product_entries)).all()
+    for material in materials:
+        materials_data.append({"material_id": material.id, "material_name": material.name})
+
+    # Retrieve all colors and their IDs and color codes
+    colors = session.query(ProductColor).options(joinedload(ProductColor.product_entries)).all()
+    for color in colors:
+        colors_data.append({"color_id": color.id, "color_name": color.name, "color_code": color.color_code})
+
+    # Retrieve all measures, their IDs, and their values
+    measures = session.query(ProductMeasure).options(joinedload(ProductMeasure.values)).all()
+    for measure in measures:
+        values = []
+        for measure_value in measure.values:
+            values.append({"value_id": measure_value.id, "value": measure_value.value})
+        measure_data.append({"measure_id": measure.id, "measure_name": measure.name, "values": values})
+
+    product_properties = {"materials_data": materials_data, "colors_data": colors_data, "measure_data": measure_data}
+    
+    response = JsonResponse(product_properties, status=200)
     add_get_params(response)
     return response

@@ -30,7 +30,7 @@
 -- DELETE FROM employees WHERE person_id IN (
 --   SELECT id FROM persons WHERE username LIKE '%Farid4%'
 -- );
--- DELETE FROM persons WHERE username LIKE '%FaridAdmin%';
+-- DELETE FROM persons WHERE username LIKE '%Farid612%';
 
 -- select email from persons; 
 
