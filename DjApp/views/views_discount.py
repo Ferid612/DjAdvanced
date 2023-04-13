@@ -8,8 +8,8 @@ from DjApp.models import Discount
 
 @csrf_exempt
 @require_http_methods(["POST","GET"])
-@login_required
-@permission_required("manage_discounts")
+# @login_required
+# @permission_required("manage_discounts")
 def get_all_discounts(request):
     """
     Retrieve all discounts from the database.

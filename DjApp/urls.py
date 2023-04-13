@@ -19,6 +19,7 @@ urlpatterns = [
     path('apis/', include(urls_apis), name="APİ's urls"),
     path('google_auth/', include(urls_google_auth), name="Google Authentication"),
 
+
     
     # path("", views_auth0_2.home, name="index"),
     # path("login", views_auth0_2.login, name="login"),

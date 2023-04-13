@@ -2,6 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import HttpResponse, redirect
 from django.http import JsonResponse
 from sqlalchemy import func
+from DjApp.views.views_shopping import get_product_entry_price_after_discount
 from DjApp.decorators import require_http_methods
 from sqlalchemy.orm import joinedload
 from ..models import Category, Product, ProductColor, ProductEntry, ProductMaterial, ProductMeasure, Supplier
@@ -131,25 +132,32 @@ def get_product_entry(request, product_entry_id):
     if entry.size:
         exist_sizes = entry.product.get_exist_sizes(session)        
         
+    product_current_price =  get_product_entry_price_after_discount(session, entry.id)
 
+    fags = entry.get_all_fags()
 
+    comments = entry.get_entry_comments()
+    
     response = JsonResponse({
         "entry_id": entry.id,
         "product_id": entry.product_id,
         "product_name": entry.product.name,
-        "product_description": entry.product.description,
-        "supplier_data": {'supplier_id': entry.product.supplier_id,'supplier_name': entry.product.supplier.name },
-        "category_data": {'category_id': entry.product.category_id, 'category_name': entry.product.category.name },
         "price_prev": entry.price,
+        "price_current": product_current_price,
+        "product_description": entry.product.description,
         "quantity": entry.quantity,
         "SKU": entry.SKU,
         "size": size,
-        "images": images,
         "color": {"color_id": entry.color.id, "color_name": entry.color.name, "color_code": entry.color.color_code},
         "material": {"material_id": entry.material_id, "material_name": entry.material.name},
+        "supplier_data": {'supplier_id': entry.product.supplier_id,'supplier_name': entry.product.supplier.name },
+        "category_data": {'category_id': entry.product.category_id, 'category_name': entry.product.category.name },
+        "images": images,
         'cargo_active': entry.cargo_active,
         "rates_data": rates_data,
         "rates": rates,
+        "fags": fags['fags_data'],
+        "comments":comments['comment_tree'],
         "exist_colors":exist_colors,
         "exist_materials":exist_materials,
         "exist_sizes":exist_sizes,

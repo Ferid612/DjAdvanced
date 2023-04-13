@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from sqlalchemy import func
 from django.views.decorators.csrf import csrf_exempt
 from DjAdvanced.settings import engine
-from DjApp.models import CartItem,  Product,  ShoppingSession, UserPayment
+from DjApp.models import CartItem,  Product, ProductEntry,  ShoppingSession, UserPayment
 from ..helpers import  add_get_params
 from ..decorators import login_required, require_http_methods
 from sqlalchemy.orm import joinedload
@@ -14,7 +14,7 @@ from sqlalchemy.orm import joinedload
 # Helper functions for calculating discounts and cargo fees
 @csrf_exempt
 def calculate_discounts(cart_item):
-    discounts = cart_item.product.discount
+    discounts = cart_item.product_entry.discount
     active_discounts = [d for d in discounts if d.discount.active]
     discount_price = sum(cart_item.total() * float(d.discount.discount_percent) for d in active_discounts)
     return discount_price
@@ -24,7 +24,7 @@ def calculate_discounts(cart_item):
 
 @csrf_exempt
 def calculate_discount_data(cart_item):
-    discounts = cart_item.product.discount
+    discounts = cart_item.product_entry.discount
     active_discounts = [d for d in discounts if d.discount.active]
     if active_discounts:
         discount_percent = float(active_discounts[0].discount.discount_percent)
@@ -44,9 +44,12 @@ def calculate_discount_data(cart_item):
             
 @csrf_exempt
 def calculate_cargo_fee(cart_item):
-    product = cart_item.product
-    if product.cargo_active:
-        cargo_percent = float(product.supplier.cargo_percent)
+    product_entry = cart_item.product_entry
+    if product_entry.cargo_active:
+        if product_entry.product.supplier.cargo_percent:
+            cargo_percent = float(product_entry.product.supplier.cargo_percent)
+        else:
+            cargo_percent=0
         return cart_item.total() * cargo_percent
     return 0
 
@@ -54,10 +57,10 @@ def calculate_cargo_fee(cart_item):
 
 @csrf_exempt
 def calculate_cargo_data(cart_item):
-    product = cart_item.product
+    product_entry = cart_item.product_entry
     cargo_data = {}
-    if product.cargo_active:
-        cargo_percent = float(product.supplier.cargo_percent)
+    if product_entry.cargo_active:
+        cargo_percent = float(product_entry.product.supplier.cargo_percent)
         item_cargo_fee = cart_item.total() * cargo_percent 
         cargo_data['supplier_cargo_percent'] = cargo_percent
         cargo_data['item_cargo_fee'] = item_cargo_fee
@@ -77,10 +80,10 @@ def calculate_supplier_prices_and_cargo_discounts(cart_items,amount_to_be_paid):
     """
     supplier_prices = {}
     for cart_item in cart_items:
-        product = cart_item.product
-        if product.cargo_active:
-            supplier = product.supplier
-            price = product.price * cart_item.quantity
+        product_entry = cart_item.product_entry
+        if product_entry.cargo_active:
+            supplier = product_entry.product.supplier
+            price = product_entry.price * cart_item.quantity
             if supplier not in supplier_prices:
                 supplier_prices[supplier] = price
             else:
@@ -89,6 +92,9 @@ def calculate_supplier_prices_and_cargo_discounts(cart_items,amount_to_be_paid):
 
     supplier_cargo_discounts = {}
     for supplier, price in supplier_prices.items():
+        if not supplier.cargo_min_limit:
+            supplier.cargo_min_limit = 1.0
+            supplier.cargo_percent = 0.0
         if (price > supplier.cargo_min_limit):
             cargo_discount = float(supplier.cargo_percent) * price
             supplier_cargo_discounts[supplier.name] = cargo_discount
@@ -99,8 +105,24 @@ def calculate_supplier_prices_and_cargo_discounts(cart_items,amount_to_be_paid):
 
 
 
+def get_product_entry_price_after_discount(session, product_entry_id):
+    """
+    Returns the price of a product entry after applying any active discounts.
+    """
+    product_entry = session.query(ProductEntry).get(product_entry_id)
+
+    discounts = product_entry.discount
+    active_discounts = [d.discount for d in discounts if d.discount.active]
+    if active_discounts:
+        discount_percent = float(active_discounts[0].discount_percent)
+        discounted_price = product_entry.price * (1 - discount_percent)
+        return discounted_price
+    else:
+        return product_entry.price
+
+
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST", "OPTIONS"])
 @login_required
 def get_user_shopping_session_data(request):
     """
@@ -114,11 +136,10 @@ def get_user_shopping_session_data(request):
     if not shopping_session:
         return JsonResponse({'answer': "The session data of the user could not be found."}, status=400)
 
+
     # Eager load related data
     cart_items = session.query(CartItem).options(
-        joinedload(CartItem.product).joinedload(Product.supplier),
-        joinedload(CartItem.product).joinedload(Product.category),
-        joinedload(CartItem.product).joinedload(Product.discount)
+        joinedload(CartItem.product_entry).joinedload(ProductEntry.discount)
     ).filter_by(session_id=shopping_session.id).all()
 
     shopping_session_total = shopping_session.total()
@@ -137,7 +158,7 @@ def get_user_shopping_session_data(request):
     # Group cart items by supplier name
     cart_item_data = {}
     for cart_item in cart_items:
-        supplier_name = cart_item.product.supplier.name
+        supplier_name = cart_item.product_entry.product.supplier.name
         if supplier_name not in cart_item_data:
             cart_item_data[supplier_name] = []
         cart_item_data[supplier_name].append({
@@ -147,11 +168,11 @@ def get_user_shopping_session_data(request):
             'discount_data': calculate_discount_data(cart_item),
             'cargo_data': calculate_cargo_data(cart_item),
             'product': {
-                'id': cart_item.product.id,
-                'name': cart_item.product.name,
-                'description': cart_item.product.description,
-                'price': cart_item.product.price,
-                'category_name': cart_item.product.category.name
+                'id': cart_item.product_entry.id,
+                'name': cart_item.product_entry.product.name,
+                'description': cart_item.product_entry.product.description,
+                'price': cart_item.product_entry.price,
+                'category_name': cart_item.product_entry.product.category.name
             }
         })
         

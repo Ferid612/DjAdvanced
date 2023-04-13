@@ -14,7 +14,7 @@ import re
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
+# @login_required
 def add_country(request):
     """
     Add a new country to the database.
@@ -60,7 +60,7 @@ def add_country(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
+# @login_required
 def add_countries(request):
     """
     This function handles adding multiple countries to the database. It receives a list of countries in the following format:
