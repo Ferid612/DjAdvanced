@@ -7,8 +7,8 @@ from ..models import  Discount, Product, ProductDiscount
 
 @csrf_exempt
 @require_http_methods(["POST","GET"])
-@login_required
-@permission_required("manage_discounts")
+# @login_required
+# @permission_required("manage_discounts")
 def create_discount(request):
     """
     This function handles discount creation by creating a new discount and adding it to the product.
@@ -66,8 +66,8 @@ def create_discount(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
-@permission_required("manage_discounts")
+# @login_required
+# @permission_required("manage_discounts")
 def discount_update(request):
     """
     This function updates an existing discount by its ID. The function receives the following parameters from the request object:
@@ -136,8 +136,8 @@ def discount_update(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
-@permission_required("manage_discounts")
+# @login_required
+# @permission_required("manage_discounts")
 def discount_delete(request):
     """
     This function handles the deletion of a discount from a product.
@@ -179,8 +179,8 @@ def discount_delete(request):
 
 @csrf_exempt
 @require_http_methods(["POST","GET"])
-@login_required
-@permission_required("manage_discounts")
+# @login_required
+# @permission_required("manage_discounts")
 def add_discount_to_products_by_name(request):
     """
     This function adds the specified discount to the products with the specified IDs.
@@ -228,8 +228,8 @@ def add_discount_to_products_by_name(request):
 
 @csrf_exempt
 @require_http_methods(["POST","GET"])
-@login_required
-@permission_required("manage_discounts")
+# @login_required
+# @permission_required("manage_discounts")
 def add_discount_to_products_by_id(request):
     """
     This function adds the specified discount to the products with the specified IDs.

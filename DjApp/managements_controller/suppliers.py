@@ -10,8 +10,8 @@ from ..decorators import permission_required, login_required, require_http_metho
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
-@permission_required('manage_supplier')
+# @login_required
+# @permission_required('manage_supplier')
 def registration_of_supplier(request):
     """
     This function handles supplier registration by creating a new supplier account.
@@ -24,83 +24,79 @@ def registration_of_supplier(request):
     If the account creation is successful, the function returns a JSON response with a success message and the new supplier's information.
     If an error occurs during the account creation process, the function returns a JSON response with an error message and the error details.
     """
-    try:
         
-        # Get the parameters from the request object
-        data = request.data
-        supplier_name = data.get('supplier_name')
-        phone_number = data.get('phone_number')
-        description = data.get('description')
-        country_code = data.get('country_code')
-        
-        session = request.session
-
-        
-        # Query for the country object
-        country = session.query(Country).filter_by(
-            country_code=country_code).one_or_none()
-
-        if not country:
-            # If country is not found, return an error response
-            response = JsonResponse(
-                {'answer': "Country code not found."}, status=400)
-
-            add_get_params(response)
-            return response
-
-        # Query for the phone number object
-        phone = session.query(PhoneNumber).filter_by(
-            phone_number=phone_number).one_or_none()
-
-        if phone:
-            # If phone number already exists, return an error response
-            response = JsonResponse(
-                {'answer': "This phone number belongs to another supplier account."}, status=400)
+    # Get the parameters from the request object
+    data = request.data
+    supplier_name = data.get('supplier_name')
+    phone_number = data.get('phone_number')
+    description = data.get('description')
+    country_code = data.get('country_code')
     
-            add_get_params(response)
-            return response
+    session = request.session
 
-        # Create a new phone number object
-        new_phone = PhoneNumber(
-            phone_number=phone_number,
-            country_code= country.country_code,
-            phone_type_id=2
-        )
+    # Query for the phone number object
+    supplier = session.query(Supplier).filter_by(
+        name=supplier_name).one_or_none()
 
-        # Create a new supplier object
-        new_supplier = Supplier(
-            name=supplier_name,
-            phone_number=new_phone,
-            description=description
-        )
-
-        # Add the new supplier object to the database
-        session.add(new_supplier)
-
-
-        # Return a success response
+    if supplier:
+        # If Supplier name already exists, return an error response
         response = JsonResponse(
-            {"answer": "The new supplier account has been successfully created.",
-             "supplier":new_supplier.to_json(),
-             },
-            status=200
-        )
+            {'answer': f"This supplier name '{supplier_name}' belongs to another supplier account."}, status=400)
 
         add_get_params(response)
         return response
-    except Exception as e:
-        # Return an error response
-        response = GetErrorDetails(
-            "Something went wrong when creating the supplier account.", e, 500)
 
+    
+    # Query for the phone number object
+    phone = session.query(PhoneNumber).filter_by(
+        phone_number=phone_number).one_or_none()
+
+    if phone:
+        # If phone number already exists, return an error response
+        response = JsonResponse(
+            {'answer': "This phone number belongs to another supplier account."}, status=400)
+
+        add_get_params(response)
         return response
 
+    # Create a new phone number object
+    new_phone = PhoneNumber(
+        phone_number=phone_number,
+        country_code= country_code,
+        phone_type_id=2
+    )
+
+    session.add(new_phone)
+    session.commit()
+    
+    
+    # Create a new supplier object
+    new_supplier = Supplier(
+        name=supplier_name,
+        phone_number=new_phone,
+        description=description
+    )
+
+    # Add the new supplier object to the database
+    session.add(new_supplier)
+    session.commit()
+
+    # Return a success response
+    response = JsonResponse(
+        {"answer": "The new supplier account has been successfully created.",
+            "supplier":new_supplier.to_json(),
+            },
+        status=200
+    )
+
+    add_get_params(response)
+    return response
 
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
+# @login_required
 def add_or_change_supplier_profile_image(request):
     """
     This function handles adding or changing a supplier's profile image by receiving a file containing the new image.
@@ -110,86 +106,78 @@ def add_or_change_supplier_profile_image(request):
     If the image upload is successful, the function returns a JSON response with a success message and the new user's updated information.
     If an error occurs during the image upload process, the function returns a JSON response with an error message and the error details.
     """
-    try:
-        # Get the parameters from the request object
-        session = request.session
+    # Get the parameters from the request object
+    session = request.session
+    
+    image_file = request.FILES.get('image')
+    image_title = request.data.get("image_title")
+    supplier_id = request.data.get("supplier_id")
+    
+    
+    supplier = session.query(Supplier).get(supplier_id)
+    if not supplier:
+        # If supplier not found
+        response = JsonResponse(
+            {"error": "Supplier id is not correct."},
+            status=400
+        )
         
-        image_file = request.FILES.get('image')
-        image_title = request.data.get("image_title")
-        supplier_id = request.data.get("supplier_id")
+        add_get_params(response)
+
+        return response
+
+
+    if not image_file:
+        # If no image file is provided, return an error response
+        response = JsonResponse(
+            {"error": "No image file provided."},
+            status=400
+        )
+        add_get_params(response)
         
-        
-        supplier = session.query(Supplier).get(supplier_id)
-        if not supplier:
-            # If supplier not found
-            response = JsonResponse(
-                {"error": "Supplier id is not correct."},
-                status=400
-            )
-            
-            add_get_params(response)
-
-            return response
+        return response
 
 
-        if not image_file:
-            # If no image file is provided, return an error response
-            response = JsonResponse(
-                {"error": "No image file provided."},
-                status=400
-            )
-            add_get_params(response)
-            
-            return response
+    # Save the image file to the server
+    path = PROFIL_IMAGE_ROOT / 'persons'
+    image_path = save_uploaded_image(image_file, path)
 
 
-        # Save the image file to the server
-        path = PROFIL_IMAGE_ROOT / 'persons'
-        image_path = save_uploaded_image(image_file, path)
-
-
-        
-        old_profil_image = session.query(ProfilImage).filter_by(supplier_id = supplier.id).one_or_none()
-        if old_profil_image:
-            session.delete(old_profil_image)
-            session.commit()
-
-
-        image_data = {
-            "image_url" : image_path,                
-            "title" : image_title,     
-            "supplier_id" : supplier.id 
-        }
-        
-        profil_image = ProfilImage(**image_data)                
-        # Commit the session to the database
-        session.add(profil_image)
+    
+    old_profil_image = session.query(ProfilImage).filter_by(supplier_id = supplier.id).one_or_none()
+    if old_profil_image:
+        session.delete(old_profil_image)
         session.commit()
 
 
-        # Return a success response
-        response = JsonResponse(
-            {"answer": "The profile image has been updated successfully.",
-             "supplier_profil_image": image_data},
-            status=200
-        )
+    image_data = {
+        "image_url" : image_path,                
+        "title" : image_title,     
+        "supplier_id" : supplier.id 
+    }
+    
+    profil_image = ProfilImage(**image_data)                
+    # Commit the session to the database
+    session.add(profil_image)
+    session.commit()
 
-        add_get_params(response)
-        return response
-    except Exception as e:
-        # Return an error response
-        response = GetErrorDetails(
-            "Something went wrong when updating the profile image.", e, 500)
-        
-        add_get_params(response)
-        return response    
+
+    # Return a success response
+    response = JsonResponse(
+        {"answer": "The profile image has been updated successfully.",
+            "supplier_profil_image": image_data},
+        status=200
+    )
+
+    add_get_params(response)
+    return response
 
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
-@permission_required('manage_supplier')
+# @login_required
+# @permission_required('manage_supplier')
 def update_supplier_data(request):
     """
     Update an existing supplier in the database.
@@ -255,8 +243,8 @@ def update_supplier_data(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
-@permission_required('manage_supplier')
+# @login_required
+# @permission_required('manage_supplier')
 def delete_supplier(request):
     """
     Delete a supplier from the database.
@@ -311,8 +299,8 @@ def delete_supplier(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
-@permission_required('manage_supplier')
+# @login_required
+# @permission_required('manage_supplier')
 def add_supplier_address(request):
     supplier_name = request.data.get("supplier_name")
     supplier = request.session.query(Supplier).filter_by(name=supplier_name).first() 
@@ -327,8 +315,8 @@ def add_supplier_address(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
-@permission_required('manage_supplier')
+# @login_required
+# @permission_required('manage_supplier')
 def update_supplier_address(request):
     """
     This function is used to update an existing user_adres in the database.

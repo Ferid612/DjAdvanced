@@ -1,4 +1,4 @@
-from sqlalchemy import CheckConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL
+from sqlalchemy import CheckConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL, Table, func
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from DjAdvanced.settings import engine
@@ -113,7 +113,8 @@ class Supplier(Base, TimestampMixin):
         'profil_image': profil_image_url,
         'profil_image_title': profil_image_title,
         'location_id': self.location_id,
-        'phone_number_id': self.phone_number_id,
+        'country_code': str(self.phone_number.country_code),  
+        'phone_number': str(self.phone_number.phone_number),
         }
         
 
@@ -129,38 +130,206 @@ class Product(Base, TimestampMixin):
     name = Column(String, unique=True)
     supplier_id = Column(Integer, ForeignKey('supplier.id'), nullable=False) 
     category_id = Column(Integer, ForeignKey('category.id'),nullable=False)
-    price = Column(Float,nullable=False)
-    SKU = Column(String,unique=True,nullable=False)
     description = Column(String)
     
-    cargo_active = Column(Boolean,default=True)
     
-    
-    
-    image = relationship('ProductImage', back_populates='product')
+    entries = relationship('ProductEntry', back_populates='product')
     supplier = relationship('Supplier', back_populates='products')
     category = relationship('Category', back_populates='products')
-    comments = relationship('ProductRate', back_populates='product')
-    fags = relationship('ProductFag', back_populates='product')
-    questions = relationship('ProductQuestion', back_populates='product')
-    discount = relationship('ProductDiscount', back_populates='products')
-    cart_items = relationship('CartItem', back_populates='product')
-    order_item = relationship('OrderItem', back_populates='product')
+
+
+    def get_exist_colors(self, session):
+        """
+        Returns a list of all colors that are already assigned to at least one product entry
+        along with the corresponding product entry IDs.
+        """
+        product_colors = session.query(ProductEntry.id, ProductColor).join(ProductEntry.color).join(Product).filter(Product.id == self.id).all()
+        return [{'product_entry_id': entry_id, 'color': color.to_json()} for entry_id, color in product_colors]
+
+
+    def get_exist_materials(self, session):
+        """
+        Returns a list of all marerials that are already assigned to at least one product entry
+        along with the corresponding product entry IDs.
+        """
+        product_materials = session.query(ProductEntry.id, ProductMaterial).join(ProductEntry.material).join(Product).filter(Product.id == self.id).all()
+        return [{'product_entry_id': entry_id, 'material': material.to_json()} for entry_id, material in product_materials]
+
+
+    def get_exist_sizes(self, session):
+        """
+        Returns a list of all sizess that are already assigned to at least one product entry
+        along with the corresponding product entry IDs.
+        """
+        product_sizes = session.query(ProductEntry.id, ProductMeasureValue).join(ProductEntry.size).join(Product).filter(Product.id == self.id).all()
+        return [{'product_entry_id': entry_id, 'size': size.to_json()} for entry_id, size in product_sizes]
+
+
+    def to_json(self):
+            supplier_data = {
+                'id': self.supplier.id,
+                'name': self.supplier.name
+            }
+            category_data = {
+                'id': self.category.id,
+                'name': self.category.name
+            }
+            
+            return {
+                'id': self.id,
+                'name': self.name,
+                'description': self.description,
+                'supplier': supplier_data,
+                'category_id': category_data,
+                'cargo_active': self.cargo_active,
+            }
+
+
+
+
+
+
+class ProductEntry(Base):
+    __tablename__ = 'product_entry'
+    id = Column(Integer, primary_key=True) 
+    product_id = Column(Integer, ForeignKey('product.id', ondelete='CASCADE'), nullable=False, index=True)
+    color_id = Column(Integer, ForeignKey('product_color.id', ondelete='CASCADE'), nullable=False, index=True)
+    material_id = Column(Integer, ForeignKey('product_material.id', ondelete='CASCADE'), nullable=False, index=True)
+    measure_value_id = Column(Integer, ForeignKey('product_measure_value.id', ondelete='CASCADE'), index=True)
+    quantity =Column(Integer, nullable=False, index=True)
+    SKU = Column(String,unique=True,nullable=False)
+    price = Column(Float,nullable=False)
+    cargo_active = Column(Boolean,default=True)
+
+    product = relationship('Product', back_populates='entries')
+    rates = relationship('ProductRate', back_populates='product_entry')
+    fags = relationship('ProductFag', back_populates='product_entry')
+    questions = relationship('ProductQuestion', back_populates='product_entry')
+
+    discount = relationship('ProductDiscount', back_populates='product_entry')
+    images = relationship('ProductImage', back_populates='product_entry')
+    color = relationship("ProductColor", back_populates="product_entries")
+    material = relationship("ProductMaterial", back_populates="product_entries")    
+    size = relationship('ProductMeasureValue', back_populates='product_entry', cascade="all, delete")
+
+    cart_items = relationship('CartItem', back_populates='product_entry')
+    order_item = relationship('OrderItem', back_populates='product_entry')
        
+        
     def to_json(self):
         return {
-        'id': self.id,
-        'name': self.name,
-        'description': self.description,
-        'supplier_id': self.supplier_id,
-        'category_id': self.category_id,
-        'price': self.price,
-        'SKU': self.SKU,
-        'cargo_active': self.cargo_active,
-    }
+            'id': self.id,
+            'images': [{'image_url': image.image_url, 'title': image.title} for image in self.images]
+        }
+
+
+class ProductMeasureValue(Base):
+    __tablename__ = 'product_measure_value'
+    id = Column(Integer, primary_key=True)
+    value = Column(String, nullable=False) 
+    measure_id = Column(Integer, ForeignKey('product_measure.id', ondelete='CASCADE'), nullable=False, index=True)
+    measure = relationship('ProductMeasure', back_populates='values')
+    product_entry = relationship('ProductEntry', back_populates='size')
+    
+    def to_json(self):
+            return {
+            'id': self.id,
+            'value': self.value,
+            'measure': self.measure.name,
+        }
+
+
+class ProductMeasure(Base):
+    __tablename__ = 'product_measure'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+
+    values = relationship('ProductMeasureValue', back_populates='measure', cascade="all, delete", lazy="joined")
+   
+    def append_value(self,session, value):
+        measure_value = ProductMeasureValue(value=value, measure=self)
+        session.add(measure_value)
+        session.commit()
+
+    @classmethod
+    def add_measure(cls, session, name):
+        """
+        Appends a new measure type to the ProductMeasure table with the given name.
+        """
+        new_measure = cls(name=name)
+        session.add(new_measure)
+        session.commit()
+        return new_measure
+   
+    def to_json(self):
+        measure_dict = {
+            'id': self.id,
+            'name': self.name,
+            'values': []
+        }
+
+        for value in self.values:
+            measure_dict['values'].append(value.to_json())
+
+        return measure_dict
+        
+        
+
+
+
+class ProductColor(Base):
+    __tablename__ = 'product_color'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    color_code = Column(String,nullable=False)
+    product_entries = relationship("ProductEntry", back_populates="color", cascade="all, delete", lazy="joined")
+    
+    
+    @classmethod
+    def add_color(cls, session, name, color_code):
+        """
+        Adds a new color to the ProductColor table with the given name and color code.
+        """
+        new_color = cls(name=name, color_code=color_code)
+        session.add(new_color)
+        session.commit()
+        return new_color
+
+
+    def to_json(self):
+            return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.color_code,
+        }
+        
+    
+class ProductMaterial(Base):
+    __tablename__ = 'product_material'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False, unique=True)
+    product_entries = relationship("ProductEntry", back_populates="material", cascade="all, delete", lazy="joined")
+
+
+    @classmethod
+    def add_material(cls, session, name):
+        """
+        Adds a new color to the ProductColor table with the given name and color code.
+        """
+        new_material = cls(name=name)
+        session.add(new_material)
+        session.commit()
+        return new_material
+
+
+    def to_json(self):
+            return {
+            'id': self.id,
+            'name': self.name
+            }
+
               
-              
-              
+
 class ProductRate(Base, TimestampMixin):
     """
     A table representing the comments of product.
@@ -168,13 +337,13 @@ class ProductRate(Base, TimestampMixin):
     __tablename__ = 'product_rate'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'), nullable=False)
     ip = Column(String, nullable=False)
     rate_comment = Column(String, nullable=False)
     _rate = Column(Integer, nullable=False)
     status = Column(String, nullable=False)
-    product = relationship('Product', back_populates='comments')
-    user = relationship('Users', back_populates='comments')
+    product_entry = relationship('ProductEntry', back_populates='rates')
+    user = relationship('Users', back_populates='product_rates')
 
     @hybrid_property
     def rate(self):
@@ -184,7 +353,15 @@ class ProductRate(Base, TimestampMixin):
     def rate(self, rate):
         self._rate = min(max(rate, 0), 5);
 
-            
+
+    @classmethod
+    def get_raters_data(cls,session, product_entry_id):
+        query = session.query(cls).filter(cls.product_entry_id == product_entry_id)
+        count = query.count()
+        avg_rating = query.with_entities(func.avg(cls._rate)).scalar()
+        return {'count': count, 'avg_rating': avg_rating}
+
+
 
 class ProductFag(Base, TimestampMixin):
     """
@@ -192,12 +369,12 @@ class ProductFag(Base, TimestampMixin):
     """
     __tablename__ = 'product_fag'
     id = Column(Integer, primary_key=True)
-    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'), nullable=False)
     question = Column(String, nullable=False)
     answer = Column(String, nullable=False)
     status = Column(String, nullable=False)
     
-    product = relationship('Product', back_populates='fags')
+    product_entry = relationship('ProductEntry', back_populates='fags')
     
 
 
@@ -207,12 +384,12 @@ class ProductQuestion(Base, TimestampMixin):
     """
     __tablename__ = 'product_question'
     id = Column(Integer, primary_key=True)
-    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     question_text = Column(String, nullable=False)
     status = Column(String, nullable=False)
 
-    product = relationship('Product', back_populates='questions')
+    product_entry = relationship('ProductEntry', back_populates='questions')
     answers = relationship('AnswersToQuestions', back_populates='question')
     user = relationship('Users', back_populates='questions')
 
@@ -238,11 +415,12 @@ class AnswersToQuestions(Base, TimestampMixin):
 class ProductImage(Base, TimestampMixin):
     __tablename__ = 'product_image'
     id = Column(Integer, primary_key=True)
-    product_id = Column(Integer, ForeignKey('product.id'), nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'), nullable=False)
     image_url = Column(String, nullable=False)
     title = Column(String, nullable=False)
     
-    product = relationship("Product", back_populates='image')
+    product_entry = relationship("ProductEntry", back_populates='images')
+
 
     
 class Discount(Base, TimestampMixin):
@@ -271,10 +449,10 @@ class ProductDiscount(Base, TimestampMixin):
     
     __tablename__ = 'product_discount'
     id = Column(Integer, primary_key=True)
-    product_id = Column(Integer, ForeignKey('product.id'),nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'),nullable=False)
     discount_id = Column(Integer, ForeignKey('discount.id'),nullable=False)
     discount = relationship("Discount", back_populates='product_discount')
-    products = relationship("Product", back_populates='discount')
+    product_entry = relationship("ProductEntry", back_populates='discount')
 
 
 
@@ -403,7 +581,7 @@ class Users(Base, TimestampMixin):
     payments =  relationship('UserPayment', back_populates='user')
     shopping_session = relationship('ShoppingSession', back_populates='user')
     orders =  relationship('OrderDetails', back_populates='user')
-    comments = relationship('ProductRate', back_populates='user')
+    product_rates = relationship('ProductRate', back_populates='user')
     questions = relationship('ProductQuestion', back_populates='user')
     answers = relationship('AnswersToQuestions', back_populates='user')
 
@@ -550,11 +728,11 @@ class CartItem(Base, TimestampMixin):
     __tablename__ = 'cart_item'
     id = Column(Integer, primary_key=True)
     session_id = Column(Integer, ForeignKey('shopping_session.id'),nullable=False)
-    product_id = Column(Integer, ForeignKey('product.id'),nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'),nullable=False)
     _quantity= Column(Integer)
     
     shopping_session = relationship("ShoppingSession", back_populates='cart_items')
-    product = relationship("Product", back_populates='cart_items')
+    product_entry = relationship("ProductEntry", back_populates='cart_items')
 
 
     @hybrid_property
@@ -605,11 +783,11 @@ class OrderItem(Base, TimestampMixin):
     
     id = Column(Integer, primary_key=True)
     order_id = Column(Integer, ForeignKey('order_details.id'),nullable=False)
-    product_id = Column(Integer, ForeignKey('product.id'),nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'),nullable=False)
     quantity= Column(Integer,default=0)
 
     order_details = relationship("OrderDetails", back_populates='order_items')
-    product = relationship("Product", back_populates='order_item')
+    product_entry = relationship("ProductEntry", back_populates='order_item')
 
 
 

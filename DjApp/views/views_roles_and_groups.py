@@ -14,8 +14,8 @@ from ..models import EmployeeRole, EmployeeGroup
 
 @csrf_exempt
 @require_http_methods(["GET","POST"])
-@login_required
-@permission_required("Views roles and groups")
+# @login_required
+# @permission_required("Views roles and groups")
 def get_all_user_roles(request):
     """
     This function returns a list of all user roles in the database.
@@ -41,8 +41,8 @@ def get_all_user_roles(request):
 
 @csrf_exempt
 @require_http_methods(["GET","POST"])
-@login_required
-@permission_required("views_roles_and_groups")
+# @login_required
+# @permission_required("views_roles_and_groups")
 def get_all_employee_roles_groups_permissions(request):
     session = request.session
     
@@ -90,8 +90,8 @@ def get_all_employee_roles_groups_permissions(request):
 
 @csrf_exempt
 @require_http_methods(["GET","POST"])
-@login_required
-@permission_required("views_roles_and_groups")
+# @login_required
+# @permission_required("views_roles_and_groups")
 def get_all_user_roles_groups_permissions(request):
     session = request.session
     

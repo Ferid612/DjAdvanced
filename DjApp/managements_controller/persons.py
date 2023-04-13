@@ -162,10 +162,12 @@ def create_person_registration(request):
     if person_type == "user":
         new_user = Users(person=new_person)
         session.add(new_user)
+        
     elif person_type == "employee":                
         new_employee = Employees(person=new_person)
         session.add(new_employee)
-
+    
+    session.commit()
 
     # Return a success response
     person_json = new_person.to_json()
