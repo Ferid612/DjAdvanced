@@ -215,6 +215,7 @@ class ProductEntry(Base):
 
     cart_items = relationship('CartItem', back_populates='product_entry')
     order_item = relationship('OrderItem', back_populates='product_entry')
+    wishlist_product = relationship('WishListProductEntry', back_populates='product_entry')
        
         
     def to_json(self):
@@ -448,10 +449,6 @@ class ProductComment(Base, TimestampMixin):
 
 
 
-
-
-
-
 class ProductImage(Base, TimestampMixin):
     __tablename__ = 'product_image'
     id = Column(Integer, primary_key=True)
@@ -570,7 +567,6 @@ pwd_context = CryptContext(
     )
 
 
-
 class ProfilImage(Base, TimestampMixin):
     __tablename__ = 'profil_image'
     id = Column(Integer, primary_key=True)
@@ -622,6 +618,52 @@ class Users(Base, TimestampMixin):
     shopping_session = relationship('ShoppingSession', back_populates='user')
     orders =  relationship('OrderDetails', back_populates='user')
     product_rates = relationship('ProductRate', back_populates='user')
+    wishlist = relationship('UserWishList', back_populates='user')
+
+
+class UserWishList(Base, TimestampMixin):
+    __tablename__ = 'user_wishlist'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), unique=True)
+
+    
+    user = relationship('Users', back_populates='wishlist')
+    wishlists = relationship('WishList', back_populates='user_wishlist')
+    def to_json(self):
+        return {
+        'id': self.id,
+        'user_id': self.user_id
+        }
+
+
+class WishList(Base, TimestampMixin):
+    __tablename__ = 'wishlist'
+    id = Column(Integer, primary_key=True)
+    user_wishlist_id = Column(Integer, ForeignKey('user_wishlist.id'))
+    title = Column(String)  
+    
+    user_wishlist = relationship('UserWishList', back_populates='wishlists')
+    wishlist_products = relationship('WishListProductEntry', back_populates='wishlist')
+    
+    def to_json(self):
+        return {
+        'id': self.id,
+        'user_wishlist_id': self.user_wishlist_id,
+        'title': self.title,
+    }
+
+
+
+class WishListProductEntry(Base, TimestampMixin):
+    __tablename__ = 'wishlist_product'
+    id = Column(Integer, primary_key=True)
+    wishlist_id = Column(Integer, ForeignKey('wishlist.id'))
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'))
+    
+    wishlist = relationship('WishList', back_populates='wishlist_products')
+    product_entry = relationship('ProductEntry', back_populates='wishlist_product')
+    
+
 
 
 class Employees(Base, TimestampMixin):

@@ -88,6 +88,61 @@ def get_product(request, product_id,product_entry_id=None):
 
 @csrf_exempt
 @require_http_methods(["GET", "OPTIONS"])
+def get_entry_for_card(request, product_entry_id):
+    """
+    This function is used to retrieve the details of a specific product entry.
+    Parameters:
+        product_entry_id (int): The id of the product entry to retrieve.
+    """
+    if not product_entry_id:
+        response = JsonResponse({'answer': 'product_entry_id is a required field'}, status=400)
+        add_get_params(response)
+        return response
+
+    # Get the product entry from the database
+    session = request.session
+    entry = session.query(ProductEntry).get(product_entry_id)
+
+    if not entry:
+        response = JsonResponse({'answer': 'Product entry not found'}, status=404)
+        add_get_params(response)
+        return response
+
+
+    # Get the product category chain
+    image = None
+    rates_data = None
+    if entry.rates:
+        rates_data = entry.rates[0].get_raters_data(session, entry.id)
+      
+    if entry.images:
+        image = {"id": entry.images[0].id, "url": entry.images[0].image_url, "title": entry.images[0].title, "entry_id": entry.images[0].product_entry_id}
+
+
+    exist_colors = entry.product.get_exist_colors(session)        
+           
+    product_current_price =  get_product_entry_price_after_discount(session, entry.id)
+    
+    response = JsonResponse({
+        "entry_id": entry.id,
+        "product_id": entry.product_id,
+        "product_name": entry.product.name,
+        "price_prev": entry.price,
+        "price_current": product_current_price,
+        "quantity": entry.quantity,
+        "color": {"color_id": entry.color.id, "color_name": entry.color.name, "color_code": entry.color.color_code},
+        "image": image,
+        "rates_data": rates_data,
+        "exist_colors":exist_colors,
+            }, status=200)
+
+    add_get_params(response)
+    return response
+
+
+
+@csrf_exempt
+@require_http_methods(["GET", "OPTIONS"])
 def get_product_entry(request, product_entry_id):
     """
     This function is used to retrieve the details of a specific product entry.
@@ -165,7 +220,6 @@ def get_product_entry(request, product_entry_id):
 
     add_get_params(response)
     return response
-
 
 
 @csrf_exempt
