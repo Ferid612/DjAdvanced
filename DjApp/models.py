@@ -468,8 +468,8 @@ class ProductFag(Base, TimestampMixin):
             return {
             'id': self.id,
             'product_entry_id': self.product_entry_id,
-            'value': self.question,
-            'measure': self.answer,
+            'question': self.question,
+            'answer': self.answer,
         }
 
 

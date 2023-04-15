@@ -6,9 +6,9 @@ from DjApp.app_urls import urls_roles_and_groups, urls_mail, urls_sms, urls_loca
 
 urlpatterns = [
     
+    path('person/', include(urls_person), name="Inventory urls"),
     path('supplier/', include(urls_supplier), name="Suppliers urls"),
     path('inventory/', include(urls_inventory), name="Inventory urls"),
-    path('person/', include(urls_person), name="Inventory urls"),
     path('wishlist/', include(urls_wishlist), name="Inventory urls"),
     path('discount/', include(urls_discount), name="Discount urls"),
     path('roles_groups/', include(urls_roles_and_groups), name="Roles and groups urls"),
