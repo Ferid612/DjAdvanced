@@ -289,7 +289,7 @@ def get_categories(request):
     result = []
 
     for category in categories:
-        category_dict = {"id": category.id, "name": category.name,"parent_id": category.parent_id}
+        category_dict = category.to_json()
         if category.has_children:
             child_categories = category.get_child_categories()
             category_dict["children"] = recursive_categories(child_categories)
@@ -302,7 +302,7 @@ def get_categories(request):
 def recursive_categories(categories):
     result = []
     for category in categories:
-        category_dict = {"id": category.id, "name": category.name}
+        category_dict = category.to_json()
         if category.has_children:
             child_categories = category.get_child_categories()
             category_dict["children"] = recursive_categories(child_categories)
@@ -326,7 +326,7 @@ def get_subcategory_categories(request, category_id):
     result = []
     for child_category in child_categories:
         if not child_category.has_children:
-            result.append({'name': child_category.name, 'id': child_category.id, 'parent_id': child_category.parent_id})
+            result.append(child_category.to_json())
         else:
             subcategories = get_subcategory_categories(request, child_category.name)
             result += subcategories
@@ -344,7 +344,7 @@ def get_first_subcategory_categories(request, category_id):
     
     if category_id == 0:
         categories = session.query(Category).filter_by(parent_id=None).all()
-        result = [{'name': category.name, 'id': category.id, 'parent_id': category.parent_id} for category in categories ]
+        result = [category.to_json() for category in categories ]
 
             
     else:
@@ -357,10 +357,10 @@ def get_first_subcategory_categories(request, category_id):
         result = []
         for child_category in child_categories:
             if not child_category.has_children:
-                result.append({'name': child_category.name, 'id': child_category.id, 'parent_id': child_category.parent_id})
+                result.append(child_category.to_json())
             else:
                 first_subcategory = child_category.get_child_categories()[0]
-                result.append({'name': first_subcategory.name, 'id': first_subcategory.id, 'parent_id': first_subcategory.parent_id})
+                result.append(first_subcategory.to_json())
 
     response = JsonResponse({'categories': result}, status=200)
     add_get_params(response)
