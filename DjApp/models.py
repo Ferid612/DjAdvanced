@@ -207,7 +207,7 @@ class ProductEntry(Base):
     fags = relationship('ProductFag', back_populates='product_entry')
     comments = relationship('ProductComment', back_populates='product_entry')
 
-    discount = relationship('ProductDiscount', back_populates='product_entry')
+    product_discounts = relationship('ProductDiscount', back_populates='product_entry')
     images = relationship('ProductImage', back_populates='product_entry')
     color = relationship("ProductColor", back_populates="product_entries")
     material = relationship("ProductMaterial", back_populates="product_entries")    
@@ -215,16 +215,58 @@ class ProductEntry(Base):
 
     cart_items = relationship('CartItem', back_populates='product_entry')
     order_item = relationship('OrderItem', back_populates='product_entry')
-    wishlist_product = relationship('WishListProductEntry', back_populates='product_entry')
+    wishlist_product_entry = relationship('WishListProductEntry', back_populates='product_entry')
        
         
     def to_json(self):
         return {
             'id': self.id,
+            'name': self.product.name,
             'images': [{'image_url': image.image_url, 'title': image.title} for image in self.images]
+
+        }
+        
+        
+    @hybrid_property
+    def price_after_discount(self):
+        active_discounts = [d.discount for d in self.product_discounts if d.discount.active]
+        if active_discounts:
+            discount_percent = float(active_discounts[0].discount_percent)
+            discounted_price = self.price * (1 - discount_percent/100)
+            return discounted_price
+        else:
+            return self.price
+
+    def to_json_for_wishlist(self):
+        try :
+            image =  {'image_url': self.images[0].image_url, 'title': self.images[0].title} 
+        except IndexError:
+            image = None
+        
+        try:
+            price_after_discount = self.price_after_discount 
+            discount_percent = float((self.price-price_after_discount)/self.price)*100
+        except IndexError:
+            discount_percent = 0.0
+      
+        return {
+            'id': self.id,
+            'name': self.product.name,
+            'prev_price': self.price,
+            'current_price': price_after_discount,
+            'discount_percent':discount_percent,
+            'image':image
         }
 
+    def get_active_discounts(self):
+        """
+        Returns all active discounts associated with this product entry.
+        """
+        active_discounts = [product_discount.discount.to_json() for product_discount in self.product_discounts if product_discount.discount.active]
 
+        return {"active_discounts": active_discounts}
+    
+    
     def get_all_fags(self):
         """
         Returns all the fags associated with this product entry.
@@ -466,9 +508,9 @@ class Discount(Base, TimestampMixin):
     
     name = Column(String,unique=True,nullable=False)
     description = Column(String)
-    discount_percent= Column(DECIMAL,nullable=False)
+    discount_percent= Column(Float,nullable=False)
     active = Column(Boolean,default=False)
-    product_discount = relationship("ProductDiscount", back_populates='discount')
+    product_discounts = relationship("ProductDiscount", back_populates='discount')
 
 
 
@@ -488,8 +530,8 @@ class ProductDiscount(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     product_entry_id = Column(Integer, ForeignKey('product_entry.id'),nullable=False)
     discount_id = Column(Integer, ForeignKey('discount.id'),nullable=False)
-    discount = relationship("Discount", back_populates='product_discount')
-    product_entry = relationship("ProductEntry", back_populates='discount')
+    discount = relationship("Discount", back_populates='product_discounts')
+    product_entry = relationship("ProductEntry", back_populates='product_discounts')
 
 
 
@@ -612,7 +654,7 @@ class Users(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     person_id = Column(Integer, ForeignKey('persons.id'),unique=True,nullable=False)
     
-    person = relationship('Person', back_populates='user')
+    person = relationship('Person', back_populates='user', lazy='joined')
     user_user_group_role = relationship('UserUserGroupRole', back_populates='users')
     payments =  relationship('UserPayment', back_populates='user')
     shopping_session = relationship('ShoppingSession', back_populates='user')
@@ -624,7 +666,7 @@ class Users(Base, TimestampMixin):
 class UserWishList(Base, TimestampMixin):
     __tablename__ = 'user_wishlist'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), unique=True)
+    user_id = Column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
 
     
     user = relationship('Users', back_populates='wishlist')
@@ -642,28 +684,47 @@ class WishList(Base, TimestampMixin):
     user_wishlist_id = Column(Integer, ForeignKey('user_wishlist.id'))
     title = Column(String)  
     
+
     user_wishlist = relationship('UserWishList', back_populates='wishlists')
-    wishlist_products = relationship('WishListProductEntry', back_populates='wishlist')
-    
-    def to_json(self):
+    wishlist_product_entries = relationship('WishListProductEntry', back_populates='wishlist', cascade='all, delete-orphan')
+  
+    def to_json_all_wishlist(self):
+        wishlist_product_entries = [wishlist_product_entry.to_json() for wishlist_product_entry in self.wishlist_product_entries]
         return {
         'id': self.id,
         'user_wishlist_id': self.user_wishlist_id,
         'title': self.title,
+        'product_entries': wishlist_product_entries
+    }
+
+    def to_json_with_count(self,count):
+        wishlist_product_entries = [wishlist_product_entry.to_json() for wishlist_product_entry in self.wishlist_product_entries[:count] ]
+        return {
+        'id': self.id,
+        'user_wishlist_id': self.user_wishlist_id,
+        'title': self.title,
+        'product_entries': wishlist_product_entries
     }
 
 
 
 class WishListProductEntry(Base, TimestampMixin):
-    __tablename__ = 'wishlist_product'
+    __tablename__ = 'wishlist_product_entry'
     id = Column(Integer, primary_key=True)
     wishlist_id = Column(Integer, ForeignKey('wishlist.id'))
     product_entry_id = Column(Integer, ForeignKey('product_entry.id'))
     
-    wishlist = relationship('WishList', back_populates='wishlist_products')
-    product_entry = relationship('ProductEntry', back_populates='wishlist_product')
+    wishlist = relationship('WishList', back_populates='wishlist_product_entries')
+    product_entry = relationship('ProductEntry', back_populates='wishlist_product_entry')
     
 
+    def to_json(self):
+        product_entry = self.product_entry.to_json_for_wishlist()
+        
+        return {
+        'wishlist_product_entry_id': self.id,
+        'product_entry': product_entry 
+    }
 
 
 class Employees(Base, TimestampMixin):

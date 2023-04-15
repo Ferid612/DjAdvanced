@@ -199,7 +199,10 @@ def add_color(request):
     data = request.data
     name = data.get('name')
     color_code = data.get('color_code')
-    
+    if not name or not color_code:
+        response = JsonResponse({'message': 'Please provide a name and a color code'}, status=400)
+        add_get_params(response)
+        return response
     color = ProductColor.add_color(session, name=name, color_code=color_code)
     
     

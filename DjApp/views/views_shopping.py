@@ -14,9 +14,9 @@ from sqlalchemy.orm import joinedload
 # Helper functions for calculating discounts and cargo fees
 @csrf_exempt
 def calculate_discounts(cart_item):
-    discounts = cart_item.product_entry.discount
+    discounts = cart_item.product_entry.product_discounts
     active_discounts = [d for d in discounts if d.discount.active]
-    discount_price = sum(cart_item.total() * float(d.discount.discount_percent) for d in active_discounts)
+    discount_price = sum(cart_item.total() * float(d.discount.discount_percent)/100 for d in active_discounts)
     return discount_price
 
 
@@ -24,10 +24,10 @@ def calculate_discounts(cart_item):
 
 @csrf_exempt
 def calculate_discount_data(cart_item):
-    discounts = cart_item.product_entry.discount
+    discounts = cart_item.product_entry.product_discounts
     active_discounts = [d for d in discounts if d.discount.active]
     if active_discounts:
-        discount_percent = float(active_discounts[0].discount.discount_percent)
+        discount_percent = float(active_discounts[0].discount.discount_percent)/100
         cart_item_total = cart_item.total()
         discount_price = cart_item_total * discount_percent
         discount_data = {
@@ -103,24 +103,6 @@ def calculate_supplier_prices_and_cargo_discounts(cart_items,amount_to_be_paid):
     return supplier_prices, supplier_cargo_discounts, amount_to_be_paid
 
 
-
-
-def get_product_entry_price_after_discount(session, product_entry_id):
-    """
-    Returns the price of a product entry after applying any active discounts.
-    """
-    product_entry = session.query(ProductEntry).get(product_entry_id)
-
-    discounts = product_entry.discount
-    active_discounts = [d.discount for d in discounts if d.discount.active]
-    if active_discounts:
-        discount_percent = float(active_discounts[0].discount_percent)
-        discounted_price = product_entry.price * (1 - discount_percent)
-        return discounted_price
-    else:
-        return product_entry.price
-
-
 @csrf_exempt
 @require_http_methods(["GET", "POST", "OPTIONS"])
 @login_required
@@ -139,7 +121,7 @@ def get_user_shopping_session_data(request):
 
     # Eager load related data
     cart_items = session.query(CartItem).options(
-        joinedload(CartItem.product_entry).joinedload(ProductEntry.discount)
+        joinedload(CartItem.product_entry).joinedload(ProductEntry.product_discounts)
     ).filter_by(session_id=shopping_session.id).all()
 
     shopping_session_total = shopping_session.total()

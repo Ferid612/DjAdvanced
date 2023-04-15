@@ -136,10 +136,10 @@ def add_to_basket(request):
         discount_data={}
         if discount and discount.active :
             
-            discount_price =  float(cart_item_total) * float(discount.discount_percent)    
+            discount_price =  float(cart_item_total) * float(discount.discount_percent)/100   
                         
             discount_data['name'] = discount.name
-            discount_data['percent'] = discount.discount_percent
+            discount_data['percent'] = discount.discount_percent/100 
             discount_data['description'] = discount.description
             discount_data['discount_price'] = discount_price
 

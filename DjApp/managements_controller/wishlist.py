@@ -1,5 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from sqlalchemy.exc import SQLAlchemyError
 from DjApp.decorators import login_required, require_http_methods
 from ..models import ProductEntry, UserWishList, WishList, WishListProductEntry
 from ..helpers import  add_get_params
@@ -191,54 +192,181 @@ def add_product_entry_to_wishlist(request):
 
     # Get the parameters from the request object
     wishlist_id = request.data.get("wishlist_id")
-    product_entry_id = request.data.get("product_entry_id")
+    product_entry_id = int(request.data.get("product_entry_id"))
+
 
     # Check if both wishlist_id and product_entry_id are provided
-    if not (wishlist_id and product_entry_id):
+    if not wishlist_id or not product_entry_id:
         response = JsonResponse({'answer': 'False', 'message': 'Missing data error. Wishlist ID and Product Entry ID must be filled.'}, status=404)
         add_get_params(response)
         return response
 
-    # Retrieve the wishlist with the given wishlist_id
-    wishlist = session.query(WishList).get(wishlist_id)
 
-    # If the wishlist does not exist, return an error message
-    if not wishlist:
-        response = JsonResponse({'answer': 'False', 'message': 'Wishlist with the given ID does not exist.'}, status=404)
+    try:
+         # Retrieve the wishlist with the given wishlist_id
+        wishlist = session.query(WishList).get(wishlist_id)
+        
+        # Retrieve the product entry with the given product_entry_id
+        product_entry = session.query(ProductEntry).get(product_entry_id)
+    except SQLAlchemyError as e:
+        session.rollback()
+        response = JsonResponse({'answer': False, 'message': 'Error retrieving data from the database.', 'error': str(e)}, status=500)
+        add_get_params(response)
+        return response
+ 
+ 
+    # Check if the wishlist and product entry exist and if the user is authorized to add products to the wishlist
+    if not wishlist or not product_entry or wishlist.user_wishlist.user_id != user.id:
+        response = JsonResponse({'answer': False, 'message': 'Invalid data provided or user is not authorized to add products to the wishlist.'}, status=401)
         add_get_params(response)
         return response
 
-    # Check if the user is the owner of the wishlist
-    if wishlist.user_wishlist.user_id != user.id:
-        response = JsonResponse({'answer': 'False', 'message': 'You are not authorized to add products to this wishlist.'}, status=401)
-        add_get_params(response)
-        return response
 
-    # Retrieve the product entry with the given product_entry_id
-    product_entry = session.query(ProductEntry).get(product_entry_id)
-
-    # If the product entry does not exist, return an error message
-    if not product_entry:
-        response = JsonResponse({'answer': 'False', 'message': 'Product entry with the given ID does not exist.'}, status=404)
-        add_get_params(response)
-        return response
 
     # Check if the product entry is already in the wishlist
-    if product_entry in wishlist.product_entries:
-        response = JsonResponse({'answer': 'False', 'message': 'Product entry is already in the wishlist.'}, status=400)
+    if session.query(WishListProductEntry).filter_by(wishlist_id=wishlist_id, product_entry_id=product_entry_id).first():
+        response = JsonResponse({'answer': False, 'message': 'Product entry is already in the wishlist.'}, status=200)
         add_get_params(response)
         return response
 
-    # Create a new WishListProductEntry object and add it to the wishlist's product_entries list
-    wishlist_product_entry = WishListProductEntry(wishlist_id=wishlist_id, product_entry_id=product_entry_id)
 
-    # Add the changes to the database
-    session.add(wishlist_product_entry)
+    # Add the product entry to the wishlist and commit the changes to the database
+    try:
+        
+        # Create a new instance of the WishListProductEntry class and set its attributes
+        wishlist_product_entry = WishListProductEntry(wishlist_id=wishlist_id, product_entry_id=product_entry_id)
 
-    # Commit the changes to the database
-    session.commit()
+        # Add the new wishlist-product entry association to the session
+        session.add(wishlist_product_entry)
 
-    # Return a JSON response with a success message
-    response = JsonResponse({'Success': 'Product entry has been successfully added to the wishlist.'}, status=200)
-    add_get_params(response)
-    return response
+        # Commit the changes to the database
+        session.commit()
+
+        # Return a JSON response with a success message
+        response = JsonResponse({'answer': True, 'message': 'Product entry added to the wishlist.'}, status=200)
+        add_get_params(response)
+        return response
+
+
+    # Catch any database errors and rollback the session
+    except SQLAlchemyError as e:
+        session.rollback()
+        # Return a JSON response with an error message and the error details
+        response = JsonResponse({'answer': False, 'message': 'Error adding product entry to wishlist.', 'error': str(e)}, status=500)
+        add_get_params(response)
+        return response
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def delete_product_entry_in_wishlist(request):
+    """
+    This function deletes a product entry from a wishlist with the given wishlist_id.
+    The function receives the following parameters from the request object:
+    - wishlist_id: the ID of the wishlist from which the product entry should be deleted
+    - product_entry_id: the ID of the product entry to be deleted from the wishlist
+    If the product entry is successfully deleted from the wishlist, the function returns a JSON response with a success message.
+    If an error occurs during the product entry deletion process, the function returns a JSON response with an error message and the error details.
+    """
+    
+    session = request.session
+    user = request.person.user[0]
+
+    # Get the parameters from the request object
+    wishlist_id = request.data.get("wishlist_id")
+    product_entry_id = int(request.data.get("product_entry_id"))
+
+
+    # Check if both wishlist_id and product_entry_id are provided
+    if not wishlist_id or not product_entry_id:
+        response = JsonResponse({'answer': False, 'message': 'Missing data error. Wishlist ID and Product Entry ID must be filled.'}, status=404)
+        add_get_params(response)
+        return response
+
+
+    try:
+        # Retrieve the wishlist with the given wishlist_id
+        wishlist = session.query(WishList).get(wishlist_id)
+        
+        # Retrieve the product entry with the given product_entry_id
+        product_entry = session.query(ProductEntry).get(product_entry_id)
+    except SQLAlchemyError as e:
+        session.rollback()
+        response = JsonResponse({'answer': False, 'message': 'Error retrieving data from the database.', 'error': str(e)}, status=500)
+        add_get_params(response)
+        return response
+ 
+ 
+    # Check if the wishlist and product entry exist and if the user is authorized to delete products from the wishlist
+    if not wishlist or not product_entry or wishlist.user_wishlist.user_id != user.id:
+        response = JsonResponse({'answer': False, 'message': 'Invalid data provided or user is not authorized to delete products from the wishlist.'}, status=401)
+        add_get_params(response)
+        return response
+
+
+    # Check if the product entry is in the wishlist
+    wishlist_product_entry = session.query(WishListProductEntry).filter_by(wishlist_id=wishlist_id, product_entry_id=product_entry_id).first()
+    if not wishlist_product_entry:
+        response = JsonResponse({'answer': False, 'message': 'Product entry is not in the wishlist.'}, status=200)
+        add_get_params(response)
+        return response
+
+
+    # Delete the product entry from the wishlist and commit the changes to the database
+    try:
+        # Delete the wishlist-product entry association from the session
+        session.delete(wishlist_product_entry)
+
+        # Commit the changes to the database
+        session.commit()
+
+        # Return a JSON response with a success message
+        response = JsonResponse({'answer': True, 'message': 'Product entry deleted from the wishlist.'}, status=200)
+        add_get_params(response)
+        return response
+
+
+    # Catch any database errors and rollback the session
+    except SQLAlchemyError as e:
+        session.rollback()
+        # Return a JSON response with an error message and the error details
+        response = JsonResponse({'answer': False, 'message': 'Error deleting product entry from wishlist.', 'error': str(e)}, status=500)
+        add_get_params(response)
+        return response
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def delete_wishlist_product_entry(request, wishlist_product_entry_id):
+    session = request.session
+    user = request.person.user[0]
+    try:
+        # Retrieve the wishlist-product entry with the given ID
+        wishlist_product_entry = session.query(WishListProductEntry).get(wishlist_product_entry_id)
+
+        # Check if the wishlist-product entry and product entry exist and if the user is authorized to delete products from the wishlist
+        if not wishlist_product_entry  or not wishlist_product_entry.wishlist.user_wishlist.user_id == user.id:
+            response = JsonResponse({'answer': False, 'message': 'Invalid data provided or user is not authorized to delete products from the wishlist.'}, status=401)
+            add_get_params(response)
+            return response
+
+        # Delete the wishlist-product entry from the session and commit the changes to the database
+        session.delete(wishlist_product_entry)
+        session.commit()
+
+        # Return a JSON response with a success message
+        response = JsonResponse({'Success': 'The wishlist product entry has been successfully deleted.',"wishlist_product_entry_id":wishlist_product_entry_id}, status=200)
+        add_get_params(response)
+        return response
+
+    # Catch any database errors and return a JSON response with an error message and the error details
+    except SQLAlchemyError as e:
+        session.rollback()
+        response = JsonResponse({'Success': 'False', 'message': 'An error occurred while deleting the wishlist product entry.', 'error_details': str(e)}, status=500)
+        add_get_params(response)
+        return response

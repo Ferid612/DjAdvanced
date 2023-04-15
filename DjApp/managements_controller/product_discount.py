@@ -39,8 +39,7 @@ def create_discount(request):
         return response
     
     
-    discount_percent /= 100
-        
+            
     
     discount = session.query(Discount).filter_by(name=discount_name).one_or_none()
     if (discount):
@@ -117,7 +116,6 @@ def discount_update(request):
     if discount_description:
         discount.description = discount_description
     if discount_percent:
-        discount_percent /= 100
         discount.discount_percent = discount_percent
     if active is not None:
         discount.active = active

@@ -44,8 +44,8 @@ urlpatterns = [
     path('measures/add_measure/', inventory.add_measure, name="append_new_measure"),    
     path('measures/<int:measure_id>/values/add/', inventory.add_measure_values, name="add_measure_value"),
     
-    path('colors/add_color/', inventory.add_color, name="app_color"),    
-    path('materials/add_material/', inventory.add_material, name="add_material"),    
+    path('colors/add-color/', inventory.add_color, name="app-color"),    
+    path('materials/add-material/', inventory.add_material, name="add-material"),    
 
 
     # MANAGMENT TABLES 
