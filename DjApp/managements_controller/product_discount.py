@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required, require_http_methods
 from DjApp.helpers import GetErrorDetails, add_get_params
-from ..models import  Discount, Product, ProductDiscount
+from ..models import  Discount, ProductDiscount, ProductEntry
 
 
 @csrf_exempt
@@ -25,8 +25,8 @@ def create_discount(request):
     data = request.data
     session = request.session
 
-    discount_name = data.get('name')
-    discount_description = data.get('description') 
+    discount_name = data.get('discount_name')
+    discount_description = data.get('discount_description') 
     discount_percent = data.get('discount_percent') 
     active = data.get('active') 
     
@@ -34,9 +34,12 @@ def create_discount(request):
 
     
     if not (discount_name and discount_percent and active):
-        response = JsonResponse({'answer':'False', 'message':'Missing data error. Product ID, Name, Discount Percentage and Active status must be filled'}, status=404)            
+        response = JsonResponse({'answer':'False', 'message':'Missing data error. product_entry IDə, Name, Discount Percentage and Active status must be filled'}, status=404)            
         add_get_params(response)
         return response
+    
+    
+            
     
     discount = session.query(Discount).filter_by(name=discount_name).one_or_none()
     if (discount):
@@ -138,7 +141,7 @@ def discount_update(request):
 @require_http_methods(["POST"])
 # @login_required
 # @permission_required("manage_discounts")
-def discount_delete(request):
+def discount_delete(request, discount_id):
     """
     This function handles the deletion of a discount from a product.
     The function receives the discount ID from the request object and deletes the discount with that ID.
@@ -146,11 +149,9 @@ def discount_delete(request):
     If an error occurs during the discount deletion process, the function returns a JSON response with an error message and the error details.
     """
     
-    # Get the discount ID from the request object
-    discount_name = request.data.get('discount_name')
     session = request.session
 
-    if not discount_name:
+    if not discount_id:
         response = JsonResponse({'answer':'False', 'message':'Missing data error. Discount name must be filled'}, status=404)            
         add_get_params(response)
         return response
@@ -158,7 +159,7 @@ def discount_delete(request):
         # Start a new database session
 
     # Get the discount with the given ID
-    discount = session.query(Discount).filter_by(name=discount_name).first()
+    discount = session.query(Discount).get(discount_id).first()
     
     if not discount:
         response = JsonResponse({'answer':'False', 'message':'Discount not found'}, status=404)            
@@ -175,67 +176,16 @@ def discount_delete(request):
 
 
 
-
-
 @csrf_exempt
 @require_http_methods(["POST","GET"])
 # @login_required
 # @permission_required("manage_discounts")
-def add_discount_to_products_by_name(request):
+def add_discount_to_products_by_ids(request):
     """
     This function adds the specified discount to the products with the specified IDs.
     The function receives the following parameters:
     - discount_id: the ID of the discount to add
-    - product_ids: a list of product IDs to add the discount to
-    If the discount is added to all the specified products successfully, the function returns a JSON response with a success message.
-    If an error occurs during the discount addition process, the function returns a JSON response with an error message and the error details.
-    """
-
-    data = request.data
-    session = request.session
-
-    product_names = data.get('product_names') 
-    discount_name = data.get('name')
-    
-    # Get the discount and the products from the database
-    discount = session.query(Discount).filter_by(name=discount_name).first()
-    products = session.query(Product).filter(Product.name.in_(product_names)).all()
-    
-    # Check if the discount and the products exist
-    if not discount:
-        response = JsonResponse({'Success':'False', 'message':'The discount with the specified ID does not exist.'}, status=404)            
-        add_get_params(response)
-        return response
-    
-    if not products:
-        response = JsonResponse({'Success':'False', 'message':'None of the specified product IDs exist.'}, status=404)            
-        add_get_params(response)
-        return response
-    
-    # Add the discount to the products and commit the changes
-    for product in products:
-        product_discount = ProductDiscount(discount_id=discount.id, product_id=product.id)
-        session.add(product_discount)
-
-
-    # Return a JSON response with a success message
-    response = JsonResponse({'Success':'True', 'message':'The discount has been added to the specified products successfully.'}, status=200)
-    add_get_params(response)
-    return response
-
-
-
-
-@csrf_exempt
-@require_http_methods(["POST","GET"])
-# @login_required
-# @permission_required("manage_discounts")
-def add_discount_to_products_by_id(request):
-    """
-    This function adds the specified discount to the products with the specified IDs.
-    The function receives the following parameters:
-    - discount_id: the ID of the discount to add
-    - product_ids: a list of product IDs to add the discount to
+    - product_emtries_ids: a list of product_entry IDəs to add the discount to
     If the discount is added to all the specified products successfully, the function returns a JSON response with a success message.
     If an error occurs during the discount addition process, the function returns a JSON response with an error message and the error details.
     """
@@ -244,12 +194,12 @@ def add_discount_to_products_by_id(request):
     session = request.session
 
     discount_id = data.get('discount_id')
-    product_ids = data.get('product_ids') 
+    product_entries_ids = data.get('product_entries_ids') 
     
     
     # Get the discount and the products from the database
     discount = session.query(Discount).get(discount_id)
-    products = session.query(Product).filter(Product.id.in_(product_ids)).all()
+    product_entries = session.query(ProductEntry).filter(ProductEntry.id.in_(product_entries_ids)).all()
     
     
     # Check if the discount and the products exist
@@ -258,14 +208,14 @@ def add_discount_to_products_by_id(request):
         add_get_params(response)
         return response
     
-    if not products:
-        response = JsonResponse({'Success':'False', 'message':'None of the specified product IDs exist.'}, status=404)            
+    if not product_entries:
+        response = JsonResponse({'Success':'False', 'message':'None of the specified product_entry IDəs exist.'}, status=404)            
         add_get_params(response)
         return response
     
-    # Add the discount to the products and commit the changes
-    for product in products:
-        product_discount = ProductDiscount(discount_id=discount.id, product_id=product.id)
+    # Add the discount to the product_entries and commit the changes
+    for product_entry in product_entries:
+        product_discount = ProductDiscount(discount_id=discount.id, product_entry_id=product_entry.id)
         session.add(product_discount)
 
 

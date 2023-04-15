@@ -3,12 +3,11 @@ from DjApp.views import views_shopping
 from DjApp.managements_controller import shopping 
 
 urlpatterns = [
-    # VIEWS SHOPPING
-    path('get_user_shopping_session_data/', views_shopping.get_user_shopping_session_data, name="Get shopping session data."),    
+    # Views
+    path('shopping-session/', views_shopping.get_user_shopping_session_data, name="shopping-session"),
         
-    # MANAGMENT SHOPPING SESSION
-    path('add_or_change_product_in_shopping_session/', shopping.add_or_change_product_in_shopping_session, name="Add product to basket."),    
-    path('delete_cart_item/', shopping.delete_cart_item, name="Delete cart item from basket."),    
-    
+    # Shopping session management
+    path('add-to-basket/', shopping.add_to_basket, name="add-to-basket"),    
+    path('delete-from-basket/', shopping.delete_cart_item, name="delete-from-basket"),    
     
 ]

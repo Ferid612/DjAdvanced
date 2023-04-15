@@ -87,6 +87,61 @@ def get_product(request, product_id,product_entry_id=None):
 
 @csrf_exempt
 @require_http_methods(["GET", "OPTIONS"])
+def get_entry_for_card(request, product_entry_id):
+    """
+    This function is used to retrieve the details of a specific product entry.
+    Parameters:
+        product_entry_id (int): The id of the product entry to retrieve.
+    """
+    if not product_entry_id:
+        response = JsonResponse({'answer': 'product_entry_id is a required field'}, status=400)
+        add_get_params(response)
+        return response
+
+    # Get the product entry from the database
+    session = request.session
+    entry = session.query(ProductEntry).get(product_entry_id)
+
+    if not entry:
+        response = JsonResponse({'answer': 'Product entry not found'}, status=404)
+        add_get_params(response)
+        return response
+
+
+    # Get the product category chain
+    image = None
+    rates_data = None
+    if entry.rates:
+        rates_data = entry.rates[0].get_raters_data(session, entry.id)
+      
+    if entry.images:
+        image = {"id": entry.images[0].id, "url": entry.images[0].image_url, "title": entry.images[0].title, "entry_id": entry.images[0].product_entry_id}
+
+
+    exist_colors = entry.product.get_exist_colors(session)        
+           
+    product_current_price =  entry.price_after_discount
+    
+    response = JsonResponse({
+        "entry_id": entry.id,
+        "product_id": entry.product_id,
+        "product_name": entry.product.name,
+        "price_prev": entry.price,
+        "price_current": product_current_price,
+        "quantity": entry.quantity,
+        "color": {"color_id": entry.color.id, "color_name": entry.color.name, "color_code": entry.color.color_code},
+        "image": image,
+        "rates_data": rates_data,
+        "exist_colors":exist_colors,
+            }, status=200)
+
+    add_get_params(response)
+    return response
+
+
+
+@csrf_exempt
+@require_http_methods(["GET", "OPTIONS"])
 def get_product_entry(request, product_entry_id):
     """
     This function is used to retrieve the details of a specific product entry.
@@ -131,25 +186,31 @@ def get_product_entry(request, product_entry_id):
     if entry.size:
         exist_sizes = entry.product.get_exist_sizes(session)        
         
+    product_current_price =  entry.product_current_price
+    fags = entry.get_all_fags()
 
-
+    comments = entry.get_entry_comments()
+    
     response = JsonResponse({
         "entry_id": entry.id,
         "product_id": entry.product_id,
         "product_name": entry.product.name,
-        "product_description": entry.product.description,
-        "supplier_data": {'supplier_id': entry.product.supplier_id,'supplier_name': entry.product.supplier.name },
-        "category_data": {'category_id': entry.product.category_id, 'category_name': entry.product.category.name },
         "price_prev": entry.price,
+        "price_current": product_current_price,
+        "product_description": entry.product.description,
         "quantity": entry.quantity,
         "SKU": entry.SKU,
         "size": size,
-        "images": images,
         "color": {"color_id": entry.color.id, "color_name": entry.color.name, "color_code": entry.color.color_code},
         "material": {"material_id": entry.material_id, "material_name": entry.material.name},
+        "supplier_data": {'supplier_id': entry.product.supplier_id,'supplier_name': entry.product.supplier.name },
+        "category_data": {'category_id': entry.product.category_id, 'category_name': entry.product.category.name },
+        "images": images,
         'cargo_active': entry.cargo_active,
         "rates_data": rates_data,
         "rates": rates,
+        "fags": fags['fags_data'],
+        "comments":comments['comment_tree'],
         "exist_colors":exist_colors,
         "exist_materials":exist_materials,
         "exist_sizes":exist_sizes,
@@ -157,7 +218,6 @@ def get_product_entry(request, product_entry_id):
 
     add_get_params(response)
     return response
-
 
 
 @csrf_exempt
@@ -278,28 +338,33 @@ def get_subcategory_categories(request, category_id):
 
 
 @csrf_exempt
-@require_http_methods(["POST","GET"])
-def get_first_subcategory_categories(request,category_id):
+@require_http_methods(["POST", "GET"])
+def get_first_subcategory_categories(request, category_id):
     session = request.session
     
-    # Query the category by name and retrieve its child categories
-    category = session.query(Category).get(category_id)
-    if not category:
-        return JsonResponse({'error': 'Category not found'}, status=404)
+    if category_id == 0:
+        categories = session.query(Category).filter_by(parent_id=None).all()
+        result = [{'name': category.name, 'id': category.id, 'parent_id': category.parent_id} for category in categories ]
 
-    child_categories = category.get_child_categories()
-    result = []
-    for child_category in child_categories:
-        if not child_category.has_children:
-            result.append({'name': child_category.name, 'id': child_category.id, 'parent_id': child_category.parent_id})
-        else:
-            first_subcategory = child_category.get_child_categories()[0]
-            result.append({'name': first_subcategory.name, 'id': first_subcategory.id, 'parent_id': first_subcategory.parent_id})
+            
+    else:
+        # Query the category by ID and retrieve its child categories
+        category = session.query(Category).get(category_id)
+        if not category:
+            return JsonResponse({'error': 'Category not found'}, status=404)
+
+        child_categories = category.get_child_categories()
+        result = []
+        for child_category in child_categories:
+            if not child_category.has_children:
+                result.append({'name': child_category.name, 'id': child_category.id, 'parent_id': child_category.parent_id})
+            else:
+                first_subcategory = child_category.get_child_categories()[0]
+                result.append({'name': first_subcategory.name, 'id': first_subcategory.id, 'parent_id': first_subcategory.parent_id})
 
     response = JsonResponse({'categories': result}, status=200)
     add_get_params(response)
     return response
-
 
 
 

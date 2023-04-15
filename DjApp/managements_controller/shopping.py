@@ -2,7 +2,7 @@ import datetime
 from django.http import JsonResponse
 from sqlalchemy import func
 from django.views.decorators.csrf import csrf_exempt
-from DjApp.models import CartItem, Discount, Product, ProductDiscount, ShoppingSession
+from DjApp.models import CartItem, Discount, ProductEntry, ProductDiscount, ShoppingSession
 from ..helpers import GetErrorDetails, add_get_params 
 from ..decorators import login_required, require_http_methods
 
@@ -61,7 +61,7 @@ def update_shopping_session(request):
             create_shopping_session(request)
             shopping_session = request.shopping_session
             
-        total_of_all_items = session.query(func.sum(Product.price)).join(CartItem).filter(CartItem.session_id==shopping_session.id).all()
+        total_of_all_items = session.query(func.sum(ProductEntry.price)).join(CartItem).filter(CartItem.session_id==shopping_session.id).all()
         
         print(total_of_all_items)
         
@@ -85,13 +85,13 @@ def update_shopping_session(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-def add_or_change_product_in_shopping_session(request):
+def add_to_basket(request):
     """
-    API endpoint to add a product to a user's shopping session.
+    API endpoint to add a product_entry to a user's shopping session.
     The request should contain the following parameters:
-    - session_id: the ID of the shopping session to add the product to
-    - product_id: the ID of the product to add
-    - quantity: the quantity of the product to add
+    - session_id: the ID of the shopping session to add the product_entry to
+    - product_entry_id: the ID of the product_entry to add
+    - quantity: the quantity of the product_entry to add
     """
     try:
         # Get the user object associated with the request
@@ -100,7 +100,7 @@ def add_or_change_product_in_shopping_session(request):
         data = request.data
         
         # Get the parameters from the request
-        product_id = data.get('product_id')
+        product_entry_id = data.get('product_entry_id')
         quantity = int(data.get('quantity'))
     
     
@@ -110,20 +110,20 @@ def add_or_change_product_in_shopping_session(request):
             shopping_session = create_shopping_session(request)
 
                         
-        # Get the product associated with the specified product ID
-        product = session.query(Product).get(product_id)
-        if not product:
+        # Get the product_entry associated with the specified product_entry ID
+        product_entry = session.query(ProductEntry).get(product_entry_id)
+        if not product_entry:
             # If phone number already exists, return an error response
-            response = JsonResponse({'answer': "Invalid product id."}, status=400)
+            response = JsonResponse({'answer': "Invalid product_entry id."}, status=400)
 
             add_get_params(response)
             return response
 
 
-        cart_item = session.query(CartItem).filter_by(session_id=shopping_session.id, product_id=product_id).first()
+        cart_item = session.query(CartItem).filter_by(session_id=shopping_session.id, product_entry_id=product_entry_id).first()
         if not cart_item:
-            # Add the product to the shopping session with the specified quantity
-            cart_item = CartItem(session_id=shopping_session.id, product_id=product_id, quantity=quantity)
+            # Add the product_entry to the shopping session with the specified quantity
+            cart_item = CartItem(session_id=shopping_session.id, product_entry_id=product_entry_id, quantity=quantity)
             session.add(cart_item)
             session.commit()
         else:
@@ -132,14 +132,14 @@ def add_or_change_product_in_shopping_session(request):
         
         cart_item_total = cart_item.total()
         
-        discount = session.query(Discount).join(ProductDiscount).filter(ProductDiscount.product_id == product.id).first()
+        discount = session.query(Discount).join(ProductDiscount).filter(ProductDiscount.product_entry_id == product_entry.id).first()
         discount_data={}
         if discount and discount.active :
             
-            discount_price =  cart_item_total * discount.discount_percent             
-            
+            discount_price =  float(cart_item_total) * float(discount.discount_percent)/100   
+                        
             discount_data['name'] = discount.name
-            discount_data['percent'] = discount.discount_percent
+            discount_data['percent'] = discount.discount_percent/100 
             discount_data['description'] = discount.description
             discount_data['discount_price'] = discount_price
 
@@ -149,9 +149,10 @@ def add_or_change_product_in_shopping_session(request):
         # Return a success response
         response = JsonResponse(
             {"answer": "The add_or_change cart item precess successfully finished.",
-             "product_name":product.name,
-             "product_price":product.price,
-             "product_id":product.id,
+             "product_name":product_entry.product.name,
+             "product_entry_price":product_entry.price,
+             "product_id":product_entry.product.id,
+             "product_entry_id":product_entry.id,
              "cart_item_id":cart_item.id,
              "cart_item_quantity":cart_item.quantity,
              "cart_item_total":cart_item_total,

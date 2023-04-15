@@ -9,6 +9,7 @@ urlpatterns = [
     path('products/<int:product_id>/', views_inventory.get_product, name='get_product'),
     path('products/<int:product_id>/<int:product_entry_id>/', views_inventory.get_product, name='get_product'),
     path('product/entry/<int:product_entry_id>/', views_inventory.get_product_entry, name='get_product_entry'),
+    path('product/get_entry_for_card/<int:product_entry_id>/', views_inventory.get_entry_for_card, name='get_entry_for_card'),
     path('categories/<int:category_id>/products/', views_inventory.get_products_by_category, name='get_products_by_category'),
     path('categories/<int:category_id>/products/<int:product_id>/', views_inventory.get_products_by_category, name='get_products_by_category'),
     path('categories/<int:category_id>/all-products/', views_inventory.get_products_in_category, name='get_products_in_category'),
@@ -43,8 +44,8 @@ urlpatterns = [
     path('measures/add_measure/', inventory.add_measure, name="append_new_measure"),    
     path('measures/<int:measure_id>/values/add/', inventory.add_measure_values, name="add_measure_value"),
     
-    path('colors/add_color/', inventory.add_color, name="app_color"),    
-    path('materials/add_material/', inventory.add_material, name="add_material"),    
+    path('colors/add-color/', inventory.add_color, name="app-color"),    
+    path('materials/add-material/', inventory.add_material, name="add-material"),    
 
 
     # MANAGMENT TABLES 

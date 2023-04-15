@@ -3,8 +3,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required, require_http_methods
 from DjApp.helpers import GetErrorDetails, add_get_params
-from ..models import  Product, ProductEntry, ProductRate, ProductFag, Users
+from ..models import  Person, Product, ProductComment, ProductEntry, ProductRate, ProductFag, Users
 from DjAdvanced.settings import engine
+import Levenshtein
+
 
 
 
@@ -178,18 +180,15 @@ def delete_rate(request):
 
 
 
-
-
-
 @csrf_exempt
 @require_http_methods(["POST"])
 # @login_required
 # @permission_required("manage_products")
 def add_fag(request):
     """
-    API endpoint to add a fag to a product.
+    API endpoint to add a fag to a product_entry.
     The request should contain the following parameters:
-    - product_id: the ID of the product to add the fag to
+    - product_entry_id: the ID of the product_entry to add the fag to
     - question: the question of the fag
     - answer: the answer of the fag
     """
@@ -198,26 +197,26 @@ def add_fag(request):
     data = request.data
     
     # Get the parameters from the request
-    product_id = data.get('product_id')
+    product_entry_id = data.get('product_entry_id')
     question = data.get('question')
     answer = data.get('answer')
 
-    # Get the product associated with the specified product ID
-    product = session.query(Product).get(product_id)
-    if not product:
-        # If the product doesn't exist, return an error response
-        response = JsonResponse({'answer': "Invalid product id."}, status=400)
+    # Get the product_entry associated with the specified product_entry ID
+    product_entry = session.query(ProductEntry).get(product_entry_id)
+    if not product_entry:
+        # If the product_entry doesn't exist, return an error response
+        response = JsonResponse({'answer': "Invalid product_entry id."}, status=400)
         
         return response
 
     # Create a new fag object and add it to the product
-    fag = ProductFag(product_id=product.id, question=question, answer=answer, status='active')
+    fag = ProductFag(product_entry_id=product_entry.id, question=question, answer=answer, status='active')
     session.add(fag)
 
     # Return a success response
     response = JsonResponse(
-        {"answer": "The fag has been added to the product successfully.",
-            "product_id":product.id,
+        {"answer": "The fag has been added to the product_entry successfully.",
+            "product_entry_id":product_entry.id,
             "fag_id":fag.id,
             "question":fag.question,
             "answer":fag.answer
@@ -330,3 +329,195 @@ def delete_fag(request):
     )
     add_get_params(response)
     return response
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def add_comment(request):
+    """
+    API endpoint to add a comment to a product_entry.
+    The request should contain the following parameters:
+    - product_entry_id: the ID of the product_entry to add the comment to
+    - person_id: the ID of the person who is posting the comment
+    - comment_text: the text of the comment
+    - parent_comment_id (optional): the ID of the parent comment (if any) for a nested comment
+    """
+    # Get the user object associated with the request
+    session = request.session
+    data = request.data
+    person = request.person
+    # Get the parameters from the request
+    product_entry_id = data.get('product_entry_id')
+    comment_text = data.get('comment_text')
+    parent_comment_id = data.get('parent_comment_id')
+
+    # Get the product_entry associated with the specified product_entry ID
+    product_entry = session.query(ProductEntry).get(product_entry_id)
+    if not product_entry:
+        # If the product_entry doesn't exist, return an error response
+        response = JsonResponse({'answer': "Invalid product_entry id."}, status=400)
+        
+        return response
+
+    # Check if the user has already made a similar comment on this product_entry
+    comments = session.query(ProductComment).filter_by(product_entry_id=product_entry.id, person_id=person.id).all()
+    for c in comments:
+        if Levenshtein.distance(comment_text, c.comment_text) <= len(comment_text) * 0.4:
+            response = JsonResponse({'answer': "You have already made a similar comment on this product."}, status=400)
+            return response
+
+    # Create a new comment object and add it to the product
+    comment = ProductComment(product_entry_id=product_entry.id, person_id=person.id, comment_text=comment_text, status='active')
+    if parent_comment_id:
+        # If a parent comment ID is provided, add the comment as a child of the parent comment
+        parent_comment = session.query(ProductComment).get(parent_comment_id)
+        if not parent_comment:
+            # If the parent comment doesn't exist, return an error response
+            response = JsonResponse({'answer': "Invalid parent comment id."}, status=400)
+            
+            return response
+        
+        comment.parent_comment_id = parent_comment.id
+
+
+    session.add(comment)
+    session.commit()
+    # Return a success response
+    response = JsonResponse(
+        {"answer": "The comment has been added to the product_entry successfully.",
+            
+            "product_entry_id":product_entry.id,
+            "comment_id":comment.id,
+            "parent_comment_id":comment.parent_comment_id,
+            "person_id":person.id,
+            "person_username":person.username,
+            "comment_text":comment.comment_text
+            },
+        status=200
+    )
+
+    add_get_params(response)
+    return response
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def update_comment(request):
+    """
+    API endpoint to update a comment for a product entry.
+
+    Parameters:
+    - request: the HTTP request object containing the following parameters:
+        - comment_id: the ID of the comment to update
+        - comment_text: the new text for the comment
+
+    Returns:
+    - a success response with a JSON object containing the updated comment's details, or an error response if the comment_id is invalid or the person making the request is not the same as the person who posted the comment.
+    """
+
+    # Get the session and data from the request object
+    session = request.session
+    data = request.data
+    
+    # Extract the parameters from the request data
+    comment_id = data.get('comment_id')
+    comment_text = data.get('comment_text')
+
+    # Get the comment object associated with the specified comment ID
+    comment_obj = session.query(ProductComment).get(comment_id)
+    if not comment_obj:
+        # If the comment object doesn't exist, return an error response
+        response = JsonResponse({'answer': "Invalid comment id."}, status=400)
+        add_get_params(response)
+        return response
+
+    # Check if the person making the request is the same as the person who posted the comment
+    if comment_obj.person_id != request.person.id:
+        # If not, return an error response
+        response = JsonResponse({'answer': "You are not authorized to update this comment."}, status=401)
+        add_get_params(response)
+        return response
+
+    # Update the comment object with the new text
+    comment_obj.comment_text = comment_text
+
+    # Return a success response with the updated comment's details
+    response = JsonResponse(
+        {"answer": "The comment has been updated successfully.",
+            "comment_id":comment_obj.id,
+            "product_entry_id":comment_obj.product_entry_id,
+            "person_id":comment_obj.person_id,
+            "comment_text":comment_obj.comment_text,
+            "parent_comment_id":comment_obj.parent_comment_id,
+            "status":comment_obj.status
+            
+            },
+        status=200
+    )
+    add_get_params(response)
+    return response
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def delete_comment(request):
+    """
+    API endpoint to delete a comment for a product entry.
+
+    Parameters:
+    - request: the HTTP request object containing the following parameters:
+        - comment_id: the ID of the comment to delete
+
+    Returns:
+    - a success response with a JSON object containing the deleted comment's details, or an error response if the comment_id is invalid or the person making the request is not the same as the person who posted the comment.
+    """
+
+    # Get the session and data from the request object
+    session = request.session
+    data = request.data
+    
+    # Extract the parameters from the request data
+    comment_id = data.get('comment_id')
+
+    # Get the comment object associated with the specified comment ID
+    comment_obj = session.query(ProductComment).get(comment_id)
+    if not comment_obj:
+        # If the comment object doesn't exist, return an error response
+        response = JsonResponse({'answer': "Invalid comment id."}, status=400)
+        add_get_params(response)
+        return response
+
+    # Check if the person making the request is the same as the person who posted the comment
+    if comment_obj.person_id != request.person.id:
+        # If not, return an error response
+        response = JsonResponse({'answer': "You are not authorized to delete this comment."}, status=401)
+        add_get_params(response)
+        return response
+
+    # Delete the comment object
+    session.delete(comment_obj)
+
+    # Return a success response with the deleted comment's details
+    response = JsonResponse(
+        {"answer": "The comment has been deleted successfully.",
+            "comment_id":comment_obj.id,
+            "product_entry_id":comment_obj.product_entry_id,
+            "person_id":comment_obj.person_id,
+            "comment_text":comment_obj.comment_text,
+            "parent_comment_id":comment_obj.parent_comment_id,
+            "status":comment_obj.status
+            
+            },
+        status=200
+    )
+    add_get_params(response)
+    return response
+

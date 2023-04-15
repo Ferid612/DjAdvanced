@@ -1,3 +1,4 @@
+from collections import defaultdict
 from sqlalchemy import CheckConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL, Table, func
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -204,9 +205,9 @@ class ProductEntry(Base):
     product = relationship('Product', back_populates='entries')
     rates = relationship('ProductRate', back_populates='product_entry')
     fags = relationship('ProductFag', back_populates='product_entry')
-    questions = relationship('ProductQuestion', back_populates='product_entry')
+    comments = relationship('ProductComment', back_populates='product_entry')
 
-    discount = relationship('ProductDiscount', back_populates='product_entry')
+    product_discounts = relationship('ProductDiscount', back_populates='product_entry')
     images = relationship('ProductImage', back_populates='product_entry')
     color = relationship("ProductColor", back_populates="product_entries")
     material = relationship("ProductMaterial", back_populates="product_entries")    
@@ -214,13 +215,100 @@ class ProductEntry(Base):
 
     cart_items = relationship('CartItem', back_populates='product_entry')
     order_item = relationship('OrderItem', back_populates='product_entry')
+    wishlist_product_entry = relationship('WishListProductEntry', back_populates='product_entry')
        
         
     def to_json(self):
         return {
             'id': self.id,
+            'name': self.product.name,
             'images': [{'image_url': image.image_url, 'title': image.title} for image in self.images]
+
         }
+        
+        
+    @hybrid_property
+    def price_after_discount(self):
+        active_discounts = [d.discount for d in self.product_discounts if d.discount.active]
+        if active_discounts:
+            discount_percent = float(active_discounts[0].discount_percent)
+            discounted_price = self.price * (1 - discount_percent/100)
+            return discounted_price
+        else:
+            return self.price
+
+    def to_json_for_wishlist(self):
+        try :
+            image =  {'image_url': self.images[0].image_url, 'title': self.images[0].title} 
+        except IndexError:
+            image = None
+        
+        try:
+            price_after_discount = self.price_after_discount 
+            discount_percent = float((self.price-price_after_discount)/self.price)*100
+        except IndexError:
+            discount_percent = 0.0
+      
+        return {
+            'id': self.id,
+            'name': self.product.name,
+            'prev_price': self.price,
+            'current_price': price_after_discount,
+            'discount_percent':discount_percent,
+            'image':image
+        }
+
+    def get_active_discounts(self):
+        """
+        Returns all active discounts associated with this product entry.
+        """
+        active_discounts = [product_discount.discount.to_json() for product_discount in self.product_discounts if product_discount.discount.active]
+
+        return {"active_discounts": active_discounts}
+    
+    
+    def get_all_fags(self):
+        """
+        Returns all the fags associated with this product entry.
+        """
+        fags = [fag.to_json() for fag in self.fags]       
+
+        return {"fags_data": fags}
+
+
+    def get_entry_comments(self):
+            """
+            Returns all the comments associated with this product entry in a nested dictionary format.
+            """
+            comments_dict = defaultdict(list)
+
+            # group comments by their parent_comment_id, if any
+            for comment in self.comments:
+                comments_dict[comment.parent_comment_id].append(comment)
+
+            # recursively build comment tree
+            def build_comment_tree(comment):
+                comment_data = {
+                    "comment_id": comment.id,
+                    "person_id": comment.person_id,
+                    "person_username": comment.person.username,
+                    "comment_text": comment.comment_text,
+                    "children": []
+                }
+
+                for child_comment in comments_dict[comment.id]:
+                    comment_data["children"].append(build_comment_tree(child_comment))
+
+                return comment_data
+
+            # build the comment tree starting with the top-level comments
+            top_level_comments = comments_dict[None]
+            comment_tree = []
+            for comment in top_level_comments:
+                comment_tree.append(build_comment_tree(comment))
+
+            return {"comment_tree": comment_tree}
+
 
 
 class ProductMeasureValue(Base):
@@ -376,39 +464,30 @@ class ProductFag(Base, TimestampMixin):
     
     product_entry = relationship('ProductEntry', back_populates='fags')
     
+    def to_json(self):
+            return {
+            'id': self.id,
+            'product_entry_id': self.product_entry_id,
+            'value': self.question,
+            'measure': self.answer,
+        }
 
 
-class ProductQuestion(Base, TimestampMixin):
+class ProductComment(Base, TimestampMixin):
     """
-    A table representing the question and answer section of product.
+    A table representing the comment and answer section of product.
     """
-    __tablename__ = 'product_question'
+    __tablename__ = 'product_comment'
     id = Column(Integer, primary_key=True)
     product_entry_id = Column(Integer, ForeignKey('product_entry.id'), nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    question_text = Column(String, nullable=False)
-    status = Column(String, nullable=False)
-
-    product_entry = relationship('ProductEntry', back_populates='questions')
-    answers = relationship('AnswersToQuestions', back_populates='question')
-    user = relationship('Users', back_populates='questions')
-
-
-
-class AnswersToQuestions(Base, TimestampMixin):
-    """
-    A table representing the answer to question section of product.
-    """
-    __tablename__ = 'answers_to_questions'
-    id = Column(Integer, primary_key=True)
-    question_id = Column(Integer, ForeignKey('product_question.id'), nullable=False)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    answer_text = Column(String, nullable=False)
+    person_id = Column(Integer, ForeignKey('persons.id'), nullable=False)
+    parent_comment_id = Column(Integer, ForeignKey('product_comment.id', ondelete='CASCADE'))
+    comment_text = Column(String, nullable=False)
     status = Column(String, nullable=False)
     
-    user = relationship('Users', back_populates='answers')
-    question = relationship('ProductQuestion', back_populates='answers')
-
+    product_entry = relationship('ProductEntry', back_populates='comments')
+    child_comments = relationship('ProductComment')
+    person = relationship('Person', back_populates='comments')
 
 
 
@@ -429,9 +508,9 @@ class Discount(Base, TimestampMixin):
     
     name = Column(String,unique=True,nullable=False)
     description = Column(String)
-    discount_percent= Column(DECIMAL,nullable=False)
+    discount_percent= Column(Float,nullable=False)
     active = Column(Boolean,default=False)
-    product_discount = relationship("ProductDiscount", back_populates='discount')
+    product_discounts = relationship("ProductDiscount", back_populates='discount')
 
 
 
@@ -451,8 +530,8 @@ class ProductDiscount(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     product_entry_id = Column(Integer, ForeignKey('product_entry.id'),nullable=False)
     discount_id = Column(Integer, ForeignKey('discount.id'),nullable=False)
-    discount = relationship("Discount", back_populates='product_discount')
-    product_entry = relationship("ProductEntry", back_populates='discount')
+    discount = relationship("Discount", back_populates='product_discounts')
+    product_entry = relationship("ProductEntry", back_populates='product_discounts')
 
 
 
@@ -477,7 +556,8 @@ class Person(Base, TimestampMixin):
     employee = relationship('Employees', back_populates='person')
     user = relationship('Users', back_populates='person')
     profil_image = relationship('ProfilImage', back_populates='person')
-    
+    comments = relationship('ProductComment', back_populates='person')
+
     
     def hash_password(self, password):
         password = password.encode('utf-8')
@@ -529,7 +609,6 @@ pwd_context = CryptContext(
     )
 
 
-
 class ProfilImage(Base, TimestampMixin):
     __tablename__ = 'profil_image'
     id = Column(Integer, primary_key=True)
@@ -575,15 +654,77 @@ class Users(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     person_id = Column(Integer, ForeignKey('persons.id'),unique=True,nullable=False)
     
-    
-    person = relationship('Person', back_populates='user')
+    person = relationship('Person', back_populates='user', lazy='joined')
     user_user_group_role = relationship('UserUserGroupRole', back_populates='users')
     payments =  relationship('UserPayment', back_populates='user')
     shopping_session = relationship('ShoppingSession', back_populates='user')
     orders =  relationship('OrderDetails', back_populates='user')
     product_rates = relationship('ProductRate', back_populates='user')
-    questions = relationship('ProductQuestion', back_populates='user')
-    answers = relationship('AnswersToQuestions', back_populates='user')
+    wishlist = relationship('UserWishList', back_populates='user')
+
+
+class UserWishList(Base, TimestampMixin):
+    __tablename__ = 'user_wishlist'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
+
+    
+    user = relationship('Users', back_populates='wishlist')
+    wishlists = relationship('WishList', back_populates='user_wishlist')
+    def to_json(self):
+        return {
+        'id': self.id,
+        'user_id': self.user_id
+        }
+
+
+class WishList(Base, TimestampMixin):
+    __tablename__ = 'wishlist'
+    id = Column(Integer, primary_key=True)
+    user_wishlist_id = Column(Integer, ForeignKey('user_wishlist.id'))
+    title = Column(String)  
+    
+
+    user_wishlist = relationship('UserWishList', back_populates='wishlists')
+    wishlist_product_entries = relationship('WishListProductEntry', back_populates='wishlist', cascade='all, delete-orphan')
+  
+    def to_json_all_wishlist(self):
+        wishlist_product_entries = [wishlist_product_entry.to_json() for wishlist_product_entry in self.wishlist_product_entries]
+        return {
+        'id': self.id,
+        'user_wishlist_id': self.user_wishlist_id,
+        'title': self.title,
+        'product_entries': wishlist_product_entries
+    }
+
+    def to_json_with_count(self,count):
+        wishlist_product_entries = [wishlist_product_entry.to_json() for wishlist_product_entry in self.wishlist_product_entries[:count] ]
+        return {
+        'id': self.id,
+        'user_wishlist_id': self.user_wishlist_id,
+        'title': self.title,
+        'product_entries': wishlist_product_entries
+    }
+
+
+
+class WishListProductEntry(Base, TimestampMixin):
+    __tablename__ = 'wishlist_product_entry'
+    id = Column(Integer, primary_key=True)
+    wishlist_id = Column(Integer, ForeignKey('wishlist.id'))
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'))
+    
+    wishlist = relationship('WishList', back_populates='wishlist_product_entries')
+    product_entry = relationship('ProductEntry', back_populates='wishlist_product_entry')
+    
+
+    def to_json(self):
+        product_entry = self.product_entry.to_json_for_wishlist()
+        
+        return {
+        'wishlist_product_entry_id': self.id,
+        'product_entry': product_entry 
+    }
 
 
 class Employees(Base, TimestampMixin):
@@ -718,7 +859,7 @@ class ShoppingSession(Base, TimestampMixin):
     cart_items = relationship('CartItem', back_populates='shopping_session')
   
     def total(self):
-        return sum([item.product.price * item.quantity for item in self.cart_items])
+        return sum([item.product_entry.price * item.quantity for item in self.cart_items])
       
   
   
@@ -746,8 +887,9 @@ class CartItem(Base, TimestampMixin):
      
     
     def total(self):
-        return (self._quantity)*(self.product.price)
+        return (self._quantity)*(self.product_entry.price)
     
+        
         
       
         
