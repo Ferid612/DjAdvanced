@@ -23,7 +23,10 @@ urlpatterns = [
 
     # Category URLs +++++
     path('categories/add/', inventory.add_category, name="add_category"),
-    path('categories/<int:category_id>/subcategories/add/', inventory.add_subcategories, name="Add subcategory"),
+    path('categories/<int:category_id>/subcategories/add/', inventory.add_subcategories, name="add-subcategory"),
+    path('categories/<int:category_id>/update/', inventory.update_category, name="update-category"),
+    path('categories/<int:category_id>/delete/', inventory.delete_category, name="delete-category"),
+
 
 
     # Product URLs  +++++
@@ -41,10 +44,14 @@ urlpatterns = [
     # Properties URLs
     path('product-properties/', views_inventory.get_product_properties, name='get_product_properties'),
     
+    # Measures URLs
     path('measures/add_measure/', inventory.add_measure, name="append_new_measure"),    
     path('measures/<int:measure_id>/values/add/', inventory.add_measure_values, name="add_measure_value"),
-    
+   
+    # Colors URLs
     path('colors/add-color/', inventory.add_color, name="app-color"),    
+    
+    # Materials URLs
     path('materials/add-material/', inventory.add_material, name="add-material"),    
 
 

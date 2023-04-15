@@ -145,6 +145,94 @@ def add_subcategories(request,category_id):
 
 
 
+
+@csrf_exempt
+@require_http_methods(["POST"])
+# @login_required
+# @permission_required("Manage product categories")
+def update_category(request, category_id):
+    """
+    This function updates an existing category in the 'category' table in the database.
+    If the category does not exist, it will not be updated.
+    """
+    data = request.data
+    new_name = data.get('name')
+    new_parent_id = data.get('parent_id')
+    new_icon = data.get('icon')
+
+    session = request.session
+
+    # check if the category exists
+    category = session.query(Category).get(category_id)
+    if not category:
+        response = JsonResponse({'message': f"Category '{category_id}' id does not exist"}, status=400)
+        add_get_params(response)
+        return response
+
+    # update category attributes if provided
+    if new_name is not None:
+        category.name = new_name
+
+    if new_parent_id is not None:
+        # check if the new parent category exists
+        parent_category = session.query(Category).get(new_parent_id)
+        if not parent_category:
+            response = JsonResponse({'message': f"Parent category '{new_parent_id}' id does not exist"}, status=400)
+            add_get_params(response)
+            return response
+
+        # check if the new parent category is not the same as the current parent category
+        if category.parent_id != new_parent_id:
+            category.parent_id = new_parent_id
+
+    if new_icon is not None:
+        category.icon = new_icon
+
+    session.commit()  # commit the changes to the database
+
+    # return the updated category as JSON
+    updated_category = {
+        'id': category.id,
+        'name': category.name,
+        'parent_id': category.parent_id,
+        'icon': category.icon,
+    }
+    response = JsonResponse(updated_category, status=200)
+    add_get_params(response)
+    return response
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def delete_category(request, category_id):
+    """
+    This function is used to delete a specific category.
+    Parameters:
+        category_id (int): The ID of the category to be deleted.
+    """
+    data = request.data
+    session = request.session
+
+    # Check if the category exists
+    category = session.query(Category).get(category_id)
+    if not category:
+        response = JsonResponse({'answer': f'No category found with category.id {category_id}'}, status=404)
+        add_get_params(response)
+        return response
+
+    # Check if the category has any products
+    if category.has_products():
+        response = JsonResponse({'answer': f'Cannot delete category with category.id {category_id}, it has products associated with it.'}, status=400)
+        add_get_params(response)
+        return response
+
+    session.delete(category)
+    response = JsonResponse({'message': f'Category with category.id {category_id} has been successfully deleted.'}, status=200)
+    add_get_params(response)
+    return response
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def add_measure(request):

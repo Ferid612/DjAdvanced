@@ -66,20 +66,46 @@ class Category(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     parent_id = Column(Integer, ForeignKey('category.id', ondelete='CASCADE'))
     name = Column(String, unique=True, nullable=False, index=True)
+    icon = Column(String, unique=True)
     products = relationship('Product', back_populates='category')
-    children = relationship('Category')
+    children = relationship('Category', cascade='all, delete-orphan')
 
     @property
     def has_children(self):
         return bool(self.children)
 
+
     @classmethod
     def get_root_categories(cls,session):
         return session.query(cls).filter_by(parent_id=None).all()
 
+
     def get_child_categories(self):
         return self.children
 
+
+    def has_products(self):
+        """
+        Returns True if there are any products that belong to this category or any of its children,
+        and False otherwise.
+        """
+        if self.products:
+            return True
+        for child in self.children:
+            if child.has_products():
+                return True
+        return False
+    
+    
+    def to_json(self):
+        return {
+        'id': self.id,
+        'name': self.name,
+        'parent_id': self.parent_id,
+        'icon': self.icon,
+        }
+        
+  
 
 class Supplier(Base, TimestampMixin):
     """
