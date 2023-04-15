@@ -120,14 +120,14 @@ def get_entry_for_card(request, product_entry_id):
 
     exist_colors = entry.product.get_exist_colors(session)        
            
-    product_current_price =  entry.price_after_discount
+    price_after_discount =  entry.price_after_discount
     
     response = JsonResponse({
         "entry_id": entry.id,
         "product_id": entry.product_id,
         "product_name": entry.product.name,
         "price_prev": entry.price,
-        "price_current": product_current_price,
+        "price_current": price_after_discount,
         "quantity": entry.quantity,
         "color": {"color_id": entry.color.id, "color_name": entry.color.name, "color_code": entry.color.color_code},
         "image": image,
@@ -186,7 +186,7 @@ def get_product_entry(request, product_entry_id):
     if entry.size:
         exist_sizes = entry.product.get_exist_sizes(session)        
         
-    product_current_price =  entry.product_current_price
+    price_after_discount =  entry.price_after_discount
     fags = entry.get_all_fags()
 
     comments = entry.get_entry_comments()
@@ -196,7 +196,7 @@ def get_product_entry(request, product_entry_id):
         "product_id": entry.product_id,
         "product_name": entry.product.name,
         "price_prev": entry.price,
-        "price_current": product_current_price,
+        "price_current": price_after_discount,
         "product_description": entry.product.description,
         "quantity": entry.quantity,
         "SKU": entry.SKU,

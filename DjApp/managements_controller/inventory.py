@@ -107,21 +107,20 @@ def add_category(request):
 @require_http_methods(["POST"])
 # @login_required
 # @permission_required("Manage product categories")
-def add_subcategories(request,parent_id):
+def add_subcategories(request,category_id):
     """
     This function adds a new child category to an existing parent category in the 'category' table in the database.
     If the parent category does not exist, the child category will not be added.
     """
     data = request.data
-    parent_name = data.get('parent')
     subcategories = data.get('subcategories')
 
     session = request.session
 
     # check if the parent category exists
-    parent_category = session.query(Category).get(parent_id)
+    parent_category = session.query(Category).get(category_id)
     if not parent_category:
-        response = JsonResponse({'message': f"Parent category '{parent_id}' id does not exist"}, status=400)
+        response = JsonResponse({'message': f"Parent category '{category_id}' id does not exist"}, status=400)
         add_get_params(response)
         return response
 
@@ -140,7 +139,7 @@ def add_subcategories(request,parent_id):
 
     session.commit()  # commit all changes to the database
 
-    response = JsonResponse({'existing_categories': existing_categories, 'added_categories': added_categories, 'parent_category': parent_name}, status=200)
+    response = JsonResponse({'existing_categories': existing_categories, 'added_categories': added_categories}, status=200)
     add_get_params(response)
     return response
 
