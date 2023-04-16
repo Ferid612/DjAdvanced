@@ -1,14 +1,15 @@
 from django.urls import  path
-from DeltaConfApp.controllers import gallery
+from DeltaConfApp.controllers import GalleryController
+from .. import views
 
 
 urlpatterns = [
         
     # VIEWS GALLLERY 
-    path('add_slide_photo/', gallery.add_slide_photo, name="add_slide_photos"),    
-    path('add_slide_photos/', gallery.add_slide_photos, name="add_slide_photos"),    
-    path('create_image_gallery/', gallery.create_image_gallery, name="create_image_gallery"),    
-    path('get_slide_photos/', gallery.get_slide_photos, name="get_slide_photos"),    
-    path('get_galleries/', gallery.get_galleries, name="get_galleries"),    
+    path('add-slide-photo/', GalleryController.add_slide_photo, name="add-slide-photos"),    
+    path('add-slide-photos/', GalleryController.add_slide_photos, name="add-slide-photos"),    
+    path('create-image-gallery/', GalleryController.create_image_gallery, name="create-image-gallery"),    
+    path('get-slide-photos/', views.get_slide_photos, name="get-slide-photos"),    
+    path('get-galleries/', views.get_galleries, name="get-galleries"),    
    
 ]

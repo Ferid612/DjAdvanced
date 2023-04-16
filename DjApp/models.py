@@ -208,7 +208,6 @@ class Product(Base, TimestampMixin):
                 'description': self.description,
                 'supplier': supplier_data,
                 'category_id': category_data,
-                'cargo_active': self.cargo_active,
             }
 
 
@@ -242,7 +241,8 @@ class ProductEntry(Base):
     cart_items = relationship('CartItem', back_populates='product_entry')
     order_item = relationship('OrderItem', back_populates='product_entry')
     wishlist_product_entry = relationship('WishListProductEntry', back_populates='product_entry')
-       
+    product_entry_card_boxs = relationship('ProductEntryCardBox', back_populates='product_entry')
+
         
     def to_json(self):
         return {
@@ -262,7 +262,38 @@ class ProductEntry(Base):
             return discounted_price
         else:
             return self.price
+        
+        
+        
+    def to_json_for_card(self,session):
+        # Get the product category chain
+        image = None
+        rates_data = None
+        if self.rates:
+            rates_data = self.rates[0].get_raters_data(session, self.id)
+        
+        if self.images:
+            image = {"id": self.images[0].id, "url": self.images[0].image_url, "title": self.images[0].title, "entry_id": self.images[0].product_entry_id}
 
+        exist_colors = self.product.get_exist_colors(session)        
+        price_after_discount = self.price_after_discount
+        
+            
+        return {
+        "entry_id": self.id,
+        "product_id": self.product_id,
+        "product_name": self.product.name,
+        "price_prev": self.price,
+        "price_current": price_after_discount,
+        "quantity": self.quantity,
+        "color": {"color_id": self.color.id, "color_name": self.color.name, "color_code": self.color.color_code},
+        "image": image,
+        "rates_data": rates_data,
+        "exist_colors":exist_colors,
+            }
+            
+        
+        
     def to_json_for_wishlist(self):
         try :
             image =  {'image_url': self.images[0].image_url, 'title': self.images[0].title} 
@@ -959,10 +990,5 @@ class OrderItem(Base, TimestampMixin):
 
 
 
-
-
-
-
-Base.metadata.create_all(engine)
  
  

@@ -1,11 +1,11 @@
 from django.urls import  path
-from DjApp.managements_controller import location 
+from DjApp.managements_controller import LocationController 
 
 urlpatterns = [
         
     # MANAGMENT LOCATION
-    path('add_country/', location.add_country, name="Add new country."), 
-    path('add_countries/', location.add_countries, name="Add new countries."), 
+    path('add-country/', LocationController.add_country, name="'add-country"), 
+    path('add-countries/', LocationController.add_countries, name="'add-countries"), 
     
     
 ]

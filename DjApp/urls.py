@@ -1,23 +1,24 @@
 from django.contrib import admin
 from django.urls import include, path
-from DjApp.app_urls import urls_supplier, urls_inventory, urls_person, urls_discount, urls_comment_question_fag, urls_wishlist 
+from DjApp.app_urls import urls_fag_question_comment
+from DjApp.app_urls import urls_supplier, urls_inventory, urls_person, urls_discount, urls_wishlist 
 from DjApp.app_urls import urls_roles_and_groups, urls_mail, urls_sms, urls_location,urls_shopping, urls_apis, urls_google_auth
 
 
 urlpatterns = [
     
-    path('person/', include(urls_person), name="Inventory urls"),
-    path('supplier/', include(urls_supplier), name="Suppliers urls"),
-    path('inventory/', include(urls_inventory), name="Inventory urls"),
-    path('wishlist/', include(urls_wishlist), name="Inventory urls"),
-    path('discount/', include(urls_discount), name="Discount urls"),
-    path('roles_groups/', include(urls_roles_and_groups), name="Roles and groups urls"),
-    path('mail/', include(urls_mail), name="Mail urls"),
-    path('sms/', include(urls_sms), name="SMS urls"),
-    path('location/', include(urls_location), name="Location urls"),
-    path('shopping/', include(urls_shopping), name="Shopping urls"),
-    path('comments_question_fag/', include(urls_comment_question_fag), name="Comment type sections urls"),
-    path('apis/', include(urls_apis), name="APİ's urls"),
+    path('person/', include(urls_person), name="person-urls"),
+    path('supplier/', include(urls_supplier), name="supplier-urls"),
+    path('inventory/', include(urls_inventory), name="inventory-urls"), 
+    path('wishlist/', include(urls_wishlist), name="wishlist-urls"),
+    path('discount/', include(urls_discount), name="discount-urls"),
+    path('roles_groups/', include(urls_roles_and_groups), name="roles-groups-urls"),
+    path('mail/', include(urls_mail), name="mail-urls"),
+    path('sms/', include(urls_sms), name="sms-urls"),
+    path('location/', include(urls_location), name="location-urls"),
+    path('shopping/', include(urls_shopping), name="shopping-urls"),
+    path('comments_question_fag/', include(urls_fag_question_comment), name="fag-question-comment-urls"),
+    path('apis/', include(urls_apis), name="apis-urls"),
     path('google_auth/', include(urls_google_auth), name="Google Authentication"),
 
 
