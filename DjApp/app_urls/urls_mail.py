@@ -1,11 +1,11 @@
 from django.urls import  path
-from DjApp.managements_controller import mail_sender 
+from DjApp.managements_controller import MailController 
 
 urlpatterns = [
         
    # MANAGMENT MAİL SENDER
-    path('send_verification_code_after_login/', mail_sender.send_verification_code_after_login, name="Send user verification code to email."),    
-    path('get_verification/', mail_sender.verify_account, name="Check user verification code with email."),    
-    path('contact_us/', mail_sender.contact_us, name="Send user data to us."),
+    path('send-verification-code-after-login/', MailController.send_verification_code_after_login, name="send-verification-code-after-login"), 
+    path('get-verification/', MailController.verify_account, name="get-verification"),    
+    path('contact-us/', MailController.contact_us, name="contact-us"),
        
 ]

@@ -76,7 +76,7 @@ def get_product(request, product_id,product_entry_id=None):
         'description': product.description,
         'supplier_data': {'supplier_id': product.supplier_id, 'supplier_name': product.supplier.name },
         'category_data': {'category_id': product.category_id, 'category_name': product.category.name },
-        'product_enties': product_entries,
+        'product_entries': product_entries,
     }, status=200)
 
     add_get_params(response)
@@ -100,6 +100,7 @@ def get_entry_for_card(request, product_entry_id):
 
     # Get the product entry from the database
     session = request.session
+    
     entry = session.query(ProductEntry).get(product_entry_id)
 
     if not entry:
@@ -108,32 +109,9 @@ def get_entry_for_card(request, product_entry_id):
         return response
 
 
-    # Get the product category chain
-    image = None
-    rates_data = None
-    if entry.rates:
-        rates_data = entry.rates[0].get_raters_data(session, entry.id)
-      
-    if entry.images:
-        image = {"id": entry.images[0].id, "url": entry.images[0].image_url, "title": entry.images[0].title, "entry_id": entry.images[0].product_entry_id}
-
-
-    exist_colors = entry.product.get_exist_colors(session)        
-           
-    price_after_discount =  entry.price_after_discount
     
-    response = JsonResponse({
-        "entry_id": entry.id,
-        "product_id": entry.product_id,
-        "product_name": entry.product.name,
-        "price_prev": entry.price,
-        "price_current": price_after_discount,
-        "quantity": entry.quantity,
-        "color": {"color_id": entry.color.id, "color_name": entry.color.name, "color_code": entry.color.color_code},
-        "image": image,
-        "rates_data": rates_data,
-        "exist_colors":exist_colors,
-            }, status=200)
+    entry_card_data = entry.to_json_for_card(session)
+    response = JsonResponse(entry_card_data, status=200)
 
     add_get_params(response)
     return response
@@ -222,9 +200,11 @@ def get_product_entry(request, product_entry_id):
 
 @csrf_exempt
 @require_http_methods(["GET","OPTIONS"])
-def get_products_by_category(request,category_id, product_id=None):
+def get_products_by_category(request,category_id, product_id=None, product_entry_id=None):
     session = request.session
     
+    if product_entry_id:
+        return redirect('get_product_entry', product_entry_id=product_entry_id)
     
     if product_id:
         return redirect('get_product', product_id=product_id)
@@ -233,9 +213,9 @@ def get_products_by_category(request,category_id, product_id=None):
     
     # Query the category by name and retrieve all associated products
     category = session.query(Category).options(joinedload(Category.products)).get(category_id)
-    products = [{'name': product.name, 'description': product.description} for product in category.products]
+    products = [product.to_json() for product in category.products]
 
-    response = JsonResponse({'category_id':category_id, 'products': products}, status=200)
+    response = JsonResponse({'category_id':category_id,"category_name":category.name, 'products': products}, status=200)
     add_get_params(response)
     return  response
 
@@ -263,19 +243,14 @@ def get_products_in_category(request,category_id, product_id=None):
     def recursive_get_products(categories):
         for category in categories:
             if category.products:
-                products.extend([{'id':product.id,
-                                  'name': product.name,
-                                  'description': product.description,
-                                  'supplier_data': {'supplier_id':product.supplier_id, 'supplier_name':product.supplier.name },
-                                  'category_data': {'category_id':product.category_id, 'category_name':product.category.name },
-                                  }  for product in category.products])
+                products.extend([ product.to_json() for product in category.products])
             if category.has_children:
                 child_categories = category.get_child_categories()
                 recursive_get_products(child_categories)
                 
     recursive_get_products(child_categories)
     
-    response = JsonResponse({'category': category.name, 'products': products}, status=200)
+    response = JsonResponse({"category_id":category.id, "category_name":category.name, 'products': products}, status=200)
     add_get_params(response)
     return response
 

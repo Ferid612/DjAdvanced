@@ -1,19 +1,19 @@
-from sqlalchemy import event
+import os
+import sys
+
 from sqlalchemy import CheckConstraint, ForeignKeyConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from DjAdvanced.settings import engine
-from sqlalchemy_utils import EncryptedType
-from sqlalchemy.ext.declarative import declarative_base
-from passlib.context import CryptContext
+from DjApp.models import Base
+# from ..DjApp.models import Base
 
-Base = declarative_base()
 
 class TimestampMixin:
     created_at = Column(DateTime, nullable=False, server_default='now()')
     updated_at = Column(DateTime, nullable=False, server_default='now()', onupdate='now()')
     deleted_at = Column(DateTime, nullable=True)
         
+
 
 class ImageGallery(Base, TimestampMixin):
     __tablename__ = 'image_gallery'
@@ -27,6 +27,8 @@ class ImageGallery(Base, TimestampMixin):
         'url': self.name,
         'title': self.description,
   }
+    
+    
     
 class SlidePhotos(Base, TimestampMixin):
     __tablename__ = 'slide_photos'
@@ -54,6 +56,51 @@ class SlidePhotos(Base, TimestampMixin):
         'relavant_url': self.relavant_url,
         'gallery_id': self.gallery_id,
         }
+        
+        
+class CardBox(Base, TimestampMixin):
+    __tablename__ = 'card_box'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    description = Column(String)
+
+    product_entry_card_boxs = relationship('ProductEntryCardBox', back_populates='card_box')
+    
+    def to_json(self):
+        return {
+        'id': self.id,
+        'name': self.name,
+        'description': self.description,
+        }
+
+    def to_json_with_entries(self,session):
+        entries = [product_entry_card_box.product_entry.to_json_for_card(session) for product_entry_card_box in self.product_entry_card_boxs]
+        return {
+        'id': self.id,
+        'name': self.name,
+        'description': self.description,
+        'product_entries': entries,
+        }
+
+
+class ProductEntryCardBox(Base, TimestampMixin):
+    __tablename__ = 'product_entry_card_box'
+    id = Column(Integer,primary_key=True)
+    card_box_id = Column(Integer, ForeignKey('card_box.id'), nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'),nullable=False)
+
+    card_box = relationship('CardBox', back_populates='product_entry_card_boxs')
+    product_entry = relationship('ProductEntry', back_populates='product_entry_card_boxs')
+    
+    
+    def to_json(self):
+        return {
+        'id': self.id,
+        'card_box_id': self.card_box_id,
+        'product_entry_id': self.product_entry_id,
+        }   
+
+
         
 Base.metadata.create_all(engine)
   

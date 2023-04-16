@@ -5,8 +5,8 @@ import datetime
 from ..helpers import GetErrorDetails, add_get_params
 from ..models import Country, Location
 from ..decorators import permission_required, login_required, require_http_methods
-from .tokens import  generate_new_refresh_token,generate_new_access_token 
-from .mail_sender import send_email
+from .TokenController import  generate_new_refresh_token,generate_new_access_token 
+from .MailController import send_email
 import re
 
 

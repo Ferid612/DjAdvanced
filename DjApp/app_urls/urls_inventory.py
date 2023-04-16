@@ -1,63 +1,66 @@
 
 from django.urls import  path
-from DjApp.managements_controller import inventory 
+from DjApp.managements_controller import InventoryController 
 from DjApp.views import views_inventory
 
 urlpatterns = [
 
     # VIEWS inventory 
-    path('products/<int:product_id>/', views_inventory.get_product, name='get_product'),
-    path('products/<int:product_id>/<int:product_entry_id>/', views_inventory.get_product, name='get_product'),
-    path('product/entry/<int:product_entry_id>/', views_inventory.get_product_entry, name='get_product_entry'),
-    path('product/get_entry_for_card/<int:product_entry_id>/', views_inventory.get_entry_for_card, name='get_entry_for_card'),
-    path('categories/<int:category_id>/products/', views_inventory.get_products_by_category, name='get_products_by_category'),
-    path('categories/<int:category_id>/products/<int:product_id>/', views_inventory.get_products_by_category, name='get_products_by_category'),
-    path('categories/<int:category_id>/all-products/', views_inventory.get_products_in_category, name='get_products_in_category'),
-    path('categories/<int:category_id>/all-products/<int:product_id>/', views_inventory.get_products_in_category, name='get_products_in_category'),
-    path('categories/', views_inventory.get_categories, name='get_categories'),
-    path('categories/<int:category_id>/subcategories/', views_inventory.get_subcategory_categories, name='get_subcategory_categories'),
-    path('categories/<int:category_id>/first-subcategories/', views_inventory.get_first_subcategory_categories, name='get_first_subcategory_categories'),
-    path('suppliers/<int:supplier_id>/products/', views_inventory.get_all_products_by_supplier, name='get_all_products_by_supplier'),
-   
+    path('product/<int:product_id>/', views_inventory.get_product, name='product'),
+    path('product/<int:product_id>/<int:product_entry_id>/', views_inventory.get_product, name='product-entry'),
+    path('product/entry/<int:product_entry_id>/', views_inventory.get_product_entry, name='product-entry-detail'),
+    path('product/card-entry/<int:product_entry_id>/', views_inventory.get_entry_for_card, name='product-entry-for-card'),
+
+    path('category/<int:category_id>/products/', views_inventory.get_products_by_category, name='products-by-category'),
+    path('category/<int:category_id>/products/<int:product_id>/', views_inventory.get_products_by_category, name='products-by-category-entry'),
+    path('category/<int:category_id>/products/<int:product_id>/<int:product_entry_id>/', views_inventory.get_products_by_category, name='products-by-category-entry-detail'),
+
+    path('category/<int:category_id>/products/all/', views_inventory.get_products_in_category, name='products-in-category'),
+    path('category/<int:category_id>/products/all/<int:product_id>/', views_inventory.get_products_in_category, name='products-in-category-detail'),
+    path('categories/', views_inventory.get_categories, name='categories'),
+
+    path('category/<int:category_id>/subcategories/', views_inventory.get_subcategory_categories, name='subcategory-categories'),
+    path('category/<int:category_id>/first-subcategories/', views_inventory.get_first_subcategory_categories, name='first-subcategory-categories'),
+    path('supplier/<int:supplier_id>/products/', views_inventory.get_all_products_by_supplier, name='products-by-supplier'),
 
 
     # Category URLs +++++
-    path('categories/add/', inventory.add_category, name="add_category"),
-    path('categories/<int:category_id>/subcategories/add/', inventory.add_subcategories, name="add-subcategory"),
-    path('categories/<int:category_id>/update/', inventory.update_category, name="update-category"),
-    path('categories/<int:category_id>/delete/', inventory.delete_category, name="delete-category"),
+    path('categories/add/', InventoryController.add_category, name="add_category"),
+    path('categories/<int:category_id>/subcategories/add/', InventoryController.add_subcategories, name="add-subcategory"),
+    path('categories/<int:category_id>/update/', InventoryController.update_category, name="update-category"),
+    path('categories/<int:category_id>/delete/', InventoryController.delete_category, name="delete-category"),
 
 
 
     # Product URLs  +++++
-    path('products/create/', inventory.create_product_template, name='create_product_template'),
-    path('products/create_entry/', inventory.create_product_entry, name='create_product_entry'),
-    path('products/<int:product_id>/update/', inventory.update_product, name="update_product"),
-    path('products/<int:product_id>/delete/', inventory.delete_product, name="delete_product"),
+    path('products/create/', InventoryController.create_product_template, name='create_product_template'),
+    path('products/create-entry/', InventoryController.create_product_entry, name='create_product_entry'),
+    path('products/<int:product_id>/update/', InventoryController.update_product, name="update_product"),
+    path('products/<int:product_id>/delete/', InventoryController.delete_product, name="delete_product"),
 
     # Product image URLs +++++
-    path('products/entries/<int:product_entry_id>/images/add/', inventory.add_product_image, name="add_product_image"),
-    path('products/images/<int:image_id>/update/', inventory.update_product_image, name="update_product_image"),
-    path('products/images/<int:image_id>/delete/', inventory.delete_product_image, name="delete_product_image"),
+    path('products/entries/<int:product_entry_id>/images/add/', InventoryController.add_product_image, name="add_product_image"),
+    path('products/images/<int:image_id>/update/', InventoryController.update_product_image, name="update_product_image"),
+    path('products/images/<int:image_id>/delete/', InventoryController.delete_product_image, name="delete_product_image"),
 
 
     # Properties URLs
-    path('product-properties/', views_inventory.get_product_properties, name='get_product_properties'),
+    path('product-properties/', views_inventory.get_product_properties, name='product-properties'),
     
     # Measures URLs
-    path('measures/add_measure/', inventory.add_measure, name="append_new_measure"),    
-    path('measures/<int:measure_id>/values/add/', inventory.add_measure_values, name="add_measure_value"),
+    path('measures/add-measure/', InventoryController.add_measure, name="add-measure"),    
+    path('measures/<int:measure_id>/values/add/', InventoryController.add_measure_values, name="add_measure_value"),
    
     # Colors URLs
-    path('colors/add-color/', inventory.add_color, name="app-color"),    
+    path('colors/add-color/', InventoryController.add_color, name="app-color"),    
     
     # Materials URLs
-    path('materials/add-material/', inventory.add_material, name="add-material"),    
+    path('materials/add-material/', InventoryController.add_material, name="add-material"),    
 
 
     # MANAGMENT TABLES 
-    path('tables/add_column_to_table/', inventory.add_column_to_table, name="Add column to table"),            
-    path('tables/delete_all_tables/', inventory.delete_all_tables, name="Delete all tables"),    
-    path('tables/delete_null_category_products/', inventory.delete_null_category_products, name="Delete all products that have a null category_id"),    
+    path('tables/add-column-to-table/', InventoryController.add_column_to_table, name="tables/add-column-to-table"),            
+    path('tables/delete-all-tables/', InventoryController.delete_all_tables, name="delete-all-tables"),    
+    path('tables/delete-null-category_products/', InventoryController.delete_null_category_products, name="delete-null-category_products"),    
 
 ]

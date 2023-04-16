@@ -1,18 +1,18 @@
 from django.urls import path
-from DjApp.managements_controller import suppliers
+from DjApp.managements_controller import SupplierController
 from DjApp.views import views_supplier
 
 urlpatterns = [
     
-    path('get_all_suppliers/',views_supplier.get_all_suppliers , name="Get all supplier"),
+    path('suppliers/',views_supplier.get_all_suppliers , name="suppliers"),
     
-    path('registration_of_supplier/',suppliers.registration_of_supplier , name="Create new supplier"),
-    path('add_or_change_supplier_profile_image/', suppliers.add_or_change_supplier_profile_image, name="Add profil image to supplier."),    
+    path('registration-of-supplier/', SupplierController.registration_of_supplier, name="registration-of-supplier"),
+    path('update-profil-image/', SupplierController.add_or_change_supplier_profile_image, name="update-supplier-profil-image"),    
     
-    path('update_supplier/',suppliers.update_supplier_data , name="Update supplier data"),
-    path('delete_supplier/',suppliers.delete_supplier , name="Delete supplier data"),
+    path('update-supplier/', SupplierController.update_supplier_data, name="update-supplier"),
+    path('delete-supplier/', SupplierController.delete_supplier, name="delete-supplier"),
     
-    path('add_supplier_address/',suppliers.add_supplier_address , name="Add supplier address data"),
-    path('update_supplier_address/',suppliers.update_supplier_address , name="Update supplier adress data"),
+    path('add-supplier-address/', SupplierController.add_supplier_address, name="add-supplier-address"),
+    path('update-supplier-address/', SupplierController.update_supplier_address, name="update-supplier-address"),
 
 ]
