@@ -2,7 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from sqlalchemy.exc import SQLAlchemyError
 from DjApp.decorators import login_required, require_http_methods
-from ..models import ProductEntry, UserWishList, WishList, WishListProductEntry
+from ..models import ProductEntry, WishList, WishListProductEntry
 from ..helpers import  add_get_params
 
 
@@ -31,39 +31,27 @@ def create_wishlist(request):
         add_get_params(response)
         return response
     
-
-    if not user:
-        response = JsonResponse({'answer': 'False', 'message': 'User with the given ID does not exist.'}, status=404)
+    
+    # Check if the user already has a wishlist
+    wishlist = session.query(WishList).filter_by(user_id=user.id,title=title).first()
+    if wishlist:
+        response = JsonResponse({'answer': 'False','message': 'The user already has a wishlist with this title.'}, status=404)
         add_get_params(response)
         return response
     
-    # Check if the user already has a wishlist
-    user_wishlist = session.query(UserWishList).filter_by(user_id=user.id).first()
     
-    if not user_wishlist:
-            
-        # Create a new wishlist object with the given parameters
-        new_user_wishlist = UserWishList(
-            user_id=user.id,
-        )    
-        # Add the new wishlist to the database and commit the changes
-        session.add(new_user_wishlist)
-        session.commit()
-        user_wishlist = new_user_wishlist
-    
-    
+    # Add the new wishlist to the database and commit the changes
     new_wishlist = WishList(
-            user_wishlist_id=user_wishlist.id,
+            user_id=user.id,
             title=title
         )    
-        # Add the new wishlist to the database and commit the changes
        
     session.add(new_wishlist)
     session.commit()
 
     
     # Return a JSON response with a success message and the new wishlist's information
-    response = JsonResponse({'Success': 'The new wishlist has been successfully created.',"new_wishlist_id":new_wishlist.id ,'user_id': user.id, 'title': title}, status=200)
+    response = JsonResponse({'Success': 'The new wishlist has been successfully created.',"wishlist":new_wishlist.to_json()}, status=200)
     add_get_params(response)
     return response
 
@@ -92,22 +80,16 @@ def update_wishlist_title(request, wishlist_id):
         add_get_params(response)
         return response
     
+    
     if not user:
         response = JsonResponse({'answer': 'False', 'message': 'User with the given ID does not exist.'}, status=404)
         add_get_params(response)
         return response
     
     # Check if the wishlist exists for the given user
-    wishlist = session.query(WishList).get(wishlist_id)
-    
+    wishlist = session.query(WishList).filter_by(id=wishlist_id, user_id=user.id).first()
     if not wishlist:
-        response = JsonResponse({'answer': 'False', 'message': 'Wishlist with the given ID does not exist.'}, status=404)
-        add_get_params(response)
-        return response
-    
-    
-    if wishlist.user_wishlist.user_id != user.id:
-        response = JsonResponse({'answer': 'False','message': 'Wishlist with the given ID does not belong to the user.'}, status=404)
+        response = JsonResponse({'answer': 'False','message': 'The user does not have a wishlist with this ID.'}, status=404)
         add_get_params(response)
         return response
     
@@ -151,17 +133,12 @@ def delete_wishlist(request, wishlist_id):
         return response
     
     # Check if the wishlist exists for the given user
-    wishlist = session.query(WishList).get(wishlist_id)
+    wishlist = session.query(WishList).filter_by(id=wishlist_id, user_id=user.id).first()
     if not wishlist:
-        response = JsonResponse({'answer': 'False', 'message': 'Wishlist with the given ID does not exist.'}, status=404)
+        response = JsonResponse({'answer': 'False','message': 'The user does not have a wishlist with this ID.'}, status=404)
         add_get_params(response)
         return response
     
-    
-    if wishlist.user_wishlist.user_id != user.id:
-        response = JsonResponse({'answer': 'False','message': 'Wishlist with the given ID does not belong to the user.'}, status=404)
-        add_get_params(response)
-        return response
     
     # Delete the wishlist
     session.delete(wishlist)
@@ -204,7 +181,7 @@ def add_product_entry_to_wishlist(request):
 
     try:
          # Retrieve the wishlist with the given wishlist_id
-        wishlist = session.query(WishList).get(wishlist_id)
+        wishlist = session.query(WishList).filter_by(wishlist_id, user_id=user.id).first()
         
         # Retrieve the product entry with the given product_entry_id
         product_entry = session.query(ProductEntry).get(product_entry_id)
@@ -216,7 +193,7 @@ def add_product_entry_to_wishlist(request):
  
  
     # Check if the wishlist and product entry exist and if the user is authorized to add products to the wishlist
-    if not wishlist or not product_entry or wishlist.user_wishlist.user_id != user.id:
+    if not wishlist or not product_entry:
         response = JsonResponse({'answer': False, 'message': 'Invalid data provided or user is not authorized to add products to the wishlist.'}, status=401)
         add_get_params(response)
         return response
@@ -287,8 +264,8 @@ def delete_product_entry_in_wishlist(request):
 
 
     try:
-        # Retrieve the wishlist with the given wishlist_id
-        wishlist = session.query(WishList).get(wishlist_id)
+        # Retrieve the wishlist with the given wishlist_id and user.id
+        wishlist = session.query(WishList).filter_by(wishlist_id, user_id=user.id).first()
         
         # Retrieve the product entry with the given product_entry_id
         product_entry = session.query(ProductEntry).get(product_entry_id)
@@ -300,7 +277,7 @@ def delete_product_entry_in_wishlist(request):
  
  
     # Check if the wishlist and product entry exist and if the user is authorized to delete products from the wishlist
-    if not wishlist or not product_entry or wishlist.user_wishlist.user_id != user.id:
+    if not wishlist or not product_entry:
         response = JsonResponse({'answer': False, 'message': 'Invalid data provided or user is not authorized to delete products from the wishlist.'}, status=401)
         add_get_params(response)
         return response
@@ -342,7 +319,7 @@ def delete_product_entry_in_wishlist(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-def delete_wishlist_product_entry(request, wishlist_product_entry_id):
+def delete_product_entry_in_wishlist_with_id(request, wishlist_product_entry_id):
     session = request.session
     user = request.person.user[0]
     try:
@@ -350,7 +327,7 @@ def delete_wishlist_product_entry(request, wishlist_product_entry_id):
         wishlist_product_entry = session.query(WishListProductEntry).get(wishlist_product_entry_id)
 
         # Check if the wishlist-product entry and product entry exist and if the user is authorized to delete products from the wishlist
-        if not wishlist_product_entry  or not wishlist_product_entry.wishlist.user_wishlist.user_id == user.id:
+        if not wishlist_product_entry  or not wishlist_product_entry.wishlist.user_id == user.id:
             response = JsonResponse({'answer': False, 'message': 'Invalid data provided or user is not authorized to delete products from the wishlist.'}, status=401)
             add_get_params(response)
             return response

@@ -73,8 +73,8 @@ class CardBox(Base, TimestampMixin):
         'description': self.description,
         }
 
-    def to_json_with_entries(self,session):
-        entries = [product_entry_card_box.product_entry.to_json_for_card(session) for product_entry_card_box in self.product_entry_card_boxs]
+    def to_json_with_entries(self):
+        entries = [product_entry_card_box.product_entry.to_json_for_card() for product_entry_card_box in self.product_entry_card_boxs]
         return {
         'id': self.id,
         'name': self.name,

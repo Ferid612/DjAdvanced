@@ -1,5 +1,5 @@
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import HttpResponse, redirect
+from django.shortcuts import redirect
 from django.http import JsonResponse
 from sqlalchemy import func
 from DjApp.decorators import require_http_methods
@@ -9,9 +9,6 @@ from ..helpers import add_get_params
 from typing import List
 from sqlalchemy.orm import joinedload
 
-
-def hello(request):
-    return HttpResponse("Hello world")
 
 
 @csrf_exempt
@@ -23,13 +20,14 @@ def get_product(request, product_id,product_entry_id=None):
         product_id (int): The id of the product to retrieve.
     """
     if product_entry_id:
-        return redirect('get_product_entry', product_entry_id=product_entry_id)
+        return redirect('product-entry-details', product_entry_id=product_entry_id)
     
     
     if not product_id:
         response = JsonResponse({'answer': 'product_id is a required field'}, status=400)
         add_get_params(response)
         return response
+
 
     # Get the product from the database
     session = request.session
@@ -40,78 +38,10 @@ def get_product(request, product_id,product_entry_id=None):
         add_get_params(response)
         return response
     # Get the product category chain
-    product_entries = []
-    for entry in product.entries:
-        size = None
-        images = None
-        rates_data = None
-        rates = None
-        if entry.rates:
-            rates_data = entry.rates[0].get_raters_data(session,entry.id)
-            rates = [{"rate_id":rate.id, "user_id":rate.user_id, "username":rate.user.person.username,"rate_comment":rate.rate_comment, "rate":rate.rate, "status":rate.status } for rate in entry.rates]
-        if entry.size:
-            size = {"size_id": entry.size.id, "size": entry.size.value, "size_type": entry.size.measure.name}
-        
-        if entry.images:
-            images = [{"id": image.id, "url": image.image_url, "title": image.title, "entry_id":image.product_entry_id} for image in entry.images ]
-            
-        product_entries.append({
-            "entry_id": entry.id,
-            "price_prev": entry.price,
-            "quantity": entry.quantity,
-            "SKU": entry.SKU,
-            "size": size,
-            "images": images,
-            "color": {"color_id": entry.color.id, "color_name": entry.color.name, "color_code": entry.color.color_code},
-            "material": {"material_id": entry.material_id, "material_name": entry.material.name},
-            'cargo_active': entry.cargo_active,
-            "rates_data":rates_data,
-            "rates":rates,
-            
-        })
-
     response = JsonResponse({
-        'id': product.id,
-        'name': product.name,
-        'description': product.description,
-        'supplier_data': {'supplier_id': product.supplier_id, 'supplier_name': product.supplier.name },
-        'category_data': {'category_id': product.category_id, 'category_name': product.category.name },
-        'product_entries': product_entries,
+        'product': product.to_json(),
+        'product_entries': product.get_exist_entries(),
     }, status=200)
-
-    add_get_params(response)
-    return response
-
-
-
-
-@csrf_exempt
-@require_http_methods(["GET", "OPTIONS"])
-def get_entry_for_card(request, product_entry_id):
-    """
-    This function is used to retrieve the details of a specific product entry.
-    Parameters:
-        product_entry_id (int): The id of the product entry to retrieve.
-    """
-    if not product_entry_id:
-        response = JsonResponse({'answer': 'product_entry_id is a required field'}, status=400)
-        add_get_params(response)
-        return response
-
-    # Get the product entry from the database
-    session = request.session
-    
-    entry = session.query(ProductEntry).get(product_entry_id)
-
-    if not entry:
-        response = JsonResponse({'answer': 'Product entry not found'}, status=404)
-        add_get_params(response)
-        return response
-
-
-    
-    entry_card_data = entry.to_json_for_card(session)
-    response = JsonResponse(entry_card_data, status=200)
 
     add_get_params(response)
     return response
@@ -140,62 +70,47 @@ def get_product_entry(request, product_entry_id):
         add_get_params(response)
         return response
 
-    # Get the product category chain
-    size = None
-    images = None
-    rates_data = None
-    rates = None
-    if entry.rates:
-        rates_data = entry.rates[0].get_raters_data(session, entry.id)
-        rates = [{"rate_id": rate.id, "user_id": rate.user_id, "username": rate.user.person.username,
-                  "rate_comment": rate.rate_comment, "rate": rate.rate, "status": rate.status} for rate in entry.rates]
-    if entry.size:
-        size = {"size_id": entry.size.id, "size": entry.size.value, "size_type": entry.size.measure.name}
 
-    if entry.images:
-        images = [{"id": image.id, "url": image.image_url, "title": image.title, "entry_id": image.product_entry_id}
-                  for image in entry.images]
-
-
-    exist_colors = entry.product.get_exist_colors(session)        
-    exist_materials = entry.product.get_exist_materials(session)        
-
-    exist_sizes = None
-    if entry.size:
-        exist_sizes = entry.product.get_exist_sizes(session)        
-        
-    price_after_discount =  entry.price_after_discount
-    fags = entry.get_all_fags()
-
-    comments = entry.get_entry_comments()
-    
     response = JsonResponse({
-        "entry_id": entry.id,
-        "product_id": entry.product_id,
-        "product_name": entry.product.name,
-        "price_prev": entry.price,
-        "price_current": price_after_discount,
-        "product_description": entry.product.description,
-        "quantity": entry.quantity,
-        "SKU": entry.SKU,
-        "size": size,
-        "color": {"color_id": entry.color.id, "color_name": entry.color.name, "color_code": entry.color.color_code},
-        "material": {"material_id": entry.material_id, "material_name": entry.material.name},
-        "supplier_data": {'supplier_id': entry.product.supplier_id,'supplier_name': entry.product.supplier.name },
-        "category_data": {'category_id': entry.product.category_id, 'category_name': entry.product.category.name },
-        "images": images,
-        'cargo_active': entry.cargo_active,
-        "rates_data": rates_data,
-        "rates": rates,
-        "fags": fags['fags_data'],
-        "comments":comments['comment_tree'],
-        "exist_colors":exist_colors,
-        "exist_materials":exist_materials,
-        "exist_sizes":exist_sizes,
+        'product': entry.product.to_json_for_entry(),
+        'entry': entry.to_json(),
     }, status=200)
 
     add_get_params(response)
     return response
+
+
+
+@csrf_exempt
+@require_http_methods(["GET", "OPTIONS"])
+def get_product_entry_for_card(request, product_entry_id):
+    """
+    This function is used to retrieve the details of a specific product entry.
+    Parameters:
+        product_entry_id (int): The id of the product entry to retrieve.
+    """
+    if not product_entry_id:
+        response = JsonResponse({'answer': 'product_entry_id is a required field'}, status=400)
+        add_get_params(response)
+        return response
+
+    # Get the product entry from the database
+    session = request.session
+    
+    entry = session.query(ProductEntry).get(product_entry_id)
+
+    if not entry:
+        response = JsonResponse({'answer': 'Product entry not found'}, status=404)
+        add_get_params(response)
+        return response
+
+
+    
+    entry_card_data = entry.to_json_for_card()
+    response = JsonResponse(entry_card_data, status=200)
+    add_get_params(response)
+    return response
+
 
 
 @csrf_exempt
@@ -204,10 +119,10 @@ def get_products_by_category(request,category_id, product_id=None, product_entry
     session = request.session
     
     if product_entry_id:
-        return redirect('get_product_entry', product_entry_id=product_entry_id)
+        return redirect('product-entry-details', product_entry_id=product_entry_id)
     
     if product_id:
-        return redirect('get_product', product_id=product_id)
+        return redirect('product', product_id=product_id)
 
 
     
@@ -215,7 +130,7 @@ def get_products_by_category(request,category_id, product_id=None, product_entry
     category = session.query(Category).options(joinedload(Category.products)).get(category_id)
     products = [product.to_json() for product in category.products]
 
-    response = JsonResponse({'category_id':category_id,"category_name":category.name, 'products': products}, status=200)
+    response = JsonResponse({'category':category.to_json(), 'products': products}, status=200)
     add_get_params(response)
     return  response
 
@@ -227,7 +142,7 @@ def get_products_in_category(request,category_id, product_id=None):
     
 
     if product_id:
-        return redirect('get_product', product_id=product_id)
+        return redirect('product', product_id=product_id)
 
 
     session = request.session    
