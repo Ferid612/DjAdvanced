@@ -148,19 +148,15 @@ class Supplier(Base, TimestampMixin):
     profil_image = relationship('ProfilImage', back_populates='supplier')
 
     def to_json(self):
+        profil_image = None
         if self.profil_image:
-            profil_image_url = self.profil_image[0].image_url
-            profil_image_title = self.profil_image[0].title
-        else:
-            profil_image_url = "Not"
-            profil_image_title = "Not"
+            profil_image = self.profil_image[0].to_json()
 
         return {
             'id': self.id,
             'name': self.name,
             'description': self.description,
-            'profil_image': profil_image_url,
-            'profil_image_title': profil_image_title,
+            'profil_image':profil_image, 
             'location_id': self.location_id,
             'country_code': str(self.phone_number.country_code),
             'phone_number': str(self.phone_number.phone_number),
@@ -644,7 +640,12 @@ class ProductImage(Base, TimestampMixin):
     product_entry = relationship("ProductEntry", back_populates='images')
 
     def to_json(self):
-        return {'id': self.id, 'product_entry_id': self.product_entry_id, 'url': self.image_url, 'title': self.title}
+        return {
+            'id': self.id,
+            'url': self.image_url,
+            'title': self.title,
+            'product_entry_id': self.product_entry_id,
+            }
 
 
 class Discount(Base, TimestampMixin):
@@ -719,12 +720,9 @@ class Person(Base, TimestampMixin):
         return f"username:{self.username} {self.first_name} {self.last_name}"
 
     def to_json(self):
-        try:
-            profil_image_url = self.profil_image[0].image_url
-            profil_image_title = self.profil_image[0].title
-        except:
-            profil_image_url = "Not"
-            profil_image_title = "Not"
+        person_profil_image = None
+        if self.profil_image:
+            person_profil_image = self.profil_image[0].to_json()
         return {
             'id': self.id,
             'username': self.username,
@@ -737,8 +735,7 @@ class Person(Base, TimestampMixin):
             'phone_verify': self.phone_verify,
             'active': self.active,
 
-            'profil_image': profil_image_url,
-            'profil_image_title': profil_image_title,
+            'profil_image': person_profil_image,
             'access_token': '',
             'refresh_token': '',
             'created_at': self.created_at.isoformat(),
@@ -768,12 +765,10 @@ class ProfilImage(Base, TimestampMixin):
     def to_json(self):
         return {
             'id': self.id,
-            'image_url': self.image_url,
+            'url': self.image_url,
             'title': self.title,
             'person_id': self.person_id,
             'supplier_id': self.supplier_id,
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat(),
         }
 
 
