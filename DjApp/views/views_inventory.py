@@ -127,8 +127,11 @@ def get_products_by_category(request,category_id, product_id=None, product_entry
 
     
     # Query the category by name and retrieve all associated products
-    category = session.query(Category).options(joinedload(Category.products)).get(category_id)
-    products = [product.to_json() for product in category.products]
+    category = session.query(Category).get(category_id)
+    if not category:
+        return JsonResponse({'error': 'Category not found'}, status=404)
+    
+    products = category.get_self_products()
 
     response = JsonResponse({'category':category.to_json(), 'products': products}, status=200)
     add_get_params(response)
@@ -148,24 +151,13 @@ def get_products_in_category(request,category_id, product_id=None):
     session = request.session    
     
     # Retrieve the parent category and its children recursively
-    category = session.query(Category).options(joinedload(Category.products)).get(category_id)
-    child_categories = category.get_child_categories()
+    category = session.query(Category).get(category_id)
+    if not category:
+        return JsonResponse({'error': 'Category not found'}, status=404)
     
-    # Initialize a list to store all products in the parent category
-    products = []
+    products = category.get_all_products()
     
-    # Recursively traverse through the category tree and retrieve all products
-    def recursive_get_products(categories):
-        for category in categories:
-            if category.products:
-                products.extend([ product.to_json() for product in category.products])
-            if category.has_children:
-                child_categories = category.get_child_categories()
-                recursive_get_products(child_categories)
-                
-    recursive_get_products(child_categories)
-    
-    response = JsonResponse({"category_id":category.id, "category_name":category.name, 'products': products}, status=200)
+    response = JsonResponse({'category':category.to_json(), 'products': products}, status=200)
     add_get_params(response)
     return response
 
@@ -312,12 +304,12 @@ def get_product_properties(request):
     # Retrieve all colors and their IDs and color codes
     materials = session.query(ProductMaterial).options(joinedload(ProductMaterial.product_entries)).all()
     for material in materials:
-        materials_data.append({"material_id": material.id, "material_name": material.name})
+        materials_data.append(material.to_json())
 
     # Retrieve all colors and their IDs and color codes
     colors = session.query(ProductColor).options(joinedload(ProductColor.product_entries)).all()
     for color in colors:
-        colors_data.append({"color_id": color.id, "color_name": color.name, "color_code": color.color_code})
+        colors_data.append(color.to_json())
 
     # Retrieve all measures, their IDs, and their values
     measures = session.query(ProductMeasure).options(joinedload(ProductMeasure.values)).all()

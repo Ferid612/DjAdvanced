@@ -83,6 +83,7 @@ class Category(Base, TimestampMixin):
     def get_child_categories(self):
         return self.children
 
+
     def has_products(self):
         """
         Returns True if there are any products that belong to this category or any of its children,
@@ -95,6 +96,29 @@ class Category(Base, TimestampMixin):
                 return True
         return False
 
+
+    def get_all_products(self):
+        """
+        Recursively retrieves all products that belong to this category or any of its children.
+        """
+        products = []
+        if self.products:
+            products.extend([product.to_json() for product in self.products])
+        for child in self.children:
+            products.extend(child.get_all_products())
+        return products
+    
+    
+    def get_self_products(self):
+        """
+        Recursively retrieves all products that belong to this category or any of its children.
+        """
+        products = []
+        if self.products:
+            products.extend([product.to_json() for product in self.products])
+        return products
+    
+    
     def to_json(self):
         return {
             'id': self.id,
@@ -239,7 +263,6 @@ class Product(Base, TimestampMixin):
             'supplier_data': self.supplier.to_json_for_card(),
             'category_data': self.category.to_json(),
         }
-
 
 
 class ProductEntry(Base):
