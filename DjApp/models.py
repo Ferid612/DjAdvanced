@@ -337,7 +337,7 @@ class ProductEntry(Base):
         # Get the product category chain
         image = None
         if self.images:
-            image = image[0].to_json() 
+            image = self.images[0].to_json() 
             
 
         return {
