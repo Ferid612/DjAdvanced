@@ -66,7 +66,7 @@ def get_card_box_entries(request,pk):
         # Get the user object associated with the request
         card_box = session.query(CardBox).get(pk)
         
-        card_box_with_entries = card_box.to_json_with_entries(session)
+        card_box_with_entries = card_box.to_json_with_entries()
         # Build the user data dictionary
 
         # Return a JSON response with the user data
