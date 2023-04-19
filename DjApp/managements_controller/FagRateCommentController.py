@@ -3,8 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required, require_http_methods
 from DjApp.helpers import GetErrorDetails, add_get_params
-from ..models import  Person, Product, ProductComment, ProductEntry, ProductRate, ProductFag, Users
-from DjAdvanced.settings import engine
+from ..models import  ProductComment, ProductEntry, ProductRate, ProductFag
 import Levenshtein
 
 
