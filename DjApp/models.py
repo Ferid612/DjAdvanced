@@ -801,8 +801,8 @@ class Users(Base, TimestampMixin):
     product_rates = relationship('ProductRate', back_populates='user')
     wishlists = relationship('WishList', back_populates='user')
 
-    def get_user_wishlists_list(self, session, count):
-        return [wishlist.to_json(session, count) for wishlist in self.wishlists]
+    def get_user_wishlists_list(self, count):
+        return [wishlist.to_json(count) for wishlist in self.wishlists]
 
 
 class WishList(Base, TimestampMixin):
@@ -815,7 +815,7 @@ class WishList(Base, TimestampMixin):
     wishlist_product_entries = relationship(
         'WishListProductEntry', back_populates='wishlist', cascade='all, delete-orphan')
 
-    def to_json(self, session, count=None):
+    def to_json(self, count=None):
         if count is not None:
             wishlist_product_entries = [wishlist_product_entry.to_json() for wishlist_product_entry in self.wishlist_product_entries[:count]]
         else:

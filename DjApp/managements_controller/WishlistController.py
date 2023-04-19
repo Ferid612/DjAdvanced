@@ -181,7 +181,7 @@ def add_product_entry_to_wishlist(request):
 
     try:
          # Retrieve the wishlist with the given wishlist_id
-        wishlist = session.query(WishList).filter_by(wishlist_id, user_id=user.id).first()
+        wishlist = session.query(WishList).filter_by(id=wishlist_id, user_id=user.id).first()
         
         # Retrieve the product entry with the given product_entry_id
         product_entry = session.query(ProductEntry).get(product_entry_id)
