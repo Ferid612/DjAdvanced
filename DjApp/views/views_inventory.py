@@ -225,13 +225,14 @@ def get_subcategory_categories(request, category_id):
 @require_http_methods(["POST", "GET"])
 def get_first_subcategory_categories(request, category_id):
     session = request.session
-    if not category_id:
+    if not category_id and not category_id == 0:
         response = JsonResponse({'error': 'Category id must be exist'}, status=404)
         add_get_params(response)
         return response
     
     
     # Query the category by ID and retrieve its child categories
+    categories = []
     if category_id == 0:
         categories = session.query(Category).filter_by(parent_id=None).all()        
     else:
