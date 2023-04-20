@@ -197,21 +197,22 @@ def recursive_categories(categories):
 @require_http_methods(["GET","OPTIONS"])
 def get_subcategory_categories(request, category_id):
     session = request.session
-    category_name = request.data.get("category_name")
 
     # Query the category by name and retrieve its child categories
     category = session.query(Category).get(category_id)
     if not category:
         return JsonResponse({'error': 'Category not found'}, status=404)
 
-    child_categories = category.get_child_categories()
     result = []
-    for child_category in child_categories:
-        if not child_category.has_children:
-            result.append(child_category.to_json())
-        else:
-            subcategories = get_subcategory_categories(request, child_category.name)
-            result += subcategories
+    stack = [category] # initialize stack with the root category
+    while stack:
+        current_category = stack.pop()
+        child_categories = current_category.get_child_categories()
+        for child_category in child_categories:
+            if not child_category.has_children:
+                result.append(child_category.to_json())
+            else:
+                stack.append(child_category)
 
     response = JsonResponse({'categories': result}, status=200)
     add_get_params(response)
@@ -219,31 +220,32 @@ def get_subcategory_categories(request, category_id):
 
 
 
+
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
 def get_first_subcategory_categories(request, category_id):
     session = request.session
+    if not category_id:
+        response = JsonResponse({'error': 'Category id must be exist'}, status=404)
+        add_get_params(response)
+        return response
     
+    
+    # Query the category by ID and retrieve its child categories
     if category_id == 0:
-        categories = session.query(Category).filter_by(parent_id=None).all()
-        result = [category.to_json() for category in categories ]
-
-            
+        categories = session.query(Category).filter_by(parent_id=None).all()        
     else:
-        # Query the category by ID and retrieve its child categories
-        category = session.query(Category).get(category_id)
-        if not category:
-            return JsonResponse({'error': 'Category not found'}, status=404)
-
-        child_categories = category.get_child_categories()
-        result = []
-        for child_category in child_categories:
-            if not child_category.has_children:
-                result.append(child_category.to_json())
-            else:
-                first_subcategory = child_category.get_child_categories()[0]
-                result.append(first_subcategory.to_json())
-
+        categories = session.query(Category).filter_by(parent_id=category_id)
+    
+    
+    if not categories:
+        response =  JsonResponse({'error': 'Category not found'}, status=404)
+        add_get_params(response)
+        return response
+            
+    
+    result = [category.to_json() for category in categories ]
+    
     response = JsonResponse({'categories': result}, status=200)
     add_get_params(response)
     return response
