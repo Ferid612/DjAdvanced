@@ -504,10 +504,6 @@ class ProductColor(Base):
     product_entries = relationship(
         "ProductEntry", back_populates="color", cascade="all, delete", lazy="joined", overlaps="colors")
 
-
-
-
-
     @classmethod
     def add_color(cls, session, name, color_code):
         """
@@ -522,7 +518,7 @@ class ProductColor(Base):
         return {
             'id': self.id,
             'name': self.name,
-            'description': self.color_code,
+            'color_code': self.color_code,
         }
 
 

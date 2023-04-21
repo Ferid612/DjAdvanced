@@ -554,6 +554,52 @@ def update_product(request):
 
 
 
+
+@csrf_exempt
+@require_http_methods(["POST"])
+# @login_required
+# @permission_required("manage_products")
+def update_product_entry(request,entry_id):
+    """
+    This function is used to update an existing product in the database.
+    Parameters:
+        product_id (int): The id of the product to be updated.
+        new_values (Dict[str, Union[str, float]]): A dictionary of the new values for the product. The keys in the dictionary should correspond to the names of the columns in the 'product' table, and the values should be the new values for each column.
+    """
+    
+    data = request.data
+    session = request.session
+    new_values = data.get('new_values')
+    
+    if not entry_id or not new_values:
+        response = JsonResponse({'answer': 'entry_id and new_values are required fields'}, status=400)
+        add_get_params(response)
+        return response
+    
+    # Get the product_entry with the given id
+    product_entry = session.query(ProductEntry).get(entry_id)
+    if not product_entry:
+        response = JsonResponse({'answer': 'A product_entry with the given id does not exist'}, status=400)
+        add_get_params(response)
+        return response
+    
+    # Update the values for each column in the product_entry table
+    not_allowed_columns = ['id']
+    response_details = []
+    for index, new_value in enumerate(new_values): # iterate through new_values
+        for column_name, value in new_value.items(): # iterate through the columns in the new_value
+            if column_name in not_allowed_columns:
+                response = JsonResponse({'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
+                add_get_params(response)
+                return response
+                    
+            setattr(product_entry, column_name, value)
+
+    response = JsonResponse({'Success': 'The product has been successfully updated',"response_details":response_details}, status=200)
+    add_get_params(response)
+    return response
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 # @login_required
@@ -581,6 +627,35 @@ def delete_product(request):
     
 
     response = JsonResponse({'message': f'Product with product.id {product_id} has been successfully deleted.'}, status=200)
+    add_get_params(response)
+    return response
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+# @login_required
+# @permission_required("manage_products")
+def delete_product_entry(request,entry_id):
+    """
+    This function is used to delete a specific product.
+    Parameters:
+        product_id (int): The ID of the product to be deleted.
+    """
+
+    data = request.data
+    session = request.session
+    
+    product_entry = session.query(ProductEntry).get(entry_id)
+
+    if not product_entry:
+        response = JsonResponse({'answer': f'No product_entry found with product_entry.id {entry_id}'}, status=404)
+        add_get_params(response)
+        return response
+    session.delete(product_entry)
+    
+
+    response = JsonResponse({'message': f'product_entry with product_entry.id {entry_id} has been successfully deleted.'}, status=200)
     add_get_params(response)
     return response
 
@@ -655,6 +730,76 @@ def add_product_image(request, product_entry_id):
         add_get_params(response)
         return response
 
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+# @login_required
+# @permission_required("manage_products")
+def add_image_to_all_product_entries(request):
+    """
+    This function handles the addition of a new image to all product entries.
+    The function receives the following parameters from the request object:
+    - image_url: the URL of the image to be added
+    - title: the title of the image to be added
+    If the image addition is successful, the function returns a JSON response with a success message and the new image's information.
+    If an error occurs during the image addition process, the function returns a JSON response with an error message and the error details.
+    """
+    try:
+        # Get the parameters from the request object
+
+        session = request.session
+        image_title = request.data.get("image_title")
+        image_url = request.data.get("image_url")
+        image_file = request.FILES.get('image')
+        
+    
+        if not image_file and not image_url:
+            response = JsonResponse({'answer':'False', 'message':'Missing data error. Image URL and Title must be filled'}, status=404)
+            add_get_params(response)
+            return response
+
+        
+        # Get all product entries
+        product_entries = session.query(ProductEntry).all()
+        
+        # Check if there are any product entries
+        if not product_entries:
+            response = JsonResponse({'answer':'False', 'message':'No product entries found.'}, status=404)
+            add_get_params(response)
+            return response
+        
+        # Check if the folder for the product images exists, and create it if it doesn't
+        if not image_url: 
+            supplier_name = product_entries[0].product.supplier.name
+            folder_path = MEDIA_ROOT / 'product_images' / supplier_name
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+            
+        # Add the new image to all product entries
+        for product_entry in product_entries:
+            
+            # Create a new image object with the given parameters
+            new_image = ProductImage(
+                product_entry_id=product_entry.id,
+                image_url=image_url if image_url else save_uploaded_image(image_file, folder_path),
+                title=image_title
+            )
+            
+            # Add the new image to the database and commit the changes
+            session.add(new_image)
+            session.commit()
+        
+        # Return a JSON response with a success message
+        response = JsonResponse({"Success":"The new image has been successfully added to all product entries."}, status=200)
+        add_get_params(response)
+        return response
+
+    except Exception as e:
+        # Return a JSON response with an error message and the error details
+        response = GetErrorDetails("Something went wrong when adding the image to the product entries.", e, 404)
+        add_get_params(response)
+        return response
 
 
 @csrf_exempt
@@ -805,6 +950,48 @@ def delete_null_category_products(request):
         # Return the number of deleted products for confirmation
         
     response = JsonResponse({"message":"deleted all products that have a null category_id succesfully.", "lentgth of null_category_products": len(null_category_products)},status=200)
+    add_get_params(response)
+    return response
+
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+# @login_required
+# @permission_required("manage_products")
+def update_all_product_entries(request):
+    """
+    This function is used to update an existing product in the database.
+    Parameters:
+        product_id (int): The id of the product to be updated.
+        new_values (Dict[str, Union[str, float]]): A dictionary of the new values for the product. The keys in the dictionary should correspond to the names of the columns in the 'product' table, and the values should be the new values for each column.
+    """
+    
+    data = request.data
+    session = request.session
+
+    new_values = data.get('new_values')
+        
+    # Get the product with the given id
+    product_entries = session.query(ProductEntry).all()
+    
+    # Update the values for each column in the product table
+    not_allowed_columns = ['id']
+    response_details = []
+    for product_entry in product_entries:
+        for index, new_value in enumerate(new_values): # iterate through new_values
+            for column_name, value in new_value.items(): # iterate through the columns in the new_value
+                if column_name in not_allowed_columns:
+                    response = JsonResponse({'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
+                    add_get_params(response)
+                    return response
+                
+              
+                setattr(product_entry, column_name, value)
+
+    response = JsonResponse({'Success': 'The product has been successfully updated',"response_details":response_details}, status=200)
     add_get_params(response)
     return response
 
