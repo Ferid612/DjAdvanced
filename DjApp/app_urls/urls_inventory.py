@@ -37,9 +37,14 @@ urlpatterns = [
     path('products/create-entry/', InventoryController.create_product_entry, name='create_product_entry'),
     path('products/<int:product_id>/update/', InventoryController.update_product, name="update_product"),
     path('products/<int:product_id>/delete/', InventoryController.delete_product, name="delete_product"),
+    
+    path('product-entries/<int:entry_id>/update/', InventoryController.update_product_entry, name="update-product-entry"),
+    path('product-entry/<int:entry_id>/delete/', InventoryController.delete_product_entry, name="delete-product-entry"),
+    path('product-entry/update-all/', InventoryController.update_all_product_entries, name="update-all-entries"),
 
     # Product image URLs +++++
     path('products/entries/<int:product_entry_id>/images/add/', InventoryController.add_product_image, name="add_product_image"),
+    path('products/entries/images/add-all/', InventoryController.add_image_to_all_product_entries, name="add-image-all-product"),
     path('products/images/<int:image_id>/update/', InventoryController.update_product_image, name="update_product_image"),
     path('products/images/<int:image_id>/delete/', InventoryController.delete_product_image, name="delete_product_image"),
 
