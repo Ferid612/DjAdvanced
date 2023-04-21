@@ -124,7 +124,8 @@ class Category(Base, TimestampMixin):
             'id': self.id,
             'name': self.name,
             'parent_id': self.parent_id,
-            'icon': self.icon
+            'icon': self.icon,
+            'has_children': self.has_children,
         }
 
 
