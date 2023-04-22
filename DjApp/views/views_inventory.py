@@ -234,9 +234,9 @@ def get_first_subcategory_categories(request, category_id):
     # Query the category by ID and retrieve its child categories
     categories = []
     if category_id == 0:
-        categories = session.query(Category).filter_by(parent_id=None).all()        
+        categories = session.query(Category).filter_by(parent_id=None).order_by(Category.id)        
     else:
-        categories = session.query(Category).filter_by(parent_id=category_id)
+        categories = session.query(Category).filter_by(parent_id=category_id).order_by(Category.id)
     
     
     if not categories:
@@ -280,7 +280,7 @@ def get_all_products_by_supplier(request,supplier_id):
         return response
 
     
-    all_products = session.query(Product).filter_by(supplier_id=supplier_id).all()
+    all_products = session.query(Product).filter_by(supplier_id=supplier_id).order_by(Category.id)
     
     products_data = [product.to_json() for product in all_products]
     response = JsonResponse({f'{supplier.name} products': products_data}, status=200)

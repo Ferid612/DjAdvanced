@@ -681,6 +681,7 @@ def add_product_image(request, product_entry_id):
         session = request.session
         image_title = request.data.get("image_title")
         image_url = request.data.get("image_url")
+        image_index = request.data.get('index')
         image_file = request.FILES.get('image')
         
     
@@ -710,17 +711,21 @@ def add_product_image(request, product_entry_id):
             image_path = image_url
         
         # Create a new image object with the given parameters
+        if not image_index and not image_index == 0:
+            image_index = 999
+            
         new_image = ProductImage(
             product_entry_id=product_entry_id,
             image_url=image_path,
-            title=image_title
+            title=image_title,
+            index = image_index
         )
         
         # Add the new image to the database and commit the changes
         session.add(new_image)
         session.commit()
         # Return a JSON response with a success message and the new image's information
-        response = JsonResponse({"Success":"The new image has been successfully added to the product.", "product_id": product_entry_id, "image_url": image_path, "title": image_title}, status=200)
+        response = JsonResponse({"Success":"The new image has been successfully added to the product.", 'image':new_image.to_json()}, status=200)
         add_get_params(response)
         return response
 
@@ -822,6 +827,8 @@ def update_product_image(request, image_id):
         session = request.session
         title = data.get('title')
         image_url = data.get('image_url')
+        image_index = request.data.get('index')
+        
 
         if not image_id:
             response = JsonResponse({'answer': 'False', 'message': 'Missing data error. Please provide an image ID.'}, status=404)
@@ -844,10 +851,11 @@ def update_product_image(request, image_id):
             product_image.title = title
         if image_url:
             product_image.image_url = image_url
-
+        if image_index:
+            product_image.index = image_index
            
         # Return a JSON response with a success message and the updated product image's information
-        response = JsonResponse({'Success': 'The product image has been successfully updated.', 'id': product_image.id, 'product_id': product_image.product_id, 'title': product_image.title, 'image_url': product_image.image_url}, status=200)
+        response = JsonResponse({'Success': 'The product image has been successfully updated.', 'image':product_image.to_json()}, status=200)
         add_get_params(response)
         return response
 

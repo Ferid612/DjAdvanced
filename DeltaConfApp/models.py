@@ -42,12 +42,6 @@ class SlidePhotos(Base, TimestampMixin):
 
 
     def to_json(self):
-        if self.image_gallery:
-            image_gallery_id = self.image_gallery.id 
-            image_gallery_name = self.image_gallery.name 
-        else:
-            image_gallery_id= -1
-            image_gallery_name = "Not" 
        
         return {
         'id': self.id,
