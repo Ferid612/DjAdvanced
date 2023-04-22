@@ -259,6 +259,10 @@ class Product(Base, TimestampMixin):
             'description': self.description,
             'supplier_data': self.supplier.to_json_for_card(),
             'category_data': self.category.to_json(),
+            'exist_colors' : self.get_exist_colors(),        
+            'exist_materials' : self.get_exist_materials(),
+            'exist_sizes':self.get_exist_sizes(),
+    
         }
 
 
@@ -372,7 +376,6 @@ class ProductEntry(Base):
             'color': self.color.to_json(),
             'image': image,
             'rates_data': self.get_raters_data(),
-            'exist_colors': self.product.get_exist_colors(),
         }
             }
 
