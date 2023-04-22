@@ -262,6 +262,26 @@ class Product(Base, TimestampMixin):
         }
 
 
+class ProductImage(Base, TimestampMixin):
+    __tablename__ = 'product_image'
+    id = Column(Integer, primary_key=True)
+    index = Column(Integer,default=0,nullable=False)
+    product_entry_id = Column(Integer, ForeignKey(
+        'product_entry.id'), nullable=False)
+    image_url = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    product_entry = relationship("ProductEntry", back_populates='images')
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'url': self.image_url,
+            'title': self.title,
+            'product_entry_id': self.product_entry_id,
+            'index': self.index,
+            }
+
+
 class ProductEntry(Base):
     __tablename__ = 'product_entry'
     id = Column(Integer, primary_key=True)
@@ -291,7 +311,7 @@ class ProductEntry(Base):
     product_discounts = relationship(
         'ProductDiscount', back_populates='product_entry')
    
-    images = relationship('ProductImage', back_populates='product_entry')
+    images = relationship('ProductImage', back_populates='product_entry',  order_by=( ProductImage.index, ProductImage.id,))
    
     material = relationship(
         "ProductMaterial", back_populates="product_entries")
@@ -626,23 +646,6 @@ class ProductComment(Base, TimestampMixin):
     person = relationship('Person', back_populates='comments')
 
 
-class ProductImage(Base, TimestampMixin):
-    __tablename__ = 'product_image'
-    id = Column(Integer, primary_key=True)
-    product_entry_id = Column(Integer, ForeignKey(
-        'product_entry.id'), nullable=False)
-    image_url = Column(String, nullable=False)
-    title = Column(String, nullable=False)
-
-    product_entry = relationship("ProductEntry", back_populates='images')
-
-    def to_json(self):
-        return {
-            'id': self.id,
-            'url': self.image_url,
-            'title': self.title,
-            'product_entry_id': self.product_entry_id,
-            }
 
 
 class Discount(Base, TimestampMixin):
