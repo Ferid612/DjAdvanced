@@ -200,7 +200,7 @@ class Product(Base, TimestampMixin):
 
 
     sizes = relationship("ProductMeasure", secondary="product_entry",
-                        primaryjoin="ProductEntry.product_id == Product.id", secondaryjoin="ProductEntry.measure_value_id == ProductMeasure.id",
+                        primaryjoin="ProductEntry.product_id == Product.id", secondaryjoin="ProductEntry.measure_value_id == ProductMeasureValue.id",
                         viewonly=True)
 
 
@@ -307,7 +307,6 @@ class ProductEntry(Base):
     cargo_active = Column(Boolean, default=True)
 
     product = relationship('Product',  back_populates='entries')
-    color = relationship("ProductColor", back_populates="product_entries")
     rates = relationship('ProductRate', back_populates='product_entry')
     fags = relationship('ProductFag', back_populates='product_entry')
     comments = relationship('ProductComment', back_populates='product_entry')
@@ -317,11 +316,10 @@ class ProductEntry(Base):
    
     images = relationship('ProductImage', back_populates='product_entry',  order_by=( ProductImage.index, ProductImage.id,))
    
-    material = relationship(
-        "ProductMaterial", back_populates="product_entries")
+    color = relationship("ProductColor", back_populates="product_entries")
+    material = relationship("ProductMaterial", back_populates="product_entries")
    
-    size = relationship('ProductMeasureValue',
-                        back_populates='product_entry', cascade="all, delete")
+    size = relationship('ProductMeasureValue', back_populates='product_entry')
 
     cart_items = relationship('CartItem', back_populates='product_entry')
     order_item = relationship('OrderItem', back_populates='product_entry')
@@ -472,7 +470,7 @@ class ProductMeasureValue(Base):
     measure_id = Column(Integer, ForeignKey(
         'product_measure.id', ondelete='CASCADE'), nullable=False, index=True)
     measure = relationship('ProductMeasure', back_populates='values')
-    product_entry = relationship('ProductEntry', back_populates='size')
+    product_entry = relationship('ProductEntry', back_populates='size', cascade="all, delete", lazy="joined", overlaps="sizes")
 
     def to_json(self):
         return {
