@@ -72,13 +72,32 @@ def get_product_entry(request, product_entry_id):
 
 
     response = JsonResponse({
-        'product': entry.product.to_json_for_entry(),
+        'product': entry.product.to_json(),
         'entry': entry.to_json(),
     }, status=200)
 
     add_get_params(response)
     return response
 
+
+@csrf_exempt
+@require_http_methods(["GET", "OPTIONS"])
+def get_entries(request, count=3,offset=0):
+    
+    """
+    This function is used to retrieve the next 5 product entries from the database
+    starting from the given offset.
+    """
+    session = request.session
+    
+    entries = session.query(ProductEntry).offset(offset).limit(count).all()
+
+    # Convert each entry to a dictionary using list comprehension
+    entry_dicts = [entry.to_json_for_card() for entry in entries]
+
+    response = JsonResponse({'entries': entry_dicts}, status=200)
+    add_get_params(response)
+    return response
 
 
 @csrf_exempt
