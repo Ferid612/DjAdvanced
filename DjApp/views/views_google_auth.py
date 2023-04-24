@@ -16,7 +16,7 @@ def google_login_callback(request):
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
                 "userinfo_uri": "https://openidconnect.googleapis.com/v1/userinfo",
-                "scope": ["openid", "email", "profile"],
+                "scope": ["https://www.googleapis.com/auth/userinfo.email",  "https://www.googleapis.com/auth/userinfo.profile", "openid"],
             }
         },
         scopes=["openid", "email", "profile"],
