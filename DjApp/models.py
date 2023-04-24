@@ -246,9 +246,6 @@ class Product(Base, TimestampMixin):
             'supplier_data': self.supplier.to_json_for_card(),
             'category_data': self.category.to_json(),
             'exist_colors' : self.get_exist_colors(),        
-            'exist_materials' : self.get_exist_materials(),
-            'exist_sizes':self.get_exist_sizes(),
-    
         }
         
 
@@ -366,7 +363,7 @@ class ProductEntry(Base):
             
 
         return {
-            'product': self.product.to_json(),            
+            'product': self.product.to_json_for_entry(),            
             'entry':{
             'id': self.id,
             'price_prev': self.price,
