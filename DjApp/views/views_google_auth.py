@@ -12,7 +12,7 @@ def google_login_callback(request):
             "web": {
                 "client_id": "1061024007426-37p2ccs7suqcb2s5cec4gn63j8v7h2s6.apps.googleusercontent.com",
                 "client_secret": "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",
-                "redirect_uri": "http://127.0.0.1:8000/google_auth/google-login-callback/",
+                "redirect_uri": "https://nebuwear.com/google_auth/google-login-callback/",
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
                 "userinfo_uri": "https://openidconnect.googleapis.com/v1/userinfo",
@@ -20,7 +20,7 @@ def google_login_callback(request):
             }
         },
         scopes=["openid", "email", "profile"],
-        redirect_uri='http://127.0.0.1:8000' + reverse("google_login_callback"),
+        redirect_uri='https://nebuwear.com' + reverse("google_login_callback"),
     )
 
     if "code" not in request.GET:
@@ -28,13 +28,11 @@ def google_login_callback(request):
             access_type="offline", include_granted_scopes="true"
         )
         
-        print("here we goooooooooooooooooo", authorization_url, state)
         return redirect(authorization_url)
     else:
         flow.fetch_token(authorization_response=request.build_absolute_uri())
         credentials = flow.credentials
 
-        print("here we goooooooooooooooooo Againnnnnnnnnnnnnnnnnnnnn")
 
         # Retrieve the user's profile information from Google
         id_info = id_token.verify_oauth2_token(
