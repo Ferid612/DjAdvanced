@@ -307,6 +307,8 @@ class ProductEntry(Base):
     cargo_active = Column(Boolean, default=True)
 
     product = relationship('Product',  back_populates='entries')
+    tags = relationship('Tag', secondary='product_tag', back_populates='product_entries')
+
     rates = relationship('ProductRate', back_populates='product_entry')
     fags = relationship('ProductFag', back_populates='product_entry')
     comments = relationship('ProductComment', back_populates='product_entry')
@@ -381,7 +383,7 @@ class ProductEntry(Base):
     def to_json(self):
         size = None
         images = None
-
+        tags = None
         if self.images:
             images = [image.to_json() for image in self.images]
 
@@ -392,6 +394,9 @@ class ProductEntry(Base):
         if self.rates:
             rates = [rate.to_json() for rate in self.rates]
 
+        if self.tags:
+            tags = [tag.to_json() for tag in self.tags]
+            
         return {
             "id": self.id,
             "price_prev": self.price,
@@ -407,7 +412,8 @@ class ProductEntry(Base):
             "rates_data": self.get_raters_data(),
             "rates":rates,
             "fags": self.get_all_fags()['fags_data'],
-            "comments": self.get_entry_comments()['comment_tree']
+            "comments": self.get_entry_comments()['comment_tree'],
+            "tags":tags,
         }
 
 
@@ -461,6 +467,31 @@ class ProductEntry(Base):
             comment_tree.append(build_comment_tree(comment))
 
         return {"comment_tree": comment_tree}
+
+
+
+
+class Tag(Base):
+    __tablename__ = 'tag'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+    
+    product_entries = relationship('ProductEntry', secondary='product_tag', back_populates='tags')
+  
+    def to_json(self):    
+        return{
+        "id" : self.id,
+        "name" : self.name,
+        "description" : self.description
+        }
+        
+
+class ProductTag(Base):
+    __tablename__ = 'product_tag'
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'), primary_key=True)
+    tag_id = Column(Integer, ForeignKey('tag.id'), primary_key=True)
+
 
 
 class ProductMeasureValue(Base):
