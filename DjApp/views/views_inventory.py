@@ -2,7 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 from django.http import JsonResponse
 from sqlalchemy import func
-from DjApp.decorators import require_http_methods
+from DjApp.decorators import require_http_methods, google_authenticated
 from sqlalchemy.orm import joinedload
 from ..models import Category, Product, ProductColor, ProductEntry, ProductMaterial, ProductMeasure, Supplier
 from ..helpers import add_get_params
@@ -50,6 +50,9 @@ def get_product(request, product_id,product_entry_id=None):
 
 @csrf_exempt
 @require_http_methods(["GET", "OPTIONS"])
+
+@google_authenticated
+
 def get_product_entry(request, product_entry_id):
     """
     This function is used to retrieve the details of a specific product entry.
