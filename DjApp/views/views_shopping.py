@@ -30,11 +30,13 @@ def calculate_discount_data(cart_item):
         discount_percent = float(active_discounts[0].discount.discount_percent)/100
         cart_item_total = cart_item.total()
         discount_price = cart_item_total * discount_percent
+        price_after_discount = cart_item_total - discount_price  
         discount_data = {
             'name': active_discounts[0].discount.name,
             'percent': discount_percent,
             'description': active_discounts[0].discount.description,
-            'discount_price': discount_price
+            'discount': discount_price,
+            'price_after_discount':price_after_discount
         }
         return discount_data
     else:
@@ -141,19 +143,21 @@ def get_user_shopping_session_data(request):
     cart_item_data = {}
     for cart_item in cart_items:
         supplier_name = cart_item.product_entry.product.supplier.name
+        discount_data = calculate_discount_data(cart_item)
         if supplier_name not in cart_item_data:
             cart_item_data[supplier_name] = []
         cart_item_data[supplier_name].append({
             'id': cart_item.id,
             'quantity': cart_item.quantity,
             'cart_item_total': cart_item.total(),
-            'discount_data': calculate_discount_data(cart_item),
+            'discount_data': discount_data,
             'cargo_data': calculate_cargo_data(cart_item),
             'product': {
                 'id': cart_item.product_entry.id,
                 'name': cart_item.product_entry.product.name,
                 'description': cart_item.product_entry.product.description,
-                'price': cart_item.product_entry.price,
+                'price_prev': cart_item.product_entry.price,
+                'price_current': cart_item.product_entry.discount_data.get('discounted_price'),
                 'category_name': cart_item.product_entry.product.category.name
             }
         })
