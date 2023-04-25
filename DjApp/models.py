@@ -1021,14 +1021,89 @@ class ShoppingSession(Base, TimestampMixin):
         return sum([item.product_entry.price * item.quantity for item in self.cart_items])
 
 
+    def calculate_supplier_prices_and_cargo_discounts(self, amount_to_be_paid):
+        """
+        Calculates the total price of each supplier's products and applies cargo discounts if applicable.
+        Returns a tuple of (supplier_prices, supplier_cargo_discounts, amount_to_be_paid)
+        """
+        cart_items = self.cart_items
+        supplier_prices = {}
+        for cart_item in cart_items:
+            product_entry = cart_item.product_entry
+            if product_entry.cargo_active:
+                supplier = product_entry.product.supplier
+                price = product_entry.price * cart_item.quantity
+                if supplier not in supplier_prices:
+                    supplier_prices[supplier] = price
+                else:
+                    supplier_prices[supplier] += price
+
+
+        supplier_cargo_discounts = {}
+        for supplier, price in supplier_prices.items():
+            if not supplier.cargo_min_limit:
+                supplier.cargo_min_limit = 1.0
+                supplier.cargo_percent = 0.0
+            if (price > supplier.cargo_min_limit):
+                cargo_discount = float(supplier.cargo_percent) * price
+                supplier_cargo_discounts[supplier.name] = cargo_discount
+                amount_to_be_paid -= cargo_discount
+
+        return supplier_prices, supplier_cargo_discounts, amount_to_be_paid
+
+
+
+    def get_user_shopping_session_data(self):
+        """
+        Retrieves all the cart items for the authenticated user and returns them along with the corresponding product data.
+        """
+        
+        # Eager load related data
+        cart_items = self.cart_items
+
+        shopping_session_total = self.total()
+
+        # Calculate discounts and cargo fees
+        whole_discounts = sum(cart_item.calculate_discounts() for cart_item in cart_items)
+        whole_cargo_fee = sum(cart_item.calculate_cargo_fee() for cart_item in cart_items)
+
+        # Calculate total amount to be paid
+        amount_to_be_paid = shopping_session_total - whole_discounts + whole_cargo_fee
+
+
+        supplier_prices,\
+        supplier_cargo_discounts,\
+        amount_to_be_paid = self.calculate_supplier_prices_and_cargo_discounts( amount_to_be_paid)
+
+
+        # Process cart items
+        # Group cart items by supplier name
+        cart_item_data = {}
+        for cart_item in cart_items:
+            supplier_name = cart_item.product_entry.product.supplier.name
+            
+            if supplier_name not in cart_item_data:
+                cart_item_data[supplier_name] = {"supplier_name": supplier_name, "cart_items": []}
+                
+            cart_item_data[supplier_name]["cart_items"].append(cart_item.to_json())
+            
+
+        return  {
+            'amount_to_be_paid': amount_to_be_paid,
+            'total': shopping_session_total,
+            'whole_discounts': whole_discounts,
+            'whole_cargo_fee': whole_cargo_fee,
+            'supplier_cargo_discounts': supplier_cargo_discounts,
+            "suppliers": list(cart_item_data.values())
+        }
+
+
 class CartItem(Base, TimestampMixin):
 
     __tablename__ = 'cart_item'
     id = Column(Integer, primary_key=True)
-    session_id = Column(Integer, ForeignKey(
-        'shopping_session.id'), nullable=False)
-    product_entry_id = Column(Integer, ForeignKey(
-        'product_entry.id'), nullable=False)
+    session_id = Column(Integer, ForeignKey('shopping_session.id'), nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'), nullable=False)
     _quantity = Column(Integer)
 
     shopping_session = relationship(
@@ -1041,11 +1116,54 @@ class CartItem(Base, TimestampMixin):
 
     @quantity.setter
     def quantity(self, quantity):
-        self._quantity = min(max(quantity, 0), 10000)
+        self._quantity = min(max(quantity, 0), 100000)
+
+
+    def calculate_cargo_data(self):
+        product_entry = self.product_entry
+        cargo_data = {}
+        if product_entry.cargo_active:
+            cargo_percent = float(product_entry.product.supplier.cargo_percent)
+            item_cargo_fee = self.total() * cargo_percent 
+            cargo_data['supplier_cargo_percent'] = cargo_percent
+            cargo_data['item_cargo_fee'] = item_cargo_fee
+        else:
+            cargo_data = "Not any cargo fee"
+        return cargo_data
+
+
+    # Helper functions for calculating discounts and cargo fees
+    def calculate_discounts(self):
+        discounts = self.product_entry.product_discounts
+        active_discounts = [d for d in discounts if d.discount.active]
+        discount_price = sum(self.total() * float(d.discount.discount_percent)/100 for d in active_discounts)
+        return discount_price
+           
+           
+    def calculate_cargo_fee(self):
+        product_entry = self.product_entry
+        if product_entry.cargo_active:
+            if product_entry.product.supplier.cargo_percent:
+                cargo_percent = float(product_entry.product.supplier.cargo_percent)
+            else:
+                cargo_percent=0
+            return self.total() * cargo_percent
+        return 0
+
+
 
     def total(self):
         return (self._quantity)*(self.product_entry.price)
 
+    def to_json(self):
+        return {
+            'id': self.id,
+            'quantity': self.quantity,
+            'cart_item_total': self.total(),
+            'cargo_data':   self.calculate_cargo_data(),
+            'product_entry': self.product_entry.to_json_for_card(),
+        }
+        
 
 class PaymentDetails(Base, TimestampMixin):
 
