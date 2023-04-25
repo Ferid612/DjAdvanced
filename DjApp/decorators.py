@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from DjAdvanced.settings import engine, SECRET_KEY
 import jwt
 from DjApp.helpers import  add_get_params, session_scope
-from DjApp.managements_controller.TokenController import get_person_from_access_token
+from DjApp.managements_controller.TokenController import generate_new_access_token, get_person_from_access_token
 from DjApp.models import EmployeeEmployeeGroupRole, EmployeeRole, RolePermission, UserRole, UserUserGroupRole, Person
 from django.utils.log import log_response
 from django.http import HttpResponseNotAllowed
@@ -70,6 +70,47 @@ def require_http_methods(request_method_list):
     return decorator
 
 
+def login_required_fast(func):
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        data = request.data
+        access_token = data.get('access_token')
+        refresh_token = request.data.get('refresh_token')
+        
+        person_id = None
+        
+        if not access_token or not refresh_token:
+            response = JsonResponse({'answer':"False",'message': 'Missing token'}, status=401)
+            add_get_params(response)
+            return response
+        
+        try:
+            decoded_access_token = jwt.decode(access_token, SECRET_KEY, algorithms=["HS256"])        
+            person_id = decoded_access_token.get('person_id')
+            
+        except jwt.exceptions.ExpiredSignatureError:
+            print("exception")
+            
+            try:        
+                decoded_refresh_token = jwt.decode(refresh_token, SECRET_KEY, algorithms=["HS256"])        
+                person_id = decoded_refresh_token.get('person_id')
+
+            except jwt.exceptions.ExpiredSignatureError:
+                return JsonResponse({'answer':"False",'message': 'Refresh token has expired'}, status=401)
+
+                        
+            access_token = generate_new_access_token(person_id).get('token')
+        
+        request.person_id = person_id
+        
+        response = func(request,*args, **kwargs) 
+        response.set_cookie('access_token', access_token)            
+        response.set_cookie('refresh_token', refresh_token)
+        
+        add_get_params(response)
+        return response
+    
+    return wrapper
 
 
 

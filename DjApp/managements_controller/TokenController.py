@@ -24,6 +24,7 @@ def get_person_from_access_token(request, session, access_token):
         decoded_token = jwt.decode(access_token, SECRET_KEY, algorithms=["HS256"])        
         
     except jwt.exceptions.ExpiredSignatureError:
+        print("exception")
         return handle_expired_access_token(request, session)
     
     person_id = decoded_token.get('person_id')
@@ -60,8 +61,8 @@ def handle_expired_access_token(request, session):
     if not person:
         return JsonResponse({'answer':"False",'message': 'Invalid refresh token'}, status=401)
 
-    if person.refresh_token_id != decoded_refresh_token.get("refresh_token_id"):
-        return JsonResponse({'answer':"False",'message': 'Invalid refresh token. err:refresh_token_id '}, status=401)
+    # if person.refresh_token_id != decoded_refresh_token.get("refresh_token_id"):
+    #     return JsonResponse({'answer':"False",'message': 'Invalid refresh token. err:refresh_token_id '}, status=401)
     
     if decoded_refresh_token['exp'] <= datetime.datetime.utcnow().timestamp():
         return JsonResponse({'answer':"False",'message': 'Refresh token has expired'}, status=401)
