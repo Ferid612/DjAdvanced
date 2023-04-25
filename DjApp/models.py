@@ -1039,14 +1039,15 @@ class ShoppingSession(Base, TimestampMixin):
                     supplier_prices[supplier] += price
 
 
-        supplier_cargo_discounts = {}
+        supplier_cargo_discounts = []
         for supplier, price in supplier_prices.items():
             if not supplier.cargo_min_limit:
                 supplier.cargo_min_limit = 1.0
                 supplier.cargo_percent = 0.0
             if (price > supplier.cargo_min_limit):
                 cargo_discount = float(supplier.cargo_percent) * price
-                supplier_cargo_discounts[supplier.name] = cargo_discount
+                
+                supplier_cargo_discounts.append({"supplier_name":supplier.name,"cargo_discount":cargo_discount})
                 amount_to_be_paid -= cargo_discount
 
         return supplier_prices, supplier_cargo_discounts, amount_to_be_paid
