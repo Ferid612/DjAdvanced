@@ -183,7 +183,7 @@ def add_to_basket(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-def delete_cart_item(request):
+def delete_cart_item(request, cart_item_id):
     """
     API endpoint to delete a cart item from a user's shopping session.
     The request should contain the following parameters:
@@ -193,11 +193,7 @@ def delete_cart_item(request):
         # Get the user object associated with the request
         user = request.person.user[0]
         session = request.session
-        data = request.data
         
-        # Get the parameters from the request
-        cart_item_id = data.get('cart_item_id')
-    
         # Get the shopping session associated with the specified user ID
         shopping_session = session.query(ShoppingSession).filter_by(user_id=user.id).first()
         if not shopping_session:

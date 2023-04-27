@@ -8,6 +8,6 @@ urlpatterns = [
         
     # Shopping session management
     path('add-to-basket/', ShoppingController.add_to_basket, name="add-to-basket"),    
-    path('delete-from-basket/', ShoppingController.delete_cart_item, name="delete-from-basket"),    
+    path('delete-from-basket/<int:cart_item_id>', ShoppingController.delete_cart_item, name="delete-from-basket"),    
     
 ]
