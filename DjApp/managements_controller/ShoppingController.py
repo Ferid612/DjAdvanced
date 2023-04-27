@@ -125,7 +125,11 @@ def add_to_basket(request):
         cart_item = session.query(CartItem).filter_by(session_id=shopping_session.id, product_entry_id=product_entry_id).first()
         if not cart_item:
             # Add the product_entry to the shopping session with the specified quantity
-            cart_item = CartItem(session_id=shopping_session.id, product_entry_id=product_entry_id, quantity=quantity)
+            if quantity is not None:
+                cart_item = CartItem(session_id=shopping_session.id, product_entry_id=product_entry_id, quantity=quantity)
+            else:
+                cart_item = CartItem(session_id=shopping_session.id, product_entry_id=product_entry_id, quantity=1)
+                
             session.add(cart_item)
             session.commit()
         else:
