@@ -101,7 +101,9 @@ def add_to_basket(request):
         
         # Get the parameters from the request
         product_entry_id = data.get('product_entry_id')
-        quantity = int(data.get('quantity'))
+        quantity = None
+        if data.get('quantity'):
+            quantity = int(data.get('quantity'))
     
     
         # Get the shopping session associated with the specified session ID and user ID
@@ -127,7 +129,10 @@ def add_to_basket(request):
             session.add(cart_item)
             session.commit()
         else:
-            cart_item.quantity = quantity
+            if quantity is not None:
+                cart_item.quantity = quantity
+            else: 
+                cart_item.quantity = cart_item.quantity + 1
 
         
         cart_item_total = cart_item.total()
