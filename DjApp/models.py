@@ -1017,6 +1017,9 @@ class ShoppingSession(Base, TimestampMixin):
     user = relationship('Users', back_populates='shopping_session')
     cart_items = relationship('CartItem', back_populates='shopping_session')
 
+    def get_count_of_cart_items(self):
+        return len(self.cart_items)
+
     def total(self):
         return sum([item.product_entry.price * item.quantity for item in self.cart_items])
 
