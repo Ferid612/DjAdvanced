@@ -6,10 +6,10 @@ from ..models import ImageGallery, SlidePhotos
 
 
 
+# @login_required
+# @permission_required("manage_gallery")
 @csrf_exempt
 @require_http_methods(["POST","OPTIONS"])
-@login_required
-# @permission_required("manage_gallery")
 def add_slide_photo(request):
     """
     Add a new SlidePhotos object to an existing ImageGallery object
@@ -52,9 +52,9 @@ def add_slide_photo(request):
 
 
  
+# @login_required
 @csrf_exempt
 @require_http_methods(["POST","OPTIONS"])
-@login_required
 def add_slide_photos(request):
     """
     Add new SlidePhotos objects to an existing ImageGallery object
@@ -101,9 +101,9 @@ def add_slide_photos(request):
 
 
 
+# @login_required
 @csrf_exempt
 @require_http_methods(["POST", "OPTIONS"])
-@login_required
 def create_image_gallery(request):
     """
     Create a new ImageGallery object

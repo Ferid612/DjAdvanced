@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from DeltaConfApp.models import CardBox, ImageGallery, SlidePhotos
+from DeltaConfApp.models import CardBox, ImageGallery, NewArrival, SlidePhotos
 from DjApp.decorators import require_http_methods
 from DjApp.helpers import GetErrorDetails, add_get_params
     
@@ -24,6 +24,31 @@ def get_slide_photos(request):
     slide_photo_dicts = [photo.to_json() for photo in slide_photos]
 
     response_data = {"slide_photos": slide_photo_dicts}
+    response = JsonResponse(response_data, status=200)
+
+    add_get_params(response)
+    return response
+
+
+
+@csrf_exempt
+@require_http_methods(["GET", "OPTIONS"])
+def get_new_arrivals(request):
+    """
+    Get all new arrival in the NewArrival table
+
+    Parameters:
+        None
+
+    Returns:
+        A JSON response containing a list of dictionaries, where each dictionary represents a new arrivals.
+    """
+    session = request.session
+
+    new_arrivals = session.query(NewArrival).all()
+    new_arrivals_dict = [new_arrival.to_json() for new_arrival in new_arrivals]
+
+    response_data = {"new_arrivals": new_arrivals_dict}
     response = JsonResponse(response_data, status=200)
 
     add_get_params(response)
