@@ -1,13 +1,7 @@
-import datetime
 from django.http import JsonResponse
-from sqlalchemy import func
 from django.views.decorators.csrf import csrf_exempt
-from DjAdvanced.settings import engine
-from DjApp.models import CartItem,   ProductEntry,  ShoppingSession
 from ..helpers import  add_get_params
 from ..decorators import login_required, require_http_methods
-from sqlalchemy.orm import joinedload
-
 
 @csrf_exempt
 @require_http_methods(["GET", "POST", "OPTIONS"])

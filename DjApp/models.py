@@ -1,5 +1,5 @@
 from collections import defaultdict
-from sqlalchemy import CheckConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String, DECIMAL, Table, func
+from sqlalchemy import CheckConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String, DECIMAL
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from DjAdvanced.settings import engine
@@ -321,7 +321,7 @@ class ProductEntry(Base):
     size = relationship('ProductMeasureValue', back_populates='product_entry')
 
     cart_items = relationship('CartItem', back_populates='product_entry')
-    order_item = relationship('OrderItem', back_populates='product_entry')
+    order_items = relationship('OrderItem', back_populates='product_entry')
    
     wishlist_product_entry = relationship(
         'WishListProductEntry', back_populates='product_entry')
@@ -466,8 +466,6 @@ class ProductEntry(Base):
         return {"comment_tree": comment_tree}
 
 
-
-
 class Tag(Base):
     __tablename__ = 'tag'
     id = Column(Integer, primary_key=True)
@@ -488,7 +486,6 @@ class ProductTag(Base):
     __tablename__ = 'product_tag'
     product_entry_id = Column(Integer, ForeignKey('product_entry.id'), primary_key=True)
     tag_id = Column(Integer, ForeignKey('tag.id'), primary_key=True)
-
 
 
 class ProductMeasureValue(Base):
@@ -802,7 +799,6 @@ class ProfilImage(Base, TimestampMixin):
 
 
 class EmploymentJobs(Base, TimestampMixin):
-
     __tablename__ = 'employment_jobs'
     id = Column(Integer, primary_key=True)
     country_id = Column(Integer, ForeignKey('country.id'), nullable=False)
@@ -824,9 +820,9 @@ class Users(Base, TimestampMixin):
     person = relationship('Person', back_populates='user', lazy='joined')
     user_user_group_role = relationship(
         'UserUserGroupRole', back_populates='users')
-    payments = relationship('UserPayment', back_populates='user')
+    credit_cards = relationship('CreditCard', back_populates='user')
     shopping_session = relationship('ShoppingSession', back_populates='user')
-    orders = relationship('OrderDetails', back_populates='user')
+    orders = relationship('Order', back_populates='user')
     product_rates = relationship('ProductRate', back_populates='user')
     wishlists = relationship('WishList', back_populates='user')
 
@@ -834,6 +830,20 @@ class Users(Base, TimestampMixin):
         return [wishlist.to_json(count) for wishlist in self.wishlists]
 
 
+
+class CreditCard(Base):
+    __tablename__ = 'credit_card'
+    id = Column(Integer, primary_key=True)
+    
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    card_number = Column(EncryptedType(String(50), 'AES'), nullable=False)
+    expiration_date = Column(String(10), nullable=False)
+    cvv = Column(EncryptedType(String(10), 'AES'), nullable=False)
+
+    user = relationship("Users", back_populates='credit_cards')
+
+
+    
 class WishList(Base, TimestampMixin):
     __tablename__ = 'wishlist'
     id = Column(Integer, primary_key=True)
@@ -994,18 +1004,6 @@ class RolePermission(Base, TimestampMixin):
     permissions = relationship("Permission", back_populates='roles')
 
 
-class UserPayment(Base, TimestampMixin):
-
-    __tablename__ = 'user_payment'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    payment_type = Column(String)
-    provider = Column(String)
-    account_no = Column(Integer)
-    expiry = Column(DateTime)
-
-    user = relationship('Users', back_populates='payments')
-
 
 class ShoppingSession(Base, TimestampMixin):
 
@@ -1021,17 +1019,18 @@ class ShoppingSession(Base, TimestampMixin):
         return len(self.cart_items)
 
     def total(self):
-        return sum([item.product_entry.price * item.quantity for item in self.cart_items])
+        return sum([item.product_entry.price * item.quantity for item in self.cart_items if item.status == 'inOrder'])
 
 
-    def calculate_supplier_prices_and_cargo_discounts(self, amount_to_be_paid):
+    def calculate_supplier_prices_and_cargo_discounts(self, amount_to_be_paid, cart_items_in_order):
         """
         Calculates the total price of each supplier's products and applies cargo discounts if applicable.
         Returns a tuple of (supplier_prices, supplier_cargo_discounts, amount_to_be_paid)
         """
-        cart_items = self.cart_items
+
+        
         supplier_prices = {}
-        for cart_item in cart_items:
+        for cart_item in cart_items_in_order:
             product_entry = cart_item.product_entry
             if product_entry.cargo_active:
                 supplier = product_entry.product.supplier
@@ -1056,20 +1055,19 @@ class ShoppingSession(Base, TimestampMixin):
         return supplier_prices, supplier_cargo_discounts, amount_to_be_paid
 
 
-
     def get_user_shopping_session_data(self):
         """
         Retrieves all the cart items for the authenticated user and returns them along with the corresponding product data.
         """
         
         # Eager load related data
-        cart_items = self.cart_items
-
+        cart_items_in_cart = self.cart_items
+        cart_items_in_order = filter(lambda x: x.status == 'inOrder', cart_items_in_cart)
         shopping_session_total = self.total()
 
         # Calculate discounts and cargo fees
-        whole_discounts = sum(cart_item.calculate_discounts() for cart_item in cart_items)
-        whole_cargo_fee = sum(cart_item.calculate_cargo_fee() for cart_item in cart_items)
+        whole_discounts = sum(cart_item.calculate_discounts() for cart_item in cart_items_in_order)
+        whole_cargo_fee = sum(cart_item.calculate_cargo_fee() for cart_item in cart_items_in_order)
 
         # Calculate total amount to be paid
         amount_to_be_paid = shopping_session_total - whole_discounts + whole_cargo_fee
@@ -1077,13 +1075,13 @@ class ShoppingSession(Base, TimestampMixin):
 
         supplier_prices,\
         supplier_cargo_discounts,\
-        amount_to_be_paid = self.calculate_supplier_prices_and_cargo_discounts( amount_to_be_paid)
+        amount_to_be_paid = self.calculate_supplier_prices_and_cargo_discounts(amount_to_be_paid, cart_items_in_order)
 
 
         # Process cart items
         # Group cart items by supplier name
         cart_item_data = {}
-        for cart_item in cart_items:
+        for cart_item in cart_items_in_cart:
             supplier_name = cart_item.product_entry.product.supplier.name
             
             if supplier_name not in cart_item_data:
@@ -1109,10 +1107,12 @@ class CartItem(Base, TimestampMixin):
     session_id = Column(Integer, ForeignKey('shopping_session.id'), nullable=False)
     product_entry_id = Column(Integer, ForeignKey('product_entry.id'), nullable=False)
     _quantity = Column(Integer)
-
+    status =  Column(String(50), CheckConstraint(
+            "status IN ('inCart','inOrder')"), nullable=False, default='inOrder')
     shopping_session = relationship(
         "ShoppingSession", back_populates='cart_items')
-    product_entry = relationship("ProductEntry", back_populates='cart_items')
+    product_entry = relationship(
+        "ProductEntry", back_populates='cart_items')
 
     @hybrid_property
     def quantity(self):
@@ -1163,49 +1163,72 @@ class CartItem(Base, TimestampMixin):
         return {
             'id': self.id,
             'quantity': self.quantity,
+            'status': self.status,
             'cart_item_total': self.total(),
             'cargo_data':   self.calculate_cargo_data(),
             'product_entry': self.product_entry.to_json_for_card(),
         }
-        
 
-class PaymentDetails(Base, TimestampMixin):
 
-    __tablename__ = 'payment_details'
+class Payment(Base, TimestampMixin):
+    __tablename__ = 'payment'
     id = Column(Integer, primary_key=True)
-    amount = Column(Integer)
-    provider = Column(String)
-    status = Column(String)
+    order_id = Column(Integer, ForeignKey('order.id'), nullable=False)
+    amount = Column(Float, nullable=False)
+    payment_method = Column(String(50), CheckConstraint(
+        "payment_method IN ('cash', 'credit_card')"), nullable=False, default='credit_card')
+    status = Column(String(50), CheckConstraint(
+        "status IN ('pending','completed', 'failed')"), nullable=False, default='pending')
 
-    order_details = relationship(
-        "OrderDetails", back_populates='payment_details')
+
+    order = relationship('Order', back_populates='payment')
+    credit_card_payment = relationship('CreditCardPayment', uselist=False, back_populates='payment')
+    cash_payment = relationship('CashPayment', uselist=False, back_populates='payment')
 
 
-class OrderDetails(Base, TimestampMixin):
 
-    __tablename__ = 'order_details'
+class CreditCardPayment(Base):
+    __tablename__ = 'credit_card_payment'
+    id = Column(Integer, primary_key=True)
+    payment_id = Column(Integer, ForeignKey('payment.id'), nullable=False)
+    card_number = Column(EncryptedType(String(50), 'AES'), nullable=False)
+    expiration_date = Column(String(10), nullable=False)
+    cvv = Column(EncryptedType(String(10), 'AES'), nullable=False)
 
+    payment = relationship('Payment', back_populates='credit_card_payment')
+
+
+class CashPayment(Base):
+    __tablename__ = 'cash_payment'
+    id = Column(Integer, primary_key=True)
+    payment_id = Column(Integer, ForeignKey('payment.id'), nullable=False)
+    payment = relationship('Payment', back_populates='cash_payment')
+
+
+
+class Order(Base, TimestampMixin):
+    __tablename__ = 'order'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    payment_id = Column(Integer, ForeignKey(
-        'payment_details.id'), nullable=False)
-    total = Column(DECIMAL, nullable=False)
+    total_price = Column(Float, nullable=False)
+    status = Column(String(50), CheckConstraint(
+        "status IN ('placed', 'shipped', 'delivered', 'cancelled')"), nullable=False, default='placed')
 
-    user = relationship("Users", back_populates='orders')
-    payment_details = relationship(
-        "PaymentDetails", back_populates='order_details')
-    order_items = relationship("OrderItem", back_populates='order_details')
+    user = relationship('Users', back_populates='orders')
+    order_items = relationship('OrderItem', back_populates='order')
+    payment = relationship('Payment', back_populates='order')
+
 
 
 class OrderItem(Base, TimestampMixin):
-
     __tablename__ = 'order_item'
-
     id = Column(Integer, primary_key=True)
-    order_id = Column(Integer, ForeignKey('order_details.id'), nullable=False)
-    product_entry_id = Column(Integer, ForeignKey(
-        'product_entry.id'), nullable=False)
-    quantity = Column(Integer, default=0)
+    order_id = Column(Integer, ForeignKey('order.id'), nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    price = Column(Float, nullable=False)
 
-    order_details = relationship("OrderDetails", back_populates='order_items')
-    product_entry = relationship("ProductEntry", back_populates='order_item')
+    order = relationship('Order', back_populates='order_items')
+    product_entry = relationship('ProductEntry', back_populates='order_items')
+
+
