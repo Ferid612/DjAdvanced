@@ -19,7 +19,7 @@ def google_login_callback(request):
                 "scope": ["https://www.googleapis.com/auth/userinfo.email",  "https://www.googleapis.com/auth/userinfo.profile", "openid"],
             }
         },
-        scopes=["openid", "email", "profile"],
+        scopes=["https://www.googleapis.com/auth/userinfo.email",  "https://www.googleapis.com/auth/userinfo.profile", "openid"],
         redirect_uri='https://nebuwear.com' + reverse("google_login_callback"),
     )
 

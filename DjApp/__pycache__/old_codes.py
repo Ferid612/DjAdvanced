@@ -1740,5 +1740,87 @@ def get_products_by_category_name(request):
     add_get_params(response)
     return response
         
+
+        
+        
+        @csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+@permission_required("GOD MODE")
+def delete_all_tables(request):
+    """ 
+    This function deletes all tables.
+    """
+    user="Farid@!@"
+    if user == "Farid":    
+        Base.metadata.drop_all(bind=engine,checkfirst=True)
+        response = JsonResponse({"message":"Deleted all tables succesfully."},status=200)
+        add_get_params(response)
+        return response
+    else:
+        response = JsonResponse({"message":"User is not admin."},status=200)
+        add_get_params(response)
+        return response
+
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+# @login_required
+# @permission_required("Manage whole database")
+def add_column_to_table(request):
+    """This function adds a new column to a table in the database.
+
+    Args:
+        table_name (str): The name of the table.
+        column_name (str): The name of the new column.
+        column_type (str): The type of the new column.
+        foreign_key (str, optional): The name of the foreign key table, if the new column is a foreign key. Defaults to None.
+
+    Returns:
+        JsonResponse: A JSON response indicating that the column has been added successfully.
+    """
+    data = request.data
+    table_name = data.get('table_name')
+    column_name = data.get('column_name')
+    column_type = data.get('column_type')
+    foreign_key = data.get('foreign_key')
+
+    # Map the string values to the correct SQLAlchemy types
+    type_map = {
+        'Boolean':Boolean,
+        'Decimal':DECIMAL,
+        'Integer': Integer,
+        'String': String,
+        'Float': Float,
+        'DateTime': DateTime,
+    }
+
+    # Get the SQLAlchemy type based on the string value
+    column_type = type_map.get(column_type, String)
+
+    # Checking if the new column is a foreign key or not.
+    if foreign_key:
+        column = Column(column_name, column_type, ForeignKey(foreign_key))
+    else:
+        column = Column(column_name, column_type)
+
+    column_name = column.compile(dialect=engine.dialect)
+    column_type = column.type.compile(engine.dialect)
+    # adding new column
+    try:
+            
+        engine.execute('ALTER TABLE %s ADD COLUMN %s %s' %
+                    (table_name, column_name, column_type))
+    except Exception as e:
+        response =  GetErrorDetails("Something went wrong at execution time.",e,500)
+        add_get_params(response)
+        return response
+        
+    response = JsonResponse({'message': 'Column added successfully.'}, status=200)
+    add_get_params(response)
+    return response
 '''
 

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from sqlalchemy import CheckConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String, DECIMAL, Table, func
+from sqlalchemy import CheckConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String, DECIMAL
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
 from DjAdvanced.settings import engine
@@ -246,9 +246,6 @@ class Product(Base, TimestampMixin):
             'supplier_data': self.supplier.to_json_for_card(),
             'category_data': self.category.to_json(),
             'exist_colors' : self.get_exist_colors(),        
-            'exist_materials' : self.get_exist_materials(),
-            'exist_sizes':self.get_exist_sizes(),
-    
         }
         
 
@@ -307,6 +304,8 @@ class ProductEntry(Base):
     cargo_active = Column(Boolean, default=True)
 
     product = relationship('Product',  back_populates='entries')
+    tags = relationship('Tag', secondary='product_tag', back_populates='product_entries')
+
     rates = relationship('ProductRate', back_populates='product_entry')
     fags = relationship('ProductFag', back_populates='product_entry')
     comments = relationship('ProductComment', back_populates='product_entry')
@@ -322,7 +321,7 @@ class ProductEntry(Base):
     size = relationship('ProductMeasureValue', back_populates='product_entry')
 
     cart_items = relationship('CartItem', back_populates='product_entry')
-    order_item = relationship('OrderItem', back_populates='product_entry')
+    order_items = relationship('OrderItem', back_populates='product_entry')
    
     wishlist_product_entry = relationship(
         'WishListProductEntry', back_populates='product_entry')
@@ -364,7 +363,7 @@ class ProductEntry(Base):
             
 
         return {
-            'product': self.product.to_json(),            
+            'product': self.product.to_json_for_entry(),            
             'entry':{
             'id': self.id,
             'price_prev': self.price,
@@ -381,7 +380,7 @@ class ProductEntry(Base):
     def to_json(self):
         size = None
         images = None
-
+        tags = None
         if self.images:
             images = [image.to_json() for image in self.images]
 
@@ -392,6 +391,9 @@ class ProductEntry(Base):
         if self.rates:
             rates = [rate.to_json() for rate in self.rates]
 
+        if self.tags:
+            tags = [tag.to_json() for tag in self.tags]
+            
         return {
             "id": self.id,
             "price_prev": self.price,
@@ -407,7 +409,8 @@ class ProductEntry(Base):
             "rates_data": self.get_raters_data(),
             "rates":rates,
             "fags": self.get_all_fags()['fags_data'],
-            "comments": self.get_entry_comments()['comment_tree']
+            "comments": self.get_entry_comments()['comment_tree'],
+            "tags":tags,
         }
 
 
@@ -461,6 +464,28 @@ class ProductEntry(Base):
             comment_tree.append(build_comment_tree(comment))
 
         return {"comment_tree": comment_tree}
+
+
+class Tag(Base):
+    __tablename__ = 'tag'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+    
+    product_entries = relationship('ProductEntry', secondary='product_tag', back_populates='tags')
+  
+    def to_json(self):    
+        return{
+        "id" : self.id,
+        "name" : self.name,
+        "description" : self.description
+        }
+        
+
+class ProductTag(Base):
+    __tablename__ = 'product_tag'
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'), primary_key=True)
+    tag_id = Column(Integer, ForeignKey('tag.id'), primary_key=True)
 
 
 class ProductMeasureValue(Base):
@@ -774,7 +799,6 @@ class ProfilImage(Base, TimestampMixin):
 
 
 class EmploymentJobs(Base, TimestampMixin):
-
     __tablename__ = 'employment_jobs'
     id = Column(Integer, primary_key=True)
     country_id = Column(Integer, ForeignKey('country.id'), nullable=False)
@@ -796,9 +820,9 @@ class Users(Base, TimestampMixin):
     person = relationship('Person', back_populates='user', lazy='joined')
     user_user_group_role = relationship(
         'UserUserGroupRole', back_populates='users')
-    payments = relationship('UserPayment', back_populates='user')
+    credit_cards = relationship('CreditCard', back_populates='user')
     shopping_session = relationship('ShoppingSession', back_populates='user')
-    orders = relationship('OrderDetails', back_populates='user')
+    orders = relationship('Order', back_populates='user')
     product_rates = relationship('ProductRate', back_populates='user')
     wishlists = relationship('WishList', back_populates='user')
 
@@ -806,6 +830,20 @@ class Users(Base, TimestampMixin):
         return [wishlist.to_json(count) for wishlist in self.wishlists]
 
 
+
+class CreditCard(Base):
+    __tablename__ = 'credit_card'
+    id = Column(Integer, primary_key=True)
+    
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    card_number = Column(EncryptedType(String(50), 'AES'), nullable=False)
+    expiration_date = Column(String(10), nullable=False)
+    cvv = Column(EncryptedType(String(10), 'AES'), nullable=False)
+
+    user = relationship("Users", back_populates='credit_cards')
+
+
+    
 class WishList(Base, TimestampMixin):
     __tablename__ = 'wishlist'
     id = Column(Integer, primary_key=True)
@@ -966,18 +1004,6 @@ class RolePermission(Base, TimestampMixin):
     permissions = relationship("Permission", back_populates='roles')
 
 
-class UserPayment(Base, TimestampMixin):
-
-    __tablename__ = 'user_payment'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    payment_type = Column(String)
-    provider = Column(String)
-    account_no = Column(Integer)
-    expiry = Column(DateTime)
-
-    user = relationship('Users', back_populates='payments')
-
 
 class ShoppingSession(Base, TimestampMixin):
 
@@ -989,23 +1015,104 @@ class ShoppingSession(Base, TimestampMixin):
     user = relationship('Users', back_populates='shopping_session')
     cart_items = relationship('CartItem', back_populates='shopping_session')
 
+    def get_count_of_cart_items(self):
+        return len(self.cart_items)
+
     def total(self):
-        return sum([item.product_entry.price * item.quantity for item in self.cart_items])
+        return sum([item.product_entry.price * item.quantity for item in self.cart_items if item.status == 'inOrder'])
+
+
+    def calculate_supplier_prices_and_cargo_discounts(self, amount_to_be_paid, cart_items_in_order):
+        """
+        Calculates the total price of each supplier's products and applies cargo discounts if applicable.
+        Returns a tuple of (supplier_prices, supplier_cargo_discounts, amount_to_be_paid)
+        """
+
+        
+        supplier_prices = {}
+        for cart_item in cart_items_in_order:
+            product_entry = cart_item.product_entry
+            if product_entry.cargo_active:
+                supplier = product_entry.product.supplier
+                price = product_entry.price * cart_item.quantity
+                if supplier not in supplier_prices:
+                    supplier_prices[supplier] = price
+                else:
+                    supplier_prices[supplier] += price
+
+
+        supplier_cargo_discounts = []
+        for supplier, price in supplier_prices.items():
+            if not supplier.cargo_min_limit:
+                supplier.cargo_min_limit = 1.0
+                supplier.cargo_percent = 0.0
+            if (price > supplier.cargo_min_limit):
+                cargo_discount = float(supplier.cargo_percent) * price
+                
+                supplier_cargo_discounts.append({"supplier_name":supplier.name,"cargo_discount":cargo_discount})
+                amount_to_be_paid -= cargo_discount
+
+        return supplier_prices, supplier_cargo_discounts, amount_to_be_paid
+
+
+    def get_user_shopping_session_data(self):
+        """
+        Retrieves all the cart items for the authenticated user and returns them along with the corresponding product data.
+        """
+        
+        # Eager load related data
+        cart_items_in_cart = self.cart_items
+        cart_items_in_order = filter(lambda x: x.status == 'inOrder', cart_items_in_cart)
+        shopping_session_total = self.total()
+
+        # Calculate discounts and cargo fees
+        whole_discounts = sum(cart_item.calculate_discounts() for cart_item in cart_items_in_order)
+        whole_cargo_fee = sum(cart_item.calculate_cargo_fee() for cart_item in cart_items_in_order)
+
+        # Calculate total amount to be paid
+        amount_to_be_paid = shopping_session_total - whole_discounts + whole_cargo_fee
+
+
+        supplier_prices,\
+        supplier_cargo_discounts,\
+        amount_to_be_paid = self.calculate_supplier_prices_and_cargo_discounts(amount_to_be_paid, cart_items_in_order)
+
+
+        # Process cart items
+        # Group cart items by supplier name
+        cart_item_data = {}
+        for cart_item in cart_items_in_cart:
+            supplier_name = cart_item.product_entry.product.supplier.name
+            
+            if supplier_name not in cart_item_data:
+                cart_item_data[supplier_name] = {"supplier_name": supplier_name, "cart_items": []}
+                
+            cart_item_data[supplier_name]["cart_items"].append(cart_item.to_json())
+            
+
+        return  {
+            'amount_to_be_paid': amount_to_be_paid,
+            'total': shopping_session_total,
+            'whole_discounts': whole_discounts,
+            'whole_cargo_fee': whole_cargo_fee,
+            'supplier_cargo_discounts': supplier_cargo_discounts,
+            "suppliers": list(cart_item_data.values())
+        }
 
 
 class CartItem(Base, TimestampMixin):
 
     __tablename__ = 'cart_item'
     id = Column(Integer, primary_key=True)
-    session_id = Column(Integer, ForeignKey(
-        'shopping_session.id'), nullable=False)
-    product_entry_id = Column(Integer, ForeignKey(
-        'product_entry.id'), nullable=False)
+    session_id = Column(Integer, ForeignKey('shopping_session.id'), nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'), nullable=False)
     _quantity = Column(Integer)
-
+    status =  Column(String(50), CheckConstraint(
+            "status IN ('inCart','inOrder')"), nullable=False, default='inOrder')
     shopping_session = relationship(
         "ShoppingSession", back_populates='cart_items')
-    product_entry = relationship("ProductEntry", back_populates='cart_items')
+    product_entry = relationship(
+        "ProductEntry", back_populates='cart_items')
 
     @hybrid_property
     def quantity(self):
@@ -1013,49 +1120,115 @@ class CartItem(Base, TimestampMixin):
 
     @quantity.setter
     def quantity(self, quantity):
-        self._quantity = min(max(quantity, 0), 10000)
+        self._quantity = min(max(quantity, 0), 100000)
+
+
+    def calculate_cargo_data(self):
+        product_entry = self.product_entry
+        cargo_data = {}
+        if product_entry.cargo_active:
+            cargo_percent = float(product_entry.product.supplier.cargo_percent)
+            item_cargo_fee = self.total() * cargo_percent 
+            cargo_data['supplier_cargo_percent'] = cargo_percent
+            cargo_data['item_cargo_fee'] = item_cargo_fee
+        else:
+            cargo_data = "Not any cargo fee"
+        return cargo_data
+
+
+    # Helper functions for calculating discounts and cargo fees
+    def calculate_discounts(self):
+        discounts = self.product_entry.product_discounts
+        active_discounts = [d for d in discounts if d.discount.active]
+        discount_price = sum(self.total() * float(d.discount.discount_percent)/100 for d in active_discounts)
+        return discount_price
+           
+           
+    def calculate_cargo_fee(self):
+        product_entry = self.product_entry
+        if product_entry.cargo_active:
+            if product_entry.product.supplier.cargo_percent:
+                cargo_percent = float(product_entry.product.supplier.cargo_percent)
+            else:
+                cargo_percent=0
+            return self.total() * cargo_percent
+        return 0
+
+
 
     def total(self):
         return (self._quantity)*(self.product_entry.price)
 
+    def to_json(self):
+        return {
+            'id': self.id,
+            'quantity': self.quantity,
+            'status': self.status,
+            'cart_item_total': self.total(),
+            'cargo_data':   self.calculate_cargo_data(),
+            'product_entry': self.product_entry.to_json_for_card(),
+        }
 
-class PaymentDetails(Base, TimestampMixin):
 
-    __tablename__ = 'payment_details'
+class Payment(Base, TimestampMixin):
+    __tablename__ = 'payment'
     id = Column(Integer, primary_key=True)
-    amount = Column(Integer)
-    provider = Column(String)
-    status = Column(String)
+    order_id = Column(Integer, ForeignKey('order.id'), nullable=False)
+    amount = Column(Float, nullable=False)
+    payment_method = Column(String(50), CheckConstraint(
+        "payment_method IN ('cash', 'credit_card')"), nullable=False, default='credit_card')
+    status = Column(String(50), CheckConstraint(
+        "status IN ('pending','completed', 'failed')"), nullable=False, default='pending')
 
-    order_details = relationship(
-        "OrderDetails", back_populates='payment_details')
+
+    order = relationship('Order', back_populates='payment')
+    credit_card_payment = relationship('CreditCardPayment', uselist=False, back_populates='payment')
+    cash_payment = relationship('CashPayment', uselist=False, back_populates='payment')
 
 
-class OrderDetails(Base, TimestampMixin):
 
-    __tablename__ = 'order_details'
+class CreditCardPayment(Base):
+    __tablename__ = 'credit_card_payment'
+    id = Column(Integer, primary_key=True)
+    payment_id = Column(Integer, ForeignKey('payment.id'), nullable=False)
+    card_number = Column(EncryptedType(String(50), 'AES'), nullable=False)
+    expiration_date = Column(String(10), nullable=False)
+    cvv = Column(EncryptedType(String(10), 'AES'), nullable=False)
 
+    payment = relationship('Payment', back_populates='credit_card_payment')
+
+
+class CashPayment(Base):
+    __tablename__ = 'cash_payment'
+    id = Column(Integer, primary_key=True)
+    payment_id = Column(Integer, ForeignKey('payment.id'), nullable=False)
+    payment = relationship('Payment', back_populates='cash_payment')
+
+
+
+class Order(Base, TimestampMixin):
+    __tablename__ = 'order'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    payment_id = Column(Integer, ForeignKey(
-        'payment_details.id'), nullable=False)
-    total = Column(DECIMAL, nullable=False)
+    total_price = Column(Float, nullable=False)
+    status = Column(String(50), CheckConstraint(
+        "status IN ('placed', 'shipped', 'delivered', 'cancelled')"), nullable=False, default='placed')
 
-    user = relationship("Users", back_populates='orders')
-    payment_details = relationship(
-        "PaymentDetails", back_populates='order_details')
-    order_items = relationship("OrderItem", back_populates='order_details')
+    user = relationship('Users', back_populates='orders')
+    order_items = relationship('OrderItem', back_populates='order')
+    payment = relationship('Payment', back_populates='order')
+
 
 
 class OrderItem(Base, TimestampMixin):
-
     __tablename__ = 'order_item'
-
     id = Column(Integer, primary_key=True)
-    order_id = Column(Integer, ForeignKey('order_details.id'), nullable=False)
-    product_entry_id = Column(Integer, ForeignKey(
-        'product_entry.id'), nullable=False)
-    quantity = Column(Integer, default=0)
+    order_id = Column(Integer, ForeignKey('order.id'), nullable=False)
+    product_entry_id = Column(Integer, ForeignKey('product_entry.id'), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    price = Column(Float, nullable=False)
 
-    order_details = relationship("OrderDetails", back_populates='order_items')
-    product_entry = relationship("ProductEntry", back_populates='order_item')
+    order = relationship('Order', back_populates='order_items')
+    product_entry = relationship('ProductEntry', back_populates='order_items')
+
+
