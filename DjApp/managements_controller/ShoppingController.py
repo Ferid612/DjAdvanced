@@ -204,7 +204,7 @@ def delete_cart_item(request, cart_item_id):
 
 
     shopping_session = user.shopping_session[0]
-    if not cart_item.session_id == user.shopping_session.id:
+    if not cart_item.session_id == shopping_session.id:
         response = JsonResponse({'answer': "The cart item is not this user."}, status=400)
         add_get_params(response)
         return response

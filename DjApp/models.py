@@ -1015,11 +1015,13 @@ class ShoppingSession(Base, TimestampMixin):
     user = relationship('Users', back_populates='shopping_session')
     cart_items = relationship('CartItem', back_populates='shopping_session')
 
-    def get_count_of_cart_items(self):
-        return len(self.cart_items)
 
     def total(self):
         return sum([item.product_entry.price * item.quantity for item in self.cart_items if item.status == 'inOrder'])
+
+
+    def get_count_of_cart_items(self):
+        return len(self.cart_items)
 
 
     def calculate_supplier_prices_and_cargo_discounts(self, amount_to_be_paid, cart_items_in_order):
@@ -1212,7 +1214,7 @@ class Order(Base, TimestampMixin):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     total_price = Column(Float, nullable=False)
     status = Column(String(50), CheckConstraint(
-        "status IN ('placed', 'shipped', 'delivered', 'cancelled')"), nullable=False, default='placed')
+        "status IN ('preparing','placed', 'shipped', 'delivered', 'cancelled')"), nullable=False, default='placed')
 
     user = relationship('Users', back_populates='orders')
     order_items = relationship('OrderItem', back_populates='order')

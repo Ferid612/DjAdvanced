@@ -4,6 +4,7 @@ from django.http import JsonResponse
 import datetime
 import json
 import jwt
+from DjApp.managements_controller.ShoppingController import create_shopping_session
 from DjAdvanced.settings import HOST_URL, PROFIL_IMAGE_ROOT, engine, SECRET_KEY
 from DjApp.managements_controller.LocationController import add_address_to_object, update_object_address
 from .MailController import create_html_message_with_token, send_verification_code
@@ -160,14 +161,18 @@ def create_person_registration(request):
     
     # Create the appropriate user type object and add to the database
     if person_type == "user":
+    
         new_user = Users(person=new_person)
         session.add(new_user)
+        session.commit()
+
+        create_shopping_session(request)
         
     elif person_type == "employee":                
         new_employee = Employees(person=new_person)
         session.add(new_employee)
     
-    session.commit()
+        session.commit()
 
     # Return a success response
     person_json = new_person.to_json()
