@@ -1,7 +1,8 @@
+from datetime import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.managements_controller.UserController import add_credit_card
-from DjApp.models import  CashPayment, CreditCard, CreditCardPayment, Order, OrderItem, Payment
+from DjApp.models import  CashPayment, CreditCard, CreditCardPayment, DiscountCoupon, DiscountCouponUser, Order, OrderItem, Payment
 from ..helpers import GetErrorDetails, add_get_params 
 from ..decorators import login_required, require_http_methods
 
@@ -24,8 +25,7 @@ def CompleteOrder(request):
     """
 
     session = request.session
-    try:
-
+    try:        
         user = request.person.user[0]
         shopping_session = user.shopping_session[0]
         cart_items_in_order = get_cart_items_in_order(shopping_session)
@@ -41,10 +41,7 @@ def CompleteOrder(request):
         response = JsonResponse(
             {
                 "answer": "The add_or_change cart item process successfully finished.",
-                "order_id": new_order.id,
-                "payment_id": payment.id,
-                "shopping_session_id" : shopping_session.id,
-                "user_id":user.id
+                "order_details": new_order.to_json()
             },
             status=200
         )
@@ -53,13 +50,14 @@ def CompleteOrder(request):
 
     except Exception as e:
         print("here is working error")
-        payment.status = 'failed'
-        new_order.status = 'cancelled'
+        try:
+            payment.status = 'failed'
+            new_order.status = 'cancelled'
+        except Exception as exc:
+            print(exc)
+                    
         session.rollback()
         raise e
-
-
-
 
 
 def get_cart_items_in_order(shopping_session):
@@ -74,16 +72,38 @@ def create_order(session, user, cart_items_in_order):
     total_price = 0
     new_order = Order(user_id=user.id, total_price=0, status='preparing')
     session.add(new_order)
+    session.commit()
     for cart_item in cart_items_in_order:
         current_price = cart_item.product_entry.discount_data.get('discounted_price')
         total_price = total_price + current_price * cart_item.quantity
         new_order_item = OrderItem(
             order_id=new_order.id,
             product_entry_id=cart_item.product_entry.id,
-            quantity=cart_item. quantity,
+            quantity=cart_item.quantity,
             price=current_price 
         )
         session.add(new_order_item)
+    
+    active_coupon = session.query(DiscountCoupon).join(DiscountCouponUser).filter(
+            DiscountCouponUser.user_id == user.id,
+            DiscountCouponUser.is_active == True,
+            DiscountCoupon.valid_from <= datetime.now(),
+            DiscountCoupon.valid_to >= datetime.now()
+        ).first()
+                
+    if active_coupon is not None:
+        coupon_discount = active_coupon.discount
+        new_order.discount_coupon_id = active_coupon.id        
+        total_price = total_price - coupon_discount
+            
+        # Unassign the coupon from the user
+        user.discount_coupons.remove(active_coupon)
+        session.commit()
+        
+    
+    if total_price < 0:
+        total_price = 0
+    
     new_order.total_price = total_price
     session.commit()
     return new_order
@@ -93,6 +113,7 @@ def delete_items_from_cart(session, cart_items_in_order):
     for cart_item in cart_items_in_order:
         session.delete(cart_item)
     session.commit()
+
 
 def create_payment(new_order, request):
     session = request.session

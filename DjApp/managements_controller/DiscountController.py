@@ -1,9 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required, require_http_methods
-from DjApp.helpers import GetErrorDetails, add_get_params
-from ..models import  Discount, ProductDiscount, ProductEntry
-
+from DjApp.helpers import  add_get_params
+from ..models import  Discount, DiscountCoupon, DiscountCouponUser, ProductDiscount, ProductEntry, Users
+from datetime import datetime, timedelta
 
 @csrf_exempt
 @require_http_methods(["POST","GET"])
@@ -222,4 +222,300 @@ def add_discount_to_products_by_ids(request):
     # Return a JSON response with a success message
     response = JsonResponse({'Success':'True', 'message':'The discount has been added to the specified products successfully.'}, status=200)
     add_get_params(response)
+    return response
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+# @login_required
+def create_discount_coupon(request):
+    """
+    API endpoint to create a new discount coupon.
+    The request should contain the following parameters:
+    - code: the code for the discount coupon
+    - discount: the discount amount for the coupon (in decimal form)
+    - valid_from: the date and time the coupon becomes valid (in ISO format)
+    - valid_to: the date and time the coupon expires (in ISO format)
+    """
+    # Get the user object associated with the request
+    session = request.session
+    data = request.data
+
+    # Get the parameters from the request
+    code = data.get('code')
+    discount = float(data.get('discount'))
+    valid_from = datetime.fromisoformat(data.get('valid_from'))
+    valid_to = datetime.fromisoformat(data.get('valid_to'))
+
+    # Check if the coupon code already exists
+    existing_coupon = session.query(DiscountCoupon).filter_by(code=code).first()
+    if existing_coupon is not None:
+        return JsonResponse({"error": "Coupon code already exists."}, status=400)
+
+    # Check if the valid dates are valid
+    now = datetime.now()
+    if valid_from < now - timedelta(days=1):
+        return JsonResponse({"error": "Valid from date must be at least one day in the future."}, status=400)
+    if valid_to < valid_from:
+        return JsonResponse({"error": "Valid to date must be after valid from date."}, status=400)
+
+    # Create the discount coupon object
+    discount_coupon = DiscountCoupon(code=code, discount=discount, valid_from=valid_from, valid_to=valid_to)
+
+    session.add(discount_coupon)
+    session.commit()
+
+    # Return a success response
+    response = JsonResponse(
+        {"answer": "Discount coupon created successfully.",
+         "coupon": discount_coupon.to_json(),
+
+        },
+        status=200
+    )
+    add_get_params(response)
+
+    return response
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST", "PUT"])
+# @login_required
+def update_discount_coupon(request, coupon_id):
+    """
+    API endpoint to update an existing discount coupon.
+    The request should contain the following parameters:
+    - code: the new code for the discount coupon (optional)
+    - discount: the new discount amount for the coupon (in decimal form) (optional)
+    - valid_from: the new date and time the coupon becomes valid (in ISO format) (optional)
+    - valid_to: the new date and time the coupon expires (in ISO format) (optional)
+    """
+    # Get the user object associated with the request
+    session = request.session
+    data = request.data
+
+    # Get the discount coupon object to update
+    discount_coupon = session.query(DiscountCoupon).get(coupon_id)
+    if not discount_coupon:
+        return JsonResponse({"error": "Discount coupon not found."}, status=404)
+
+    # Update the discount coupon object
+    discount_coupon.code = data.get('code', discount_coupon.code)
+    discount_coupon.discount = float(data.get('discount', discount_coupon.discount))
+    discount_coupon.valid_from = datetime.fromisoformat(data.get('valid_from', discount_coupon.valid_from.isoformat()))
+    discount_coupon.valid_to = datetime.fromisoformat(data.get('valid_to', discount_coupon.valid_to.isoformat()))
+
+    # Check if the valid dates are valid
+    now = datetime.now()
+    if discount_coupon.valid_from < now - timedelta(days=1):
+        return JsonResponse({"error": "Valid from date must be at least one day in the future."}, status=400)
+    if discount_coupon.valid_to < discount_coupon.valid_from:
+        return JsonResponse({"error": "Valid to date must be after valid from date."}, status=400)
+
+    session.commit()
+
+    # Return a success response
+    response = JsonResponse(
+        {"answer": "Discount coupon updated successfully.",
+         "coupon": discount_coupon.to_json(),},
+        status=200
+    )
+    add_get_params(response)
+
+    return response
+
+
+
+@csrf_exempt
+@require_http_methods(["POST", "DELETE"])
+# @login_required
+def delete_discount_coupon(request, coupon_id):
+    """
+    API endpoint to delete an existing discount coupon.
+    """
+    # Get the user object associated with the request
+    session = request.session
+
+    # Get the discount coupon object to delete
+    discount_coupon = session.query(DiscountCoupon).get(coupon_id)
+    if not discount_coupon:
+        return JsonResponse({"error": "Discount coupon not found."}, status=404)
+
+    # Delete the discount coupon object
+    session.delete(discount_coupon)
+    session.commit()
+
+    # Return a success response
+    response = JsonResponse(
+        {"answer": "Discount coupon deleted successfully."},
+        status=200
+    )
+    add_get_params(response)
+
+    return response
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+# @login_required
+def assign_discount_coupon(request):
+    """
+    API endpoint to assign a discount coupon to a user.
+    The request should contain the following parameters:
+    - coupon_id: the ID of the discount coupon to assign
+    - user_id: the ID of the user to assign the coupon to
+    """
+    # Get the user object associated with the request
+    session = request.session
+    data = request.data
+    
+    # Get the parameters from the request
+    coupon_code = data.get('code')
+    user_id = data.get('user_id')
+
+    # Check if the coupon and user exist
+    coupon = session.query(DiscountCoupon).filter_by(code=coupon_code).first()
+    if coupon is None:
+        return JsonResponse({"error": "Discount coupon not found."}, status=404)
+    
+    user = session.query(Users).filter_by(id=user_id).first()
+    if user is None:
+        return JsonResponse({"error": "User not found."}, status=404)
+
+
+    # Check if the valid dates are valid
+    now = datetime.now()
+    if coupon.valid_to < now:
+        return JsonResponse({"error": "The coupon has expired."}, status=400)
+
+
+    user_coupon = session.query(DiscountCouponUser).filter_by(user_id=user.id, discount_coupon_id=coupon.id).first()
+    if user_coupon is not None:
+        return JsonResponse({"error": "This coupon is already assign to this user."}, status=404)
+        
+        
+    # Assign the coupon to the user
+    user.discount_coupons.append(coupon)
+    session.commit()
+    
+    # Return a success response
+    response = JsonResponse(
+        {"answer": "Discount coupon assigned successfully.",
+         "user_id": user_id,
+         "coupon": coupon.to_json(),
+        },
+        status=200
+    )
+    add_get_params(response)
+        
+    return response
+
+ 
+
+@csrf_exempt
+@require_http_methods(["POST"])
+# @login_required
+def unassign_discount_coupon(request):
+    """
+    API endpoint to unassign a discount coupon from a user.
+    The request should contain the following parameters:
+    - coupon_id: the ID of the discount coupon to unassign
+    - user_id: the ID of the user to unassign the coupon from
+    """
+    # Get the user object associated with the request
+    session = request.session
+    data = request.data
+
+    # Get the parameters from the request
+    coupon_id = data.get('coupon_id')
+    user_id = data.get('user_id')
+
+    # Check if the coupon and user exist
+    coupon = session.query(DiscountCoupon).get(coupon_id)
+    if coupon is None:
+        return JsonResponse({"error": "Discount coupon not found."}, status=404)
+
+    user = session.query(Users).get(user_id)
+    if user is None:
+        return JsonResponse({"error": "User not found."}, status=404)
+
+    # Check if the coupon is assigned to the user
+    if coupon not in user.discount_coupons:
+        return JsonResponse({"error": "Discount coupon is not assigned to user."}, status=400)
+
+    # Unassign the coupon from the user
+    user.discount_coupons.remove(coupon)
+    session.commit()
+
+    # Return a success response
+    response = JsonResponse(
+        {"answer": "Discount coupon unassigned successfully.",
+         "coupon_id": coupon_id,
+         "user_id": user_id,
+        },
+        status=200
+    )
+    add_get_params(response)
+
+    return response
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def activate_discount_coupon(request):
+    """
+    API endpoint to activate a discount coupon for a user.
+    The request should contain the following parameters:
+    - coupon_code: the code of the discount coupon to activate
+    - user_id: the ID of the user to activate the coupon for
+    """
+    # Get the user object associated with the request
+    session = request.session
+    user = request.person.user[0]
+    data = request.data
+
+    # Get the parameters from the request
+    coupon_code = data.get('code')
+    
+    # Check if the coupon and user exist
+    coupon = session.query(DiscountCoupon).filter_by(code=coupon_code).first()
+    if coupon is None:
+        return JsonResponse({"error": "Discount coupon not found."}, status=404)
+
+    # Deactivate any other coupons for the user
+    
+    active_coupon_users = session.query(DiscountCouponUser).filter(
+            DiscountCouponUser.user_id == user.id,
+            DiscountCouponUser.is_active == True).all()
+    
+    for active_coupon_user in active_coupon_users:
+        if active_coupon_user.is_active:
+            active_coupon_user.is_active = False
+
+    # Activate the coupon for the user
+    coupon_user = session.query(DiscountCouponUser).filter_by(
+        user_id=user.id,
+        discount_coupon_id=coupon.id
+    ).first()
+    if coupon_user is None:
+        return JsonResponse({"error": "The coupon does not belong to this user."}, status=400)
+    
+    coupon_user.is_active = True
+    session.commit()
+
+    # Return a success response
+    response = JsonResponse(
+        {"answer": "Discount coupon activated successfully.",
+         "coupon_code": coupon_code,
+         "user_id": user.id,
+        },
+        status=200
+    )
+    add_get_params(response)
+
     return response

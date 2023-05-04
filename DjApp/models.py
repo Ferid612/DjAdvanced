@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import datetime
 from sqlalchemy import CheckConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String, DECIMAL
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -51,7 +52,7 @@ class PhoneNumber(Base, TimestampMixin):
     __tablename__ = 'phone_number'
     id = Column(Integer, primary_key=True)
     phone_number = Column(EncryptedType(Integer, 'AES'),
-                          nullable=False, unique=True, cache_ok=True)
+                          nullable=False, unique=True)
     country_code = Column(Integer, nullable=False)
     phone_type_id = Column(Integer)
 
@@ -673,7 +674,6 @@ class ProductComment(Base, TimestampMixin):
 
 
 
-
 class Discount(Base, TimestampMixin):
     __tablename__ = 'discount'
     id = Column(Integer, primary_key=True)
@@ -707,6 +707,7 @@ class ProductDiscount(Base, TimestampMixin):
         "ProductEntry", back_populates='product_discounts')
 
 
+
 class Person(Base, TimestampMixin):
 
     __tablename__ = 'persons'
@@ -715,7 +716,7 @@ class Person(Base, TimestampMixin):
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     email = Column(EncryptedType(String, 'AES'), unique=True,
-                   nullable=False, cache_ok=True)
+                   nullable=False)
     _password = Column(String, nullable=False)
     location_id = Column(Integer, ForeignKey('location.id'), unique=True)
     phone_number_id = Column(Integer, ForeignKey(
@@ -749,8 +750,17 @@ class Person(Base, TimestampMixin):
         person_profil_image = None
         if self.profil_image:
             person_profil_image = self.profil_image[0].to_json()
+        
+        
+        person_id = -1
+        if self.person_type == 'user':
+            person_id = self.user[0].id if self.user else 0
+        else:
+            person_id = self.employee[0].id if self.employee else 0
+
         return {
             'id': self.id,
+            'person_id': person_id,
             'username': self.username,
             'first_name': self.first_name,
             'last_name': self.last_name,
@@ -825,7 +835,12 @@ class Users(Base, TimestampMixin):
     orders = relationship('Order', back_populates='user')
     product_rates = relationship('ProductRate', back_populates='user')
     wishlists = relationship('WishList', back_populates='user')
-
+    discount_coupons = relationship('DiscountCoupon', secondary='discount_coupon_user', back_populates='users', overlaps="discount_coupon_users")
+    discount_coupon_users = relationship('DiscountCouponUser', back_populates='user', overlaps="discount_coupons")
+   
+    def get_user_discount_coupons(self):
+        return [discount_coupons.to_json() for discount_coupons in self.discount_coupons]        
+    
     def get_user_wishlists_list(self, count):
         return [wishlist.to_json(count) for wishlist in self.wishlists]
 
@@ -843,7 +858,34 @@ class CreditCard(Base):
     user = relationship("Users", back_populates='credit_cards')
 
 
-    
+
+class DiscountCoupon(Base,TimestampMixin):
+    __tablename__ = 'discount_coupon'
+
+    id = Column(Integer, primary_key=True)
+    code = Column(String(32), nullable=False, unique=True)
+    discount = Column(Float, nullable=False)
+    valid_from = Column(DateTime, nullable=False, server_default='now()')
+    valid_to = Column(DateTime, nullable=False)
+    users = relationship('Users', secondary='discount_coupon_user', back_populates='discount_coupons', overlaps="discount_coupon_users")
+    orders = relationship('Order', back_populates='discount_coupon')
+
+    def to_json(self):
+        return {
+            "id":self.id,
+            "code":self.code,
+            "discount":self.discount,
+            "valid_from":self.valid_from,
+            "valid_to":self.valid_to,
+        }
+
+class DiscountCouponUser(Base):
+    __tablename__ = 'discount_coupon_user'
+    is_active = Column(Boolean, default=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, primary_key=True)
+    discount_coupon_id = Column(Integer, ForeignKey('discount_coupon.id'), nullable=False, primary_key=True)
+    user = relationship('Users', back_populates='discount_coupon_users', overlaps="discount_coupons,users")
+ 
 class WishList(Base, TimestampMixin):
     __tablename__ = 'wishlist'
     id = Column(Integer, primary_key=True)
@@ -1057,7 +1099,7 @@ class ShoppingSession(Base, TimestampMixin):
         return supplier_prices, supplier_cargo_discounts, amount_to_be_paid
 
 
-    def get_user_shopping_session_data(self):
+    def get_user_shopping_session_data(self, session):
         """
         Retrieves all the cart items for the authenticated user and returns them along with the corresponding product data.
         """
@@ -1080,6 +1122,25 @@ class ShoppingSession(Base, TimestampMixin):
         amount_to_be_paid = self.calculate_supplier_prices_and_cargo_discounts(amount_to_be_paid, cart_items_in_order)
 
 
+        coupon_discount_data = {}
+        # Check Discount coupon is assign or not
+        active_coupon = session.query(DiscountCoupon).join(DiscountCouponUser).filter(
+            DiscountCouponUser.user_id == self.user_id,
+            DiscountCouponUser.is_active == True,
+            DiscountCoupon.valid_from <= datetime.now(),
+            DiscountCoupon.valid_to >= datetime.now()
+        ).first()
+                
+        if active_coupon is not None:
+            coupon_discount = active_coupon.discount
+            
+            amount_to_be_paid = amount_to_be_paid - coupon_discount
+            if amount_to_be_paid < 0:
+                amount_to_be_paid = 0
+        
+            coupon_discount_data = active_coupon.to_json()
+
+
         # Process cart items
         # Group cart items by supplier name
         cart_item_data = {}
@@ -1095,6 +1156,7 @@ class ShoppingSession(Base, TimestampMixin):
         return  {
             'amount_to_be_paid': amount_to_be_paid,
             'total': shopping_session_total,
+            'coupon_discount_data':coupon_discount_data,
             'whole_discounts': whole_discounts,
             'whole_cargo_fee': whole_cargo_fee,
             'supplier_cargo_discounts': supplier_cargo_discounts,
@@ -1187,6 +1249,22 @@ class Payment(Base, TimestampMixin):
     credit_card_payment = relationship('CreditCardPayment', uselist=False, back_populates='payment')
     cash_payment = relationship('CashPayment', uselist=False, back_populates='payment')
 
+    
+    def to_json(self):
+        if self.payment_method == 'cash':
+            payment_id = self.cash_payment.id
+        else:
+            payment_id = self.credit_card_payment.id
+            
+        return {
+            "id": self.id,
+            "payment_id": payment_id,
+            "order_id": self.order_id,
+            "amount": self.amount,
+            "payment_method": self.payment_method,
+            "status": self.status,
+            
+        }
 
 
 class CreditCardPayment(Base):
@@ -1213,14 +1291,35 @@ class Order(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     total_price = Column(Float, nullable=False)
+    discount_coupon_id = Column(Integer, ForeignKey('discount_coupon.id'))
     status = Column(String(50), CheckConstraint(
         "status IN ('preparing','placed', 'shipped', 'delivered', 'cancelled')"), nullable=False, default='placed')
 
     user = relationship('Users', back_populates='orders')
     order_items = relationship('OrderItem', back_populates='order')
     payment = relationship('Payment', back_populates='order')
+    discount_coupon = relationship('DiscountCoupon', back_populates='orders')
 
 
+    def to_json(self):
+        discount_coupon_data = "No discount coupon for this order"
+        payment_data = {"total_price": self.total_price}
+        if self.discount_coupon_id:
+            discount_coupon_data = self.discount_coupon.to_json()
+        
+        if self.payment:
+            payment_data = self.payment[0].to_json()
+        
+        return {
+            "id": self.id,
+            "user_id" : self.user_id,
+            "username" : self.user.person.username,
+            "status": self.status,
+            "total_price" : self.total_price,
+            "discount_coupon_data" : discount_coupon_data, 
+            "payment_data" : payment_data, 
+        }
+        
 
 class OrderItem(Base, TimestampMixin):
     __tablename__ = 'order_item'

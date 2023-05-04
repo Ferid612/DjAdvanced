@@ -10,7 +10,8 @@ def get_user_shopping_session_data(request):
     """
     Retrieves all the cart items for the authenticated user and returns them along with the corresponding product data.
     """
-    try:        
+    try:
+        session = request.session        
         shopping_session = request.person.user[0].shopping_session[0]
     except:
         return JsonResponse({'answer': "The session data of the user could not be found. Please add any product to basket. After remove it."}, status=400)
@@ -20,7 +21,7 @@ def get_user_shopping_session_data(request):
         return JsonResponse({'answer': "The session data of the user could not be found."}, status=400)
 
 
-    response_data = shopping_session.get_user_shopping_session_data()
+    response_data = shopping_session.get_user_shopping_session_data(session)
     response = JsonResponse(response_data)
     add_get_params(response)
     return response
