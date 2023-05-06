@@ -25,27 +25,31 @@ def google_login_callback(request):
         redirect_uri='https://nebuwear.com' + reverse("google_login_callback"),
     )
 
-    if "code" not in request.GET:
-        authorization_url, state = flow.authorization_url(
-            access_type="offline", include_granted_scopes="true"
-        )
+    if "code" in request.GET:
+        return _extracted_from_google_login_callback_27(flow, request)
+    authorization_url, state = flow.authorization_url(
+        access_type="offline", include_granted_scopes="true"
+    )
 
-        return redirect(authorization_url)
-    else:
-        flow.fetch_token(authorization_response=request.build_absolute_uri())
-        credentials = flow.credentials
+    return redirect(authorization_url)
 
-        # Retrieve the user's profile information from Google
-        id_info = id_token.verify_oauth2_token(
-            credentials._id_token, Request(), credentials._client_id
-        )
-        email = id_info["email"]
-        name = id_info["name"]
 
-        # Save the user's credentials to the Django session
-        request.session["google_credentials"] = credentials.to_json()
+# TODO Rename this here and in `google_login_callback`
+def _extracted_from_google_login_callback_27(flow, request):
+    flow.fetch_token(authorization_response=request.build_absolute_uri())
+    credentials = flow.credentials
 
-        return redirect("/")
+    # Retrieve the user's profile information from Google
+    id_info = id_token.verify_oauth2_token(
+        credentials._id_token, Request(), credentials._client_id
+    )
+    email = id_info["email"]
+    name = id_info["name"]
+
+    # Save the user's credentials to the Django session
+    request.session["google_credentials"] = credentials.to_json()
+
+    return redirect("/")
 
 
 def google_logout(request):

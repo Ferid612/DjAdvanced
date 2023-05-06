@@ -26,7 +26,7 @@ def get_all_suppliers(request):
         {"suppliers": suppliers_json},
         status=200
     )
-
+    add_get_params(response)
     return response
 
 

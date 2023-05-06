@@ -49,10 +49,7 @@ def add_to_basket(request):
 
     # Get the parameters from the request
     product_entry_id = data.get('product_entry_id')
-    quantity = None
-    if data.get('quantity'):
-        quantity = int(data.get('quantity'))
-
+    quantity = int(data.get('quantity')) if data.get('quantity') else None
     # Get the shopping session associated with the specified session ID and user ID
     shopping_session = session.query(
         ShoppingSession).filter_by(user_id=user.id).first()
@@ -73,20 +70,25 @@ def add_to_basket(request):
         session_id=shopping_session.id, product_entry_id=product_entry_id).first()
     if not cart_item:
         # Add the product_entry to the shopping session with the specified quantity
-        if quantity is not None:
-            cart_item = CartItem(session_id=shopping_session.id,
-                                 product_entry_id=product_entry_id, quantity=quantity)
-        else:
-            cart_item = CartItem(session_id=shopping_session.id,
-                                 product_entry_id=product_entry_id, quantity=1)
-
+        cart_item = (
+            CartItem(
+                session_id=shopping_session.id,
+                product_entry_id=product_entry_id,
+                quantity=quantity,
+            )
+            if quantity is not None
+            else CartItem(
+                session_id=shopping_session.id,
+                product_entry_id=product_entry_id,
+                quantity=1,
+            )
+        )
         session.add(cart_item)
         session.commit()
+    elif quantity is not None:
+        cart_item.quantity = quantity
     else:
-        if quantity is not None:
-            cart_item.quantity = quantity
-        else:
-            cart_item.quantity = cart_item.quantity + 1
+        cart_item.quantity = cart_item.quantity + 1
 
     cart_item_total = cart_item.total()
 
@@ -148,7 +150,7 @@ def update_cart_item_status(request, cart_item_id):
 
     # Get the shopping session associated with the specified user ID
     shopping_session = user.shopping_session[0]
-    if not cart_item.session_id == shopping_session.id:
+    if cart_item.session_id != shopping_session.id:
         response = JsonResponse(
             {'answer': "The cart item is not this user."}, status=400)
         add_get_params(response)
@@ -195,7 +197,7 @@ def delete_cart_item(request, cart_item_id):
     # Get the shopping session associated with the specified user ID
 
     shopping_session = user.shopping_session[0]
-    if not cart_item.session_id == shopping_session.id:
+    if cart_item.session_id != shopping_session.id:
         response = JsonResponse(
             {'answer': "The cart item is not this user."}, status=400)
         add_get_params(response)

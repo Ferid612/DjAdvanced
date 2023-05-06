@@ -33,11 +33,12 @@ def add_credit_card(request):
         add_get_params(response)
         return response
 
-    # Check if a credit card with the same card number already exists for the user
-    existing_credit_card = session.query(CreditCard).filter_by(
-        user_id=user.id, card_number=card_number).first()
-
-    if existing_credit_card:
+    # check credit_card is exist
+    if (
+         session.query(CreditCard)
+        .filter_by(user_id=user.id, card_number=card_number)
+        .first()
+    ):
         response = JsonResponse(
             {'error': 'A credit card with the same card number already exists for this user'}, status=409)
         add_get_params(response)

@@ -131,35 +131,36 @@ def get_product_entry_for_card(request, product_entry_id):
 @csrf_exempt
 @require_http_methods(["GET", "OPTIONS"])
 def get_product_properties(request):
+    """
+    Get all materials, colors, and measures from the database and return them in a JSON response.
 
+    Args:
+        request: The incoming request object.
+
+    Returns:
+        A JsonResponse containing the retrieved materials, colors, and measures.
+    """
     session = request.session
-    colors_data = []
     measure_data = []
-    materials_data = []
-
     # materials = session.query(ProductMaterial.id, ProductMaterial.name, func.count(ProductEntry.id)).outerjoin(ProductEntry.material).group_by(ProductMaterial.id).all()
     # materials_data = [{"material_id": material[0], "material_name": material[1], "num_entries": material[2]} for material in materials]
 
     # Retrieve all colors and their IDs and color codes
     materials = session.query(ProductMaterial).options(
         joinedload(ProductMaterial.product_entries)).all()
-    for material in materials:
-        materials_data.append(material.to_json())
-
+    materials_data = [material.to_json() for material in materials]
     # Retrieve all colors and their IDs and color codes
     colors = session.query(ProductColor).options(
         joinedload(ProductColor.product_entries)).all()
-    for color in colors:
-        colors_data.append(color.to_json())
-
+    colors_data = [color.to_json() for color in colors]
     # Retrieve all measures, their IDs, and their values
     measures = session.query(ProductMeasure).options(
         joinedload(ProductMeasure.values)).all()
     for measure in measures:
-        values = []
-        for measure_value in measure.values:
-            values.append({"value_id": measure_value.id,
-                          "value": measure_value.value})
+        values = [
+            {"value_id": measure_value.id, "value": measure_value.value}
+            for measure_value in measure.values
+        ]
         measure_data.append(
             {"measure_id": measure.id, "measure_name": measure.name, "values": values})
 

@@ -9,8 +9,6 @@ from ..decorators import permission_required, login_required, require_http_metho
 
 @csrf_exempt
 @require_http_methods(["POST"])
-# @login_required
-# @permission_required('manage_supplier')
 def registration_of_supplier(request):
     """
     This function handles supplier registration by creating a new supplier account.
@@ -32,24 +30,20 @@ def registration_of_supplier(request):
     country_code = data.get('country_code')
 
     session = request.session
-
-    # Query for the phone number object
-    supplier = session.query(Supplier).filter_by(
-        name=supplier_name).one_or_none()
-
-    if supplier:
+    # check exist supplier
+    if (
+        session.query(Supplier).filter_by(name=supplier_name).one_or_none()
+    ):
         # If Supplier name already exists, return an error response
         response = JsonResponse(
             {'answer': f"This supplier name '{supplier_name}' belongs to another supplier account."}, status=400)
 
         add_get_params(response)
         return response
-
-    # Query for the phone number object
-    phone = session.query(PhoneNumber).filter_by(
-        phone_number=phone_number).one_or_none()
-
-    if phone:
+    # check exist phone number
+    if (
+         session.query(PhoneNumber).filter_by(phone_number=phone_number).one_or_none()
+    ):
         # If phone number already exists, return an error response
         response = JsonResponse(
             {'answer': "This phone number belongs to another supplier account."}, status=400)
@@ -92,7 +86,6 @@ def registration_of_supplier(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-# @login_required
 def add_or_change_supplier_profile_image(request):
     """
     This function handles adding or changing a supplier's profile image by receiving a file containing the new image.
@@ -135,9 +128,11 @@ def add_or_change_supplier_profile_image(request):
     path = PROFIL_IMAGE_ROOT / 'persons'
     image_path = save_uploaded_image(image_file, path)
 
-    old_profil_image = session.query(ProfilImage).filter_by(
-        supplier_id=supplier.id).one_or_none()
-    if old_profil_image:
+    if (
+        old_profil_image := session.query(ProfilImage)
+        .filter_by(supplier_id=supplier.id)
+        .one_or_none()
+    ):
         session.delete(old_profil_image)
         session.commit()
 

@@ -112,7 +112,7 @@ def update_user_payment(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-def delete_user_payment(request):
+def delete_user_payment(request):  # sourcery skip: raise-specific-error
     """
     This function deletes a user payment from the database.
     The function receives the following parameters from the request object:
@@ -130,11 +130,11 @@ def delete_user_payment(request):
 
         # Query the database for the user with the given ID
 
-        user_payment = session.query(
-            UserPayment).filter_by(user_id=user_id).first()
-
         # Check if the user payment exists
-        if user_payment is None:
+        if (
+            user_payment := session.query(UserPayment).filter_by(user_id=user_id).first() is None
+        ):
+
             raise Exception("User payment not found.")
 
         # Delete the user payment from the database and commit the changes

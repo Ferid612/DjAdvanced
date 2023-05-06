@@ -121,6 +121,7 @@ def get_person_profil_image(request, image_id):
         # If user is not found, return an error response
         response = JsonResponse(
             {'answer': "Profil image don't exist."}, status=501)
+        add_get_params(response)
         return response
 
     # Return a success response

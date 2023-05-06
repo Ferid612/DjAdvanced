@@ -30,10 +30,12 @@ def create_wishlist(request):
         add_get_params(response)
         return response
 
-    # Check if the user already has a wishlist
-    wishlist = session.query(WishList).filter_by(
-        user_id=user.id, title=title).first()
-    if wishlist:
+    # check user is exist 
+    if (
+        session.query(WishList)
+        .filter_by(user_id=user.id, title=title)
+        .first()
+    ):
         response = JsonResponse(
             {'answer': 'False', 'message': 'The user already has a wishlist with this title.'}, status=404)
         add_get_params(response)
@@ -330,7 +332,10 @@ def delete_product_entry_in_wishlist_with_id(request, wishlist_product_entry_id)
             WishListProductEntry).get(wishlist_product_entry_id)
 
         # Check if the wishlist-product entry and product entry exist and if the user is authorized to delete products from the wishlist
-        if not wishlist_product_entry or not wishlist_product_entry.wishlist.user_id == user.id:
+        if (
+            not wishlist_product_entry
+            or wishlist_product_entry.wishlist.user_id != user.id
+        ):
             response = JsonResponse(
                 {'answer': False, 'message': 'Invalid data provided or user is not authorized to delete products from the wishlist.'}, status=401)
             add_get_params(response)
@@ -346,7 +351,6 @@ def delete_product_entry_in_wishlist_with_id(request, wishlist_product_entry_id)
         add_get_params(response)
         return response
 
-    # Catch any database errors and return a JSON response with an error message and the error details
     except SQLAlchemyError as e:
         session.rollback()
         response = JsonResponse(

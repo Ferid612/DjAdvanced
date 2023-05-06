@@ -22,9 +22,8 @@ def add_tag(request):
         add_get_params(response)
         return response
 
-    existing_tag = session.query(Tag).filter_by(name=name).one_or_none()
-
-    if existing_tag:
+    # check tag is exist
+    if session.query(Tag).filter_by(name=name).one_or_none():
         response = JsonResponse(
             {'answer': 'False', 'message': 'Tag  with the given name already exists.'}, status=404)
         add_get_params(response)
@@ -63,10 +62,12 @@ def update_tag(request, tag_id):
     # update tag attributes if provided
     if new_name is not None:
 
-        existing_tag = session.query(Tag).filter_by(
-            name=new_name).one_or_none()
-
-        if existing_tag:
+        # check tag is exist
+        if (
+            session.query(Tag)
+            .filter_by(name=new_name)
+            .one_or_none()
+        ):
             response = JsonResponse(
                 {'answer': 'False', 'message': 'Tag  with the given name already exists.'}, status=404)
             add_get_params(response)

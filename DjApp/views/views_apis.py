@@ -7,12 +7,11 @@ from DjApp.decorators import require_http_methods
 
 
 def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+    return (
+        x_forwarded_for.split(',')[0]
+        if (x_forwarded_for := request.META.get('HTTP_X_FORWARDED_FOR'))
+        else request.META.get('REMOTE_ADDR')
+    )
 
 
 @csrf_exempt
@@ -20,7 +19,7 @@ def get_person_location(request):
 
     ip = get_client_ip(request)
 
-    url = "https://ipinfo.io/"+ip+"/json?token=a83e585ed3bd5c"
+    url = f"https://ipinfo.io/{ip}/json?token=a83e585ed3bd5c"
 
     headers = {
         "X-RapidAPI-Key": "7723ac98efmsh8726f21fbcf453fp1020f6jsn62755c65ce60",
