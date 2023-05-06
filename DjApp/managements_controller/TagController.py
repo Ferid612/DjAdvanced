@@ -2,8 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from ..decorators import permission_required, login_required, require_http_methods
 from ..helpers import add_get_params
-from ..models import  Tag, ProductEntry, ProductTag
-
+from ..models import Tag, ProductEntry, ProductTag
 
 
 @csrf_exempt
@@ -16,26 +15,26 @@ def add_tag(request):
     data = request.data
     name = data.get('name')
     description = data.get('description')
-    
-    
+
     if not name:
-        response = JsonResponse({'message': 'Please provide a name for the tag'}, status=400)
+        response = JsonResponse(
+            {'message': 'Please provide a name for the tag'}, status=400)
         add_get_params(response)
         return response
-    
+
     existing_tag = session.query(Tag).filter_by(name=name).one_or_none()
-    
+
     if existing_tag:
-        response = JsonResponse({'answer': 'False','message': 'Tag  with the given name already exists.'}, status=404)
+        response = JsonResponse(
+            {'answer': 'False', 'message': 'Tag  with the given name already exists.'}, status=404)
         add_get_params(response)
         return response
-    
-            
-            
+
     tag = Tag(name=name, description=description)
     session.add(tag)
     session.commit()
-    response = JsonResponse({ 'answer': "success","tag": tag.to_json()}, status=200)
+    response = JsonResponse(
+        {'answer': "success", "tag": tag.to_json()}, status=200)
     add_get_params(response)
     return response
 
@@ -56,20 +55,23 @@ def update_tag(request, tag_id):
     # check if the tag exists
     tag = session.query(Tag).get(tag_id)
     if not tag:
-        response = JsonResponse({'message': f"Tag '{tag_id}' id does not exist"}, status=400)
+        response = JsonResponse(
+            {'message': f"Tag '{tag_id}' id does not exist"}, status=400)
         add_get_params(response)
         return response
 
     # update tag attributes if provided
     if new_name is not None:
-        
-        existing_tag = session.query(Tag).filter_by(name=new_name).one_or_none()
-        
+
+        existing_tag = session.query(Tag).filter_by(
+            name=new_name).one_or_none()
+
         if existing_tag:
-            response = JsonResponse({'answer': 'False','message': 'Tag  with the given name already exists.'}, status=404)
+            response = JsonResponse(
+                {'answer': 'False', 'message': 'Tag  with the given name already exists.'}, status=404)
             add_get_params(response)
             return response
-        
+
         tag.name = new_name
 
     if new_description is not None:
@@ -83,7 +85,8 @@ def update_tag(request, tag_id):
         'name': tag.name,
         'description': tag.description,
     }
-    response = JsonResponse({'answer':'Tag succesfully updated', 'updated_tag':updated_tag}, status=200)
+    response = JsonResponse(
+        {'answer': 'Tag succesfully updated', 'updated_tag': updated_tag}, status=200)
     add_get_params(response)
     return response
 
@@ -101,12 +104,14 @@ def delete_tag(request, tag_id):
     # Check if the tag exists
     tag = session.query(Tag).get(tag_id)
     if not tag:
-        response = JsonResponse({'answer': f'No tag found with tag.id {tag_id}'}, status=404)
+        response = JsonResponse(
+            {'answer': f'No tag found with tag.id {tag_id}'}, status=404)
         add_get_params(response)
         return response
 
     session.delete(tag)
-    response = JsonResponse({'message': f'Tag with tag.id {tag_id} has been successfully deleted.'}, status=200)
+    response = JsonResponse(
+        {'message': f'Tag with tag.id {tag_id} has been successfully deleted.'}, status=200)
     add_get_params(response)
     return response
 
@@ -126,14 +131,16 @@ def add_tag_to_product_entry(request, entry_id):
     # Check if the product entry exists
     product_entry = session.query(ProductEntry).get(entry_id)
     if not product_entry:
-        response = JsonResponse({'message': f"No product entry found with id {entry_id}"}, status=404)
+        response = JsonResponse(
+            {'message': f"No product entry found with id {entry_id}"}, status=404)
         add_get_params(response)
         return response
 
     # Check if the tag exists
     tag = session.query(Tag).get(tag_id)
     if not tag:
-        response = JsonResponse({'message': f"No tag found with id {tag_id}"}, status=404)
+        response = JsonResponse(
+            {'message': f"No tag found with id {tag_id}"}, status=404)
         add_get_params(response)
         return response
 
@@ -141,7 +148,8 @@ def add_tag_to_product_entry(request, entry_id):
     product_entry.tags.append(tag)
     session.commit()
 
-    response = JsonResponse({'message': f"Tag '{tag.name}' added to product entry with id {product_entry.id}"}, status=200)
+    response = JsonResponse(
+        {'message': f"Tag '{tag.name}' added to product entry with id {product_entry.id}"}, status=200)
     add_get_params(response)
     return response
 
@@ -161,14 +169,16 @@ def delete_tag_from_product_entry(request, entry_id):
     # Check if the product entry exists
     product_entry = session.query(ProductEntry).get(entry_id)
     if not product_entry:
-        response = JsonResponse({'message': f"No product entry found with id {entry_id}"}, status=404)
+        response = JsonResponse(
+            {'message': f"No product entry found with id {entry_id}"}, status=404)
         add_get_params(response)
         return response
 
     # Check if the tag exists
     tag = session.query(Tag).get(tag_id)
     if not tag:
-        response = JsonResponse({'message': f"No tag found with id {tag_id}"}, status=404)
+        response = JsonResponse(
+            {'message': f"No tag found with id {tag_id}"}, status=404)
         add_get_params(response)
         return response
 
@@ -176,9 +186,11 @@ def delete_tag_from_product_entry(request, entry_id):
     if tag in product_entry.tags:
         product_entry.tags.remove(tag)
         session.commit()
-        response = JsonResponse({'message': f"Tag '{tag.name}' removed from product entry with id {product_entry.id}"}, status=200)
+        response = JsonResponse(
+            {'message': f"Tag '{tag.name}' removed from product entry with id {product_entry.id}"}, status=200)
     else:
-        response = JsonResponse({'message': f"Product entry with id {product_entry.id} does not have tag '{tag.name}'"}, status=404)
+        response = JsonResponse(
+            {'message': f"Product entry with id {product_entry.id} does not have tag '{tag.name}'"}, status=404)
 
     add_get_params(response)
     return response

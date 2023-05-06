@@ -1,14 +1,13 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required, require_http_methods
-from DjApp.helpers import  add_get_params
-from ..models import  Discount, DiscountCoupon, DiscountCouponUser, ProductDiscount, ProductEntry, Users
+from DjApp.helpers import add_get_params
+from ..models import Discount, DiscountCoupon, DiscountCouponUser, ProductDiscount, ProductEntry, Users
 from datetime import datetime, timedelta
 
+
 @csrf_exempt
-@require_http_methods(["POST","GET"])
-# @login_required
-# @permission_required("manage_discounts")
+@require_http_methods(["POST", "GET"])
 def create_discount(request):
     """
     This function handles discount creation by creating a new discount and adding it to the product.
@@ -26,51 +25,47 @@ def create_discount(request):
     session = request.session
 
     discount_name = data.get('discount_name')
-    discount_description = data.get('discount_description') 
-    discount_percent = data.get('discount_percent') 
-    active = data.get('active') 
-    
-    active =  True if (active == "True") or  (active == True) else False
+    discount_description = data.get('discount_description')
+    discount_percent = data.get('discount_percent')
+    active = data.get('active')
 
-    
+    active = active in ["True", True]
+
     if not (discount_name and discount_percent and active):
-        response = JsonResponse({'answer':'False', 'message':'Missing data error. product_entry IDə, Name, Discount Percentage and Active status must be filled'}, status=404)            
+        response = JsonResponse(
+            {'answer': 'False', 'message': 'Missing data error. product_entry IDə, Name, Discount Percentage and Active status must be filled'}, status=404)
         add_get_params(response)
         return response
-    
-    
-            
-    
-    discount = session.query(Discount).filter_by(name=discount_name).one_or_none()
-    if (discount):
-        response = JsonResponse({'answer':'False', 'message':'The discount name already exists in this name.'}, status=404)            
+
+    # Check if have any discount for this name
+    if (
+        session.query(Discount).filter_by(name=discount_name).one_or_none()
+    ):
+        response = JsonResponse(
+            {'answer': 'False', 'message': 'The discount name already exists in this name.'}, status=404)
         add_get_params(response)
         return response
-    
-    
-    
+
     # Create a new discount object with the given parameters
     new_discount = Discount(
-                            name=discount_name,
-                            description=discount_description,
-                            discount_percent=discount_percent,
-                            active=active,
-                            )
-    
+        name=discount_name,
+        description=discount_description,
+        discount_percent=discount_percent,
+        active=active,
+    )
+
     # Add the new discount to the database and commit the changes
     session.add(new_discount)
     session.commit()
     # Return a JSON response with a success message and the new discount's information
-    response = JsonResponse({"Success":"The new discount has been successfully created.", "discount_detail" : new_discount.to_json() }, status=200)
+    response = JsonResponse({"Success": "The new discount has been successfully created.",
+                            "discount_detail": new_discount.to_json()}, status=200)
     add_get_params(response)
     return response
 
 
-
 @csrf_exempt
 @require_http_methods(["POST"])
-# @login_required
-# @permission_required("manage_discounts")
 def discount_update(request):
     """
     This function updates an existing discount by its ID. The function receives the following parameters from the request object:
@@ -82,33 +77,32 @@ def discount_update(request):
     If the update is successful, the function returns a JSON response with a success message and the updated discount's information.
     If an error occurs during the update process, the function returns a JSON response with an error message and the error details.
     """
-    
+
     # Get the parameters from the request object
     data = request.data
     session = request.session
-    
+
     discount_id = data.get('discount_id')
     discount_name = data.get('name')
     discount_description = data.get('description')
     discount_percent = data.get('discount_percent')
     active = data.get('active')
 
-    active =  True if (active == "True") or  (active == True) else False
+    active = active in ["True", True]
 
     if not discount_id:
-        response = JsonResponse({'answer': 'False', 'message': 'Missing data error. Discount ID must be filled'}, status=404)
+        response = JsonResponse(
+            {'answer': 'False', 'message': 'Missing data error. Discount ID must be filled'}, status=404)
         add_get_params(response)
         return response
-
-
 
     # Check if the discount exists
     discount = session.query(Discount).get(discount_id)
     if not discount:
-        response = JsonResponse({'answer': 'False', 'message': 'Discount not found'}, status=404)
+        response = JsonResponse(
+            {'answer': 'False', 'message': 'Discount not found'}, status=404)
         add_get_params(response)
         return response
-
 
     # Update the discount object with the given parameters
     if discount_name:
@@ -120,10 +114,9 @@ def discount_update(request):
     if active is not None:
         discount.active = active
 
-
     # Return a JSON response with a success message and the updated discount's information
     response = JsonResponse({
-        'answer': 'The discount has been successfully updated.' ,
+        'answer': 'The discount has been successfully updated.',
         'id': discount_id,
         'name': discount.name,
         'description': discount.description,
@@ -132,9 +125,6 @@ def discount_update(request):
     }, status=200)
     add_get_params(response)
     return response
-
-
-
 
 
 @csrf_exempt
@@ -148,36 +138,38 @@ def discount_delete(request, discount_id):
     If the discount deletion is successful, the function returns a JSON response with a success message.
     If an error occurs during the discount deletion process, the function returns a JSON response with an error message and the error details.
     """
-    
+
     session = request.session
 
     if not discount_id:
-        response = JsonResponse({'answer':'False', 'message':'Missing data error. Discount name must be filled'}, status=404)            
+        response = JsonResponse(
+            {'answer': 'False', 'message': 'Missing data error. Discount name must be filled'}, status=404)
         add_get_params(response)
         return response
-    
+
         # Start a new database session
 
     # Get the discount with the given ID
     discount = session.query(Discount).get(discount_id).first()
-    
+
     if not discount:
-        response = JsonResponse({'answer':'False', 'message':'Discount not found'}, status=404)            
+        response = JsonResponse(
+            {'answer': 'False', 'message': 'Discount not found'}, status=404)
         add_get_params(response)
         return response
-    
+
     # Delete the discount from the database and commit the changes
     session.delete(discount)
 
     # Return a JSON response with a success message
-    response = JsonResponse({'Success': 'The discount has been successfully deleted.'}, status=200)
+    response = JsonResponse(
+        {'Success': 'The discount has been successfully deleted.'}, status=200)
     add_get_params(response)
     return response
 
 
-
 @csrf_exempt
-@require_http_methods(["POST","GET"])
+@require_http_methods(["POST", "GET"])
 # @login_required
 # @permission_required("manage_discounts")
 def add_discount_to_products_by_ids(request):
@@ -194,33 +186,35 @@ def add_discount_to_products_by_ids(request):
     session = request.session
 
     discount_id = data.get('discount_id')
-    product_entries_ids = data.get('product_entries_ids') 
-    
-    
+    product_entries_ids = data.get('product_entries_ids')
+
     # Get the discount and the products from the database
     discount = session.query(Discount).get(discount_id)
-    product_entries = session.query(ProductEntry).filter(ProductEntry.id.in_(product_entries_ids)).all()
-    
-    
+    product_entries = session.query(ProductEntry).filter(
+        ProductEntry.id.in_(product_entries_ids)).all()
+
     # Check if the discount and the products exist
     if not discount:
-        response = JsonResponse({'Success':'False', 'message':'The discount with the specified ID does not exist.'}, status=404)            
+        response = JsonResponse(
+            {'Success': 'False', 'message': 'The discount with the specified ID does not exist.'}, status=404)
         add_get_params(response)
         return response
-    
+
     if not product_entries:
-        response = JsonResponse({'Success':'False', 'message':'None of the specified product_entry IDəs exist.'}, status=404)            
+        response = JsonResponse(
+            {'Success': 'False', 'message': 'None of the specified product_entry IDəs exist.'}, status=404)
         add_get_params(response)
         return response
-    
+
     # Add the discount to the product_entries and commit the changes
     for product_entry in product_entries:
-        product_discount = ProductDiscount(discount_id=discount.id, product_entry_id=product_entry.id)
+        product_discount = ProductDiscount(
+            discount_id=discount.id, product_entry_id=product_entry.id)
         session.add(product_discount)
 
-
     # Return a JSON response with a success message
-    response = JsonResponse({'Success':'True', 'message':'The discount has been added to the specified products successfully.'}, status=200)
+    response = JsonResponse(
+        {'Success': 'True', 'message': 'The discount has been added to the specified products successfully.'}, status=200)
     add_get_params(response)
     return response
 
@@ -248,7 +242,8 @@ def create_discount_coupon(request):
     valid_to = datetime.fromisoformat(data.get('valid_to'))
 
     # Check if the coupon code already exists
-    existing_coupon = session.query(DiscountCoupon).filter_by(code=code).first()
+    existing_coupon = session.query(
+        DiscountCoupon).filter_by(code=code).first()
     if existing_coupon is not None:
         return JsonResponse({"error": "Coupon code already exists."}, status=400)
 
@@ -260,7 +255,8 @@ def create_discount_coupon(request):
         return JsonResponse({"error": "Valid to date must be after valid from date."}, status=400)
 
     # Create the discount coupon object
-    discount_coupon = DiscountCoupon(code=code, discount=discount, valid_from=valid_from, valid_to=valid_to)
+    discount_coupon = DiscountCoupon(
+        code=code, discount=discount, valid_from=valid_from, valid_to=valid_to)
 
     session.add(discount_coupon)
     session.commit()
@@ -270,14 +266,12 @@ def create_discount_coupon(request):
         {"answer": "Discount coupon created successfully.",
          "coupon": discount_coupon.to_json(),
 
-        },
+         },
         status=200
     )
     add_get_params(response)
 
     return response
-
-
 
 
 @csrf_exempt
@@ -303,9 +297,12 @@ def update_discount_coupon(request, coupon_id):
 
     # Update the discount coupon object
     discount_coupon.code = data.get('code', discount_coupon.code)
-    discount_coupon.discount = float(data.get('discount', discount_coupon.discount))
-    discount_coupon.valid_from = datetime.fromisoformat(data.get('valid_from', discount_coupon.valid_from.isoformat()))
-    discount_coupon.valid_to = datetime.fromisoformat(data.get('valid_to', discount_coupon.valid_to.isoformat()))
+    discount_coupon.discount = float(
+        data.get('discount', discount_coupon.discount))
+    discount_coupon.valid_from = datetime.fromisoformat(
+        data.get('valid_from', discount_coupon.valid_from.isoformat()))
+    discount_coupon.valid_to = datetime.fromisoformat(
+        data.get('valid_to', discount_coupon.valid_to.isoformat()))
 
     # Check if the valid dates are valid
     now = datetime.now()
@@ -319,13 +316,12 @@ def update_discount_coupon(request, coupon_id):
     # Return a success response
     response = JsonResponse(
         {"answer": "Discount coupon updated successfully.",
-         "coupon": discount_coupon.to_json(),},
+         "coupon": discount_coupon.to_json(), },
         status=200
     )
     add_get_params(response)
 
     return response
-
 
 
 @csrf_exempt
@@ -357,7 +353,6 @@ def delete_discount_coupon(request, coupon_id):
     return response
 
 
-
 @csrf_exempt
 @require_http_methods(["POST"])
 # @login_required
@@ -371,7 +366,7 @@ def assign_discount_coupon(request):
     # Get the user object associated with the request
     session = request.session
     data = request.data
-    
+
     # Get the parameters from the request
     coupon_code = data.get('code')
     user_id = data.get('user_id')
@@ -380,40 +375,37 @@ def assign_discount_coupon(request):
     coupon = session.query(DiscountCoupon).filter_by(code=coupon_code).first()
     if coupon is None:
         return JsonResponse({"error": "Discount coupon not found."}, status=404)
-    
+
     user = session.query(Users).filter_by(id=user_id).first()
     if user is None:
         return JsonResponse({"error": "User not found."}, status=404)
-
 
     # Check if the valid dates are valid
     now = datetime.now()
     if coupon.valid_to < now:
         return JsonResponse({"error": "The coupon has expired."}, status=400)
 
-
-    user_coupon = session.query(DiscountCouponUser).filter_by(user_id=user.id, discount_coupon_id=coupon.id).first()
+    user_coupon = session.query(DiscountCouponUser).filter_by(
+        user_id=user.id, discount_coupon_id=coupon.id).first()
     if user_coupon is not None:
         return JsonResponse({"error": "This coupon is already assign to this user."}, status=404)
-        
-        
+
     # Assign the coupon to the user
     user.discount_coupons.append(coupon)
     session.commit()
-    
+
     # Return a success response
     response = JsonResponse(
         {"answer": "Discount coupon assigned successfully.",
          "user_id": user_id,
          "coupon": coupon.to_json(),
-        },
+         },
         status=200
     )
     add_get_params(response)
-        
+
     return response
 
- 
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -455,13 +447,12 @@ def unassign_discount_coupon(request):
         {"answer": "Discount coupon unassigned successfully.",
          "coupon_id": coupon_id,
          "user_id": user_id,
-        },
+         },
         status=200
     )
     add_get_params(response)
 
     return response
-
 
 
 @csrf_exempt
@@ -481,18 +472,18 @@ def activate_discount_coupon(request):
 
     # Get the parameters from the request
     coupon_code = data.get('code')
-    
+
     # Check if the coupon and user exist
     coupon = session.query(DiscountCoupon).filter_by(code=coupon_code).first()
     if coupon is None:
         return JsonResponse({"error": "Discount coupon not found."}, status=404)
 
     # Deactivate any other coupons for the user
-    
+
     active_coupon_users = session.query(DiscountCouponUser).filter(
-            DiscountCouponUser.user_id == user.id,
-            DiscountCouponUser.is_active == True).all()
-    
+        DiscountCouponUser.user_id == user.id,
+        DiscountCouponUser.is_active == True).all()
+
     for active_coupon_user in active_coupon_users:
         if active_coupon_user.is_active:
             active_coupon_user.is_active = False
@@ -504,7 +495,7 @@ def activate_discount_coupon(request):
     ).first()
     if coupon_user is None:
         return JsonResponse({"error": "The coupon does not belong to this user."}, status=400)
-    
+
     coupon_user.is_active = True
     session.commit()
 
@@ -513,7 +504,7 @@ def activate_discount_coupon(request):
         {"answer": "Discount coupon activated successfully.",
          "coupon_code": coupon_code,
          "user_id": user.id,
-        },
+         },
         status=200
     )
     add_get_params(response)

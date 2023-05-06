@@ -5,9 +5,8 @@ from DjApp.helpers import add_get_params
 from DjApp.models import Discount, DiscountCoupon
 
 
-
 @csrf_exempt
-@require_http_methods(["POST","GET"])
+@require_http_methods(["POST", "GET"])
 # @login_required
 # @permission_required("manage_discounts")
 def get_all_discounts(request):
@@ -32,9 +31,8 @@ def get_all_discounts(request):
     return response
 
 
-
 @csrf_exempt
-@require_http_methods(["POST","GET"])
+@require_http_methods(["POST", "GET"])
 # @login_required
 # @permission_required("manage_discounts")
 def get_all_discount_coupons(request):
@@ -59,10 +57,8 @@ def get_all_discount_coupons(request):
     return response
 
 
-
-
 @csrf_exempt
-@require_http_methods(["GET","POST","OPTIONS"])
+@require_http_methods(["GET", "POST", "OPTIONS"])
 @login_required
 def get_user_discount_coupons(request):
     """
@@ -77,8 +73,9 @@ def get_user_discount_coupons(request):
     user = request.person.user[0]
 
     discount_coupons = user.get_user_discount_coupons()
-    
+
     # Return a JSON response with a success message and the discount coupons' information
-    response = JsonResponse({'Success': 'The user discount coupons have been successfully retrieved.','user_id':user.id, "discount_coupons":discount_coupons }, status=200)
+    response = JsonResponse({'Success': 'The user discount coupons have been successfully retrieved.',
+                            'user_id': user.id, "discount_coupons": discount_coupons}, status=200)
     add_get_params(response)
     return response

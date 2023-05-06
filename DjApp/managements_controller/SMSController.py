@@ -7,8 +7,7 @@ from DjAdvanced.settings import engine
 from DjApp.helpers import add_get_params
 
 
-
-@csrf_exempt    
+@csrf_exempt
 @require_http_methods(["POST"])
 @login_required
 def send_verification_code_with_twilio(request):
@@ -22,20 +21,17 @@ def send_verification_code_with_twilio(request):
     client = Client(account_sid, auth_token)
 
     verification = client.verify.v2.services(verify_sid) \
-    .verifications \
-    .create(to=verified_number, channel="sms")
+        .verifications \
+        .create(to=verified_number, channel="sms")
 
     print(verification.status)
 
-
-    response = JsonResponse({"message":verification.status},status=200);
+    response = JsonResponse({"message": verification.status}, status=200)
     add_get_params(response)
     return response
 
 
-
-
-@csrf_exempt    
+@csrf_exempt
 @require_http_methods(["POST"])
 @login_required
 def verify_twilio(request):
@@ -45,26 +41,26 @@ def verify_twilio(request):
     client = Client(account_sid, auth_token)
     person = request.person
     country_code = person.phone_number_id[0].country_code
-    verified_number =str(country_code) + str(person.phone_number_id[0].phone_number)
-    
+    verified_number = str(country_code) + \
+        str(person.phone_number_id[0].phone_number)
+
     data = request.data
     otp_code = data.get('otp_code')
 
     verification_check = client.verify.v2.services(verify_sid) \
-    .verification_checks \
-    .create(to=verified_number, code=otp_code)
-    
-    
+        .verification_checks \
+        .create(to=verified_number, code=otp_code)
+
     if verification_check.status != "Approved":
-        response = JsonResponse({"answer":"False","message":"The verification code is incorrect.","verification_check.status":verification_check.status},status=400)
+        response = JsonResponse({"answer": "False", "message": "The verification code is incorrect.",
+                                "verification_check.status": verification_check.status}, status=400)
         add_get_params(response)
         return response
-    
-    
+
     person.phone_verify = True
-    response = JsonResponse({"answer":"True","message":"Your phone number has been verified successfully.","verification_check.status":verification_check.status},status=200)
+    response = JsonResponse({"answer": "True", "message": "Your phone number has been verified successfully.",
+                            "verification_check.status": verification_check.status}, status=200)
     add_get_params(response)
     return response
 
     # print(verification_check.send_code_attempts)
-  

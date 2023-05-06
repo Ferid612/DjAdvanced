@@ -5,6 +5,7 @@ from google_auth_oauthlib.flow import Flow
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
+
 def google_login_callback(request):
 
     flow = Flow.from_client_config(
@@ -19,7 +20,8 @@ def google_login_callback(request):
                 "scope": ["https://www.googleapis.com/auth/userinfo.email",  "https://www.googleapis.com/auth/userinfo.profile", "openid"],
             }
         },
-        scopes=["https://www.googleapis.com/auth/userinfo.email",  "https://www.googleapis.com/auth/userinfo.profile", "openid"],
+        scopes=["https://www.googleapis.com/auth/userinfo.email",
+                "https://www.googleapis.com/auth/userinfo.profile", "openid"],
         redirect_uri='https://nebuwear.com' + reverse("google_login_callback"),
     )
 
@@ -27,12 +29,11 @@ def google_login_callback(request):
         authorization_url, state = flow.authorization_url(
             access_type="offline", include_granted_scopes="true"
         )
-        
+
         return redirect(authorization_url)
     else:
         flow.fetch_token(authorization_response=request.build_absolute_uri())
         credentials = flow.credentials
-
 
         # Retrieve the user's profile information from Google
         id_info = id_token.verify_oauth2_token(
@@ -45,7 +46,6 @@ def google_login_callback(request):
         request.session["google_credentials"] = credentials.to_json()
 
         return redirect("/")
-
 
 
 def google_logout(request):

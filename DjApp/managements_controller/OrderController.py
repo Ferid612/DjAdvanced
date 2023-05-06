@@ -2,10 +2,9 @@ from datetime import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.managements_controller.UserController import add_credit_card
-from DjApp.models import  CashPayment, CreditCard, CreditCardPayment, DiscountCoupon, DiscountCouponUser, Order, OrderItem, Payment
-from ..helpers import GetErrorDetails, add_get_params 
+from DjApp.models import CashPayment, CreditCard, CreditCardPayment, DiscountCoupon, DiscountCouponUser, Order, OrderItem, Payment
+from ..helpers import GetErrorDetails, add_get_params
 from ..decorators import login_required, require_http_methods
-
 
 
 @csrf_exempt
@@ -25,11 +24,11 @@ def CompleteOrder(request):
     """
 
     session = request.session
-    try:        
+    try:
         user = request.person.user[0]
         shopping_session = user.shopping_session[0]
         cart_items_in_order = get_cart_items_in_order(shopping_session)
-        new_order = create_order(session,user, cart_items_in_order)
+        new_order = create_order(session, user, cart_items_in_order)
         payment = create_payment(new_order, request)
         handle_credit_card_payment(payment, request)
         handle_cash_payment(session, payment)
@@ -55,16 +54,19 @@ def CompleteOrder(request):
             new_order.status = 'cancelled'
         except Exception as exc:
             print(exc)
-                    
+
         session.rollback()
         raise e
 
 
 def get_cart_items_in_order(shopping_session):
-    cart_items_in_order = [cart_item for cart_item in shopping_session.cart_items if cart_item.status == 'inOrder']
-    if len(list(cart_items_in_order))==0:
+    # sourcery skip: raise-specific-error
+    cart_items_in_order = [
+        cart_item for cart_item in shopping_session.cart_items if cart_item.status == 'inOrder']
+    if not list(cart_items_in_order):
         print("No cart items")
-        raise Exception("No items found to be purchased. Please check your basket.")
+        raise Exception(
+            "No items found to be purchased. Please check your basket.")
     return cart_items_in_order
 
 
@@ -74,36 +76,34 @@ def create_order(session, user, cart_items_in_order):
     session.add(new_order)
     session.commit()
     for cart_item in cart_items_in_order:
-        current_price = cart_item.product_entry.discount_data.get('discounted_price')
+        current_price = cart_item.product_entry.discount_data.get(
+            'discounted_price')
         total_price = total_price + current_price * cart_item.quantity
         new_order_item = OrderItem(
             order_id=new_order.id,
             product_entry_id=cart_item.product_entry.id,
             quantity=cart_item.quantity,
-            price=current_price 
+            price=current_price
         )
         session.add(new_order_item)
-    
+
     active_coupon = session.query(DiscountCoupon).join(DiscountCouponUser).filter(
-            DiscountCouponUser.user_id == user.id,
-            DiscountCouponUser.is_active == True,
-            DiscountCoupon.valid_from <= datetime.now(),
-            DiscountCoupon.valid_to >= datetime.now()
-        ).first()
-                
+        DiscountCouponUser.user_id == user.id,
+        DiscountCouponUser.is_active == True,
+        DiscountCoupon.valid_from <= datetime.now(),
+        DiscountCoupon.valid_to >= datetime.now()
+    ).first()
+
     if active_coupon is not None:
         coupon_discount = active_coupon.discount
-        new_order.discount_coupon_id = active_coupon.id        
+        new_order.discount_coupon_id = active_coupon.id
         total_price = total_price - coupon_discount
-            
+
         # Unassign the coupon from the user
         user.discount_coupons.remove(active_coupon)
         session.commit()
-        
-    
-    if total_price < 0:
-        total_price = 0
-    
+
+    total_price = max(total_price, 0)
     new_order.total_price = total_price
     session.commit()
     return new_order
@@ -117,9 +117,9 @@ def delete_items_from_cart(session, cart_items_in_order):
 
 def create_payment(new_order, request):
     session = request.session
-    
+
     payment = Payment(
-        order_id=new_order.id, 
+        order_id=new_order.id,
         amount=new_order.total_price,
         status='pending',
         payment_method=request.data.get('payment_method')
@@ -130,7 +130,6 @@ def create_payment(new_order, request):
 
 
 def handle_credit_card_payment(payment, request):
-    session = request.session
     if payment.payment_method == 'credit_card':
         credit_card_payment = CreditCardPayment(
             payment_id=payment.id,
@@ -138,6 +137,8 @@ def handle_credit_card_payment(payment, request):
             cvv=request.data.get('cvv'),
             expiration_date=request.data.get('expiration_date')
         )
+        
+        session = request.session
         session.add(credit_card_payment)
 
         if request.data.get('save_credit_card', False):
@@ -148,13 +149,12 @@ def handle_credit_card_payment(payment, request):
 def handle_saved_credit_card(request):
     user = request.person.user[0]
     saved_card = CreditCard(
-        user_id = user.id,
+        user_id=user.id,
         card_number=request.data.get('card_number'),
         cvv=request.data.get('cvv'),
         expiration_date=request.data.get('expiration_date')
     )
     user.credit_cards.append(saved_card)
-
 
 
 def handle_cash_payment(session, payment):

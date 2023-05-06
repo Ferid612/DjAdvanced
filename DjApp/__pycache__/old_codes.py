@@ -2036,6 +2036,15 @@ def add_column_to_table(request):
 #     add_get_params(response)
 #     return response
 
+class Country(Base, TimestampMixin):
+    __tablename__ = 'country'
+    id = Column(Integer, primary_key=True)
+    country_code = Column(Integer, unique=True, nullable=False)
+    country_name = Column(String, unique=True, nullable=False)
+    currency_code = Column(String,  nullable=False)
+
+    locations = relationship('Location', back_populates='country')
+    employment_jobs = relationship('EmploymentJobs', back_populates='country')
 
 
 '''

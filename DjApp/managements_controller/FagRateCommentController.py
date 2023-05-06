@@ -3,11 +3,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required, require_http_methods
 from DjApp.helpers import GetErrorDetails, add_get_params
-from ..models import  ProductComment, ProductEntry, ProductRate, ProductFag
+from ..models import ProductComment, ProductEntry, ProductRate, ProductFag
 import Levenshtein
-
-
-
 
 
 @csrf_exempt
@@ -26,15 +23,14 @@ def add_rate_to_product(request):
     # Parse request data
     data = request.data
     session = request.session
-    
+
     user_id = request.person.user[0].id
     product_entry_id = data.get('product_entry_id')
     rate_comment = data.get('rate_comment')
     rate = data.get('rate')
 
-
     product_entry = session.query(ProductEntry).get(product_entry_id)
-    
+
     # Check if all required data is present
     missing_fields = []
     if not user_id:
@@ -52,7 +48,6 @@ def add_rate_to_product(request):
         message = f'Missing data error. The following fields are required: {", ".join(missing_fields)}.'
         return JsonResponse({'message': message}, status=400)
 
-
     # Check if comment already exists, or return 404 error if found
     if session.query(ProductRate).filter_by(user_id=user_id, product_entry_id=product_entry_id).one_or_none():
         return JsonResponse({'message': 'User comment already exists.'}, status=404)
@@ -69,14 +64,12 @@ def add_rate_to_product(request):
 
     # Add the new comment to the database and commit the changes
     session.add(new_comment)
-    
-    
+
     # Return a JSON response with a success message and the comment's information
-    response = JsonResponse({'message': 'Comment added successfully.', 'comment_id': new_comment.id, 'user_id': user_id, 'product_id': product_entry_id, 'comment': rate_comment, 'rate': rate}, status=200)
+    response = JsonResponse({'message': 'Comment added successfully.', 'comment_id': new_comment.id,
+                            'user_id': user_id, 'product_id': product_entry_id, 'comment': rate_comment, 'rate': rate}, status=200)
     add_get_params(response)
     return response
-
-
 
 
 @csrf_exempt
@@ -103,36 +96,37 @@ def update_rate(request):
         rate_comment = data.get('rate')
         rate = data.get('rate')
         status = data.get('status')
-        
+
         if not (rate_id and rate_comment and rate and status):
-            response = JsonResponse({'answer': 'False', 'message': 'Missing data error. rate ID, comment text, rate and status must be filled.'}, status=400)
+            response = JsonResponse(
+                {'answer': 'False', 'message': 'Missing data error. rate ID, comment text, rate and status must be filled.'}, status=400)
             add_get_params(response)
             return response
-        
 
         # Query the comment by ID
         comment_obj = session.query(ProductRate).get(rate_id)
         if not (comment_obj and (rate.user_id == user_id)):
-            response = JsonResponse({'answer':'False', 'message':'rate not found or you do not have permission to this comment.'}, status=404)
+            response = JsonResponse(
+                {'answer': 'False', 'message': 'rate not found or you do not have permission to this comment.'}, status=404)
             add_get_params(response)
             return response
 
         # Update the comment object with the new parameters
         comment_obj.rate_comment = rate_comment
         comment_obj.rate = rate
-        
-        
+
         # Return a JSON response with a success message and the updated comment's information
-        response = JsonResponse({'answer': 'True', 'message': 'rate has been successfully updated.', 'comment_id': comment_obj.id, 'rate_comment': comment_obj.rate_comment, 'rate': comment_obj.rate, 'status': comment_obj.status}, status=200)
+        response = JsonResponse({'answer': 'True', 'message': 'rate has been successfully updated.', 'comment_id': comment_obj.id,
+                                'rate_comment': comment_obj.rate_comment, 'rate': comment_obj.rate, 'status': comment_obj.status}, status=200)
         add_get_params(response)
         return response
 
     except Exception as e:
         # Return a JSON response with an error message and the error details
-        response = GetErrorDetails('Something went wrong when updating the comment.', e, 500)
+        response = GetErrorDetails(
+            'Something went wrong when updating the comment.', e, 500)
         add_get_params(response)
         return response
-
 
 
 @csrf_exempt
@@ -150,16 +144,18 @@ def delete_rate(request):
         user_id = request.person.user[0].id
         rate_id = data.get('rate_id')
         session = request.session
-    
+
         if not (rate_id and user_id):
-            response = JsonResponse({'answer':'False', 'message':'Missing data error. rate ID must be provided.'}, status=404)            
+            response = JsonResponse(
+                {'answer': 'False', 'message': 'Missing data error. rate ID must be provided.'}, status=404)
             add_get_params(response)
             return response
-        
+
         # Check if the rate exists
         rate_obj = session.query(ProductRate).get(rate_id)
         if not (rate_obj and (rate_obj.user_id == user_id)):
-            response = JsonResponse({'answer':'False', 'message':'Comment not found or you do not have permission to this rate.'}, status=404)
+            response = JsonResponse(
+                {'answer': 'False', 'message': 'Comment not found or you do not have permission to this rate.'}, status=404)
             add_get_params(response)
             return response
 
@@ -167,16 +163,17 @@ def delete_rate(request):
         session.delete(rate_obj)
 
         # Return a JSON response with a success message
-        response = JsonResponse({"Success":"Rate deleted successfully."}, status=200)
+        response = JsonResponse(
+            {"Success": "Rate deleted successfully."}, status=200)
         add_get_params(response)
         return response
 
     except Exception as e:
         # Return a JSON response with an error message and the error details
-        response = GetErrorDetails("Something went wrong when deleting the rate.", e, 404)
+        response = GetErrorDetails(
+            "Something went wrong when deleting the rate.", e, 404)
         add_get_params(response)
         return response
-
 
 
 @csrf_exempt
@@ -194,7 +191,7 @@ def add_fag(request):
     # Get the user object associated with the request
     session = request.session
     data = request.data
-    
+
     # Get the parameters from the request
     product_entry_id = data.get('product_entry_id')
     question = data.get('question')
@@ -204,28 +201,29 @@ def add_fag(request):
     product_entry = session.query(ProductEntry).get(product_entry_id)
     if not product_entry:
         # If the product_entry doesn't exist, return an error response
-        response = JsonResponse({'answer': "Invalid product_entry id."}, status=400)
-        
+        response = JsonResponse(
+            {'answer': "Invalid product_entry id."}, status=400)
+        add_get_params(response)
         return response
 
     # Create a new fag object and add it to the product
-    fag = ProductFag(product_entry_id=product_entry.id, question=question, answer=answer, status='active')
+    fag = ProductFag(product_entry_id=product_entry.id,
+                     question=question, answer=answer, status='active')
     session.add(fag)
 
     # Return a success response
     response = JsonResponse(
         {"answer": "The fag has been added to the product_entry successfully.",
-            "product_entry_id":product_entry.id,
-            "fag_id":fag.id,
-            "question":fag.question,
-            "answer":fag.answer
-            },
+            "product_entry_id": product_entry.id,
+            "fag_id": fag.id,
+            "question": fag.question,
+            "answer": fag.answer
+         },
         status=200
     )
 
     add_get_params(response)
     return response
-
 
 
 @csrf_exempt
@@ -250,7 +248,7 @@ def update_fag(request):
     # Get the session and data from the request object
     session = request.session
     data = request.data
-    
+
     # Extract the parameters from the request data
     fag_id = data.get('fag_id')
     question = data.get('question')
@@ -262,7 +260,7 @@ def update_fag(request):
     if not fag_obj:
         # If the fag object doesn't exist, return an error response
         response = JsonResponse({'answer': "Invalid fag id."}, status=400)
-        
+
         add_get_params(response)
         return response
 
@@ -274,17 +272,16 @@ def update_fag(request):
     # Return a success response with the updated fag's details
     response = JsonResponse(
         {"answer": "The fag has been updated successfully.",
-            "fag_id":fag_obj.id,
-            "question":fag_obj.question,
-            "answer":fag_obj.answer,
-            "status":fag_obj.status
-            
-            },
+            "fag_id": fag_obj.id,
+            "question": fag_obj.question,
+            "answer": fag_obj.answer,
+            "status": fag_obj.status
+
+         },
         status=200
     )
     add_get_params(response)
     return response
-
 
 
 @csrf_exempt
@@ -306,10 +303,10 @@ def delete_fag(request):
     # Get the session and data from the request object
     session = request.session
     data = request.data
-    
+
     # Extract the parameters from the request data
     fag_id = data.get('fag_id')
- 
+
     # Get the fag object associated with the specified fag ID
     fag_obj = session.query(ProductFag).get(fag_id)
     if not fag_obj:
@@ -320,7 +317,7 @@ def delete_fag(request):
 
     # Delete the fag object from the database
     session.delete(fag_obj)
-    
+
     # Return a success response indicating that the fag has been deleted
     response = JsonResponse(
         {"answer": "The fag has been deleted successfully."},
@@ -328,7 +325,6 @@ def delete_fag(request):
     )
     add_get_params(response)
     return response
-
 
 
 @csrf_exempt
@@ -356,51 +352,53 @@ def add_comment(request):
     product_entry = session.query(ProductEntry).get(product_entry_id)
     if not product_entry:
         # If the product_entry doesn't exist, return an error response
-        response = JsonResponse({'answer': "Invalid product_entry id."}, status=400)
-        
+        response = JsonResponse(
+            {'answer': "Invalid product_entry id."}, status=400)
+        add_get_params(response)
         return response
 
     # Check if the user has already made a similar comment on this product_entry
-    comments = session.query(ProductComment).filter_by(product_entry_id=product_entry.id, person_id=person.id).all()
+    comments = session.query(ProductComment).filter_by(
+        product_entry_id=product_entry.id, person_id=person.id).all()
     for c in comments:
         if Levenshtein.distance(comment_text, c.comment_text) <= len(comment_text) * 0.4:
-            response = JsonResponse({'answer': "You have already made a similar comment on this product."}, status=400)
+            response = JsonResponse(
+                {'answer': "You have already made a similar comment on this product."}, status=400)
             return response
 
     # Create a new comment object and add it to the product
-    comment = ProductComment(product_entry_id=product_entry.id, person_id=person.id, comment_text=comment_text, status='active')
+    comment = ProductComment(product_entry_id=product_entry.id,
+                             person_id=person.id, comment_text=comment_text, status='active')
     if parent_comment_id:
         # If a parent comment ID is provided, add the comment as a child of the parent comment
         parent_comment = session.query(ProductComment).get(parent_comment_id)
         if not parent_comment:
             # If the parent comment doesn't exist, return an error response
-            response = JsonResponse({'answer': "Invalid parent comment id."}, status=400)
-            
-            return response
-        
-        comment.parent_comment_id = parent_comment.id
+            response = JsonResponse(
+                {'answer': "Invalid parent comment id."}, status=400)
 
+            return response
+
+        comment.parent_comment_id = parent_comment.id
 
     session.add(comment)
     session.commit()
     # Return a success response
     response = JsonResponse(
         {"answer": "The comment has been added to the product_entry successfully.",
-            
-            "product_entry_id":product_entry.id,
-            "comment_id":comment.id,
-            "parent_comment_id":comment.parent_comment_id,
-            "person_id":person.id,
-            "person_username":person.username,
-            "comment_text":comment.comment_text
-            },
+
+            "product_entry_id": product_entry.id,
+            "comment_id": comment.id,
+            "parent_comment_id": comment.parent_comment_id,
+            "person_id": person.id,
+            "person_username": person.username,
+            "comment_text": comment.comment_text
+         },
         status=200
     )
 
     add_get_params(response)
     return response
-
-
 
 
 @csrf_exempt
@@ -422,7 +420,7 @@ def update_comment(request):
     # Get the session and data from the request object
     session = request.session
     data = request.data
-    
+
     # Extract the parameters from the request data
     comment_id = data.get('comment_id')
     comment_text = data.get('comment_text')
@@ -438,7 +436,8 @@ def update_comment(request):
     # Check if the person making the request is the same as the person who posted the comment
     if comment_obj.person_id != request.person.id:
         # If not, return an error response
-        response = JsonResponse({'answer': "You are not authorized to update this comment."}, status=401)
+        response = JsonResponse(
+            {'answer': "You are not authorized to update this comment."}, status=401)
         add_get_params(response)
         return response
 
@@ -448,20 +447,18 @@ def update_comment(request):
     # Return a success response with the updated comment's details
     response = JsonResponse(
         {"answer": "The comment has been updated successfully.",
-            "comment_id":comment_obj.id,
-            "product_entry_id":comment_obj.product_entry_id,
-            "person_id":comment_obj.person_id,
-            "comment_text":comment_obj.comment_text,
-            "parent_comment_id":comment_obj.parent_comment_id,
-            "status":comment_obj.status
-            
-            },
+            "comment_id": comment_obj.id,
+            "product_entry_id": comment_obj.product_entry_id,
+            "person_id": comment_obj.person_id,
+            "comment_text": comment_obj.comment_text,
+            "parent_comment_id": comment_obj.parent_comment_id,
+            "status": comment_obj.status
+
+         },
         status=200
     )
     add_get_params(response)
     return response
-
-
 
 
 @csrf_exempt
@@ -482,7 +479,7 @@ def delete_comment(request):
     # Get the session and data from the request object
     session = request.session
     data = request.data
-    
+
     # Extract the parameters from the request data
     comment_id = data.get('comment_id')
 
@@ -497,7 +494,8 @@ def delete_comment(request):
     # Check if the person making the request is the same as the person who posted the comment
     if comment_obj.person_id != request.person.id:
         # If not, return an error response
-        response = JsonResponse({'answer': "You are not authorized to delete this comment."}, status=401)
+        response = JsonResponse(
+            {'answer': "You are not authorized to delete this comment."}, status=401)
         add_get_params(response)
         return response
 
@@ -507,16 +505,15 @@ def delete_comment(request):
     # Return a success response with the deleted comment's details
     response = JsonResponse(
         {"answer": "The comment has been deleted successfully.",
-            "comment_id":comment_obj.id,
-            "product_entry_id":comment_obj.product_entry_id,
-            "person_id":comment_obj.person_id,
-            "comment_text":comment_obj.comment_text,
-            "parent_comment_id":comment_obj.parent_comment_id,
-            "status":comment_obj.status
-            
-            },
+            "comment_id": comment_obj.id,
+            "product_entry_id": comment_obj.product_entry_id,
+            "person_id": comment_obj.person_id,
+            "comment_text": comment_obj.comment_text,
+            "parent_comment_id": comment_obj.parent_comment_id,
+            "status": comment_obj.status
+
+         },
         status=200
     )
     add_get_params(response)
     return response
-

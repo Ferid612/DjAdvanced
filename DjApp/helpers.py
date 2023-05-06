@@ -2,24 +2,24 @@ import os
 import uuid
 from django.utils.html import escape
 from django.http import JsonResponse
-from sqlalchemy.orm import  sessionmaker
+from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
-import json, traceback
+import json
+import traceback
 from DjAdvanced import settings
 from DjAdvanced.settings import SECRET_KEY, engine
 
 
-
-def GetErrorDetails(from_dev="Something went wrong.", e=Exception , status=400):
-    error_data= {
-        "From_dev":from_dev,
+def GetErrorDetails(from_dev="Something went wrong.", e=Exception, status=400):
+    error_data = {
+        "From_dev": from_dev,
         "An exception occurred": str(e),
-       "Type of exception": str(type(e)),
+        "Type of exception": str(type(e)),
         "Exception message": str(e.args),
-        "Traceback ":str(traceback.format_exc()),
+        "Traceback ": str(traceback.format_exc()),
     }
     traceback.print_tb(e.__traceback__)
-    response = JsonResponse(error_data,status=status)
+    response = JsonResponse(error_data, status=status)
     add_get_params(response)
     return response
 
@@ -34,7 +34,7 @@ def add_get_params(resp):
 
 @contextmanager
 def session_scope():
-    
+
     session = sessionmaker(bind=engine)()
     """Provide a transactional scope around a series of operations."""
     try:
@@ -47,8 +47,7 @@ def session_scope():
         session.close()
 
 
-
-def save_uploaded_image(image_file, path ):
+def save_uploaded_image(image_file, path):
     """
     Saves an uploaded image file to the server and returns the file path.
 
@@ -68,8 +67,6 @@ def save_uploaded_image(image_file, path ):
             destination.write(chunk)
     # Return the file path of the saved image
     return save_path
-
-
 
 
 def serializer(rows) -> list:
@@ -119,4 +116,3 @@ def input_get_list_sanitizer(request, parameter):
         data_list = request.POST.getlist(parameter)
 
     return escape_list(data_list)
-

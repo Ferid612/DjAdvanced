@@ -9,11 +9,8 @@ from ..models import EmployeeEmployeeGroupRole, Employees, Permission, Person, U
 from ..models import EmployeeRole, EmployeeGroup
 
 
-
-
-
 @csrf_exempt
-@require_http_methods(["GET","POST"])
+@require_http_methods(["GET", "POST"])
 # @login_required
 # @permission_required("Views roles and groups")
 def get_all_user_roles(request):
@@ -25,11 +22,12 @@ def get_all_user_roles(request):
 
     session = request.session
     # Retrieve all user roles from the database
-    
+
     user_roles = session.query(UserRole).all()
 
     # Serialize the user roles into a list of dictionaries
-    user_roles_list = [{'id': role.id, 'name': role.name, 'description': role.description} for role in user_roles]
+    user_roles_list = [{'id': role.id, 'name': role.name,
+                        'description': role.description} for role in user_roles]
 
     # Return a JSON response with the list of user roles
     response = JsonResponse({'user_roles': user_roles_list}, status=200)
@@ -37,15 +35,13 @@ def get_all_user_roles(request):
     return response
 
 
-
-
 @csrf_exempt
-@require_http_methods(["GET","POST"])
+@require_http_methods(["GET", "POST"])
 # @login_required
 # @permission_required("views_roles_and_groups")
 def get_all_employee_roles_groups_permissions(request):
     session = request.session
-    
+
     # Join necessary tables and retrieve relevant information
     query = session.query(
         Person.username,
@@ -67,11 +63,11 @@ def get_all_employee_roles_groups_permissions(request):
     ).group_by(
         Person.username
     )
-    
+
     # Convert query result to a list of dictionaries
     result = []
     for row in query.all():
-        
+
         item = {
             'username': row.username,
             'group_names': list(set(row.group_names)),
@@ -79,22 +75,20 @@ def get_all_employee_roles_groups_permissions(request):
             'permission_names': list(set(row.permission_names))
         }
         result.append(item)
-    
+
     # Return the list of dictionaries as a JSON response
     response = JsonResponse({'data': result}, status=200)
     add_get_params(response)
     return response
 
 
-
-
 @csrf_exempt
-@require_http_methods(["GET","POST"])
+@require_http_methods(["GET", "POST"])
 # @login_required
 # @permission_required("views_roles_and_groups")
 def get_all_user_roles_groups_permissions(request):
     session = request.session
-    
+
     # Join necessary tables and retrieve relevant information
     query = session.query(
         Person.username,
@@ -116,11 +110,11 @@ def get_all_user_roles_groups_permissions(request):
     ).group_by(
         Person.username
     )
-    
+
     # Convert query result to a list of dictionaries
     result = []
     for row in query.all():
-        
+
         item = {
             'username': row.username,
             'group_names': list(set(row.group_names)),
@@ -128,10 +122,8 @@ def get_all_user_roles_groups_permissions(request):
             'permission_names': list(set(row.permission_names))
         }
         result.append(item)
-    
+
     # Return the list of dictionaries as a JSON response
     response = JsonResponse({'data': result}, status=200)
     add_get_params(response)
     return response
-
-

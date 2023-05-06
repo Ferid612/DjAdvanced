@@ -11,33 +11,36 @@ from .MailController import create_html_message_with_token, send_verification_co
 from ..helpers import GetErrorDetails, add_get_params,  save_uploaded_image
 from ..models import Country, Employees, Location, Person, PhoneNumber, ProfilImage, Users
 from ..decorators import permission_required, login_required, require_http_methods
-from .TokenController import  generate_new_refresh_token,generate_new_access_token 
+from .TokenController import generate_new_refresh_token, generate_new_access_token
 from .MailController import send_email
 import re
 
 
 def is_valid_password(password):
+    # sourcery skip: assign-if-exp, boolean-if-exp-identity, reintroduce-else, swap-if-expression
     # Check if password is at least 8 characters long
     if len(password) < 8:
         return False
-    
+
     # Check if password contains at least one uppercase letter
     if not re.search('[A-Z]', password):
         return False
-    
+
     # Check if password contains at least one lowercase letter
     if not re.search('[a-z]', password):
         return False
-    
+
     # Check if password contains at least one digit
     if not re.search('[0-9]', password):
         return False
-    
+
     # Check if password contains at least one special character
     # if not re.search('[!@#$%^&*(),.?":{}|<>]', password):
     #     return False
-    
+
     return True
+
+
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -60,14 +63,13 @@ def create_person_registration(request):
     username = data.get('username')
     email = data.get('email')
     first_name = data.get('first_name')
+    gender = data.get('gender', None)
     last_name = data.get('last_name')
     password = data.get('password')
     user_country_code = data.get('country_code')
     phone_number = data.get('phone_number')
     person_type = data.get('person_type')
     session = request.session
-
-
 
     # Validate the new password meets the required complexity criteria
     if not is_valid_password(password):
@@ -79,45 +81,36 @@ def create_person_registration(request):
         add_get_params(response)
         return response
 
-    # Query for the country object
-    # Query for the phone number object
-    phone = session.query(PhoneNumber).filter_by(
-        phone_number=phone_number).one_or_none()
-
-    if phone:
+    if (
+         session.query(PhoneNumber)
+        .filter_by(phone_number=phone_number)
+        .one_or_none()
+    ):
         # If phone number already exists, return an error response
         response = JsonResponse(
             {'answer': "This phone number belongs to another account."}, status=400)
-    
+
         add_get_params(response)
         return response
 
 
-    # Query for the phone number object
-    user_name = session.query(Person).filter_by(
-        username=username).one_or_none()
-
-    if user_name:
+    if ( session.query(Person)
+        .filter_by(username=username)
+        .one_or_none()
+    ):
         # If phone number already exists, return an error response
         response = JsonResponse(
             {'answer': "This username belongs to another account."}, status=400)
-        
+
         add_get_params(response)
         return response
 
-
-
-    # Query for the phone number object
-    user_mail = session.query(Person).filter_by(
-        email=email).one_or_none()
-
-    if user_mail:
+    if  session.query(Person).filter_by(email=email).one_or_none():
         # If phone number already exists, return an error response
         response = JsonResponse(
             {'answer': "This user_mail belongs to another account."}, status=400)
         add_get_params(response)
         return response
-
 
     # Create a new phone number object
     new_phone = PhoneNumber(
@@ -133,69 +126,66 @@ def create_person_registration(request):
         first_name=first_name,
         last_name=last_name,
         phone_number=new_phone,
-        person_type = person_type
+        person_type=person_type
     )
 
     # Set the password for the new user object
     new_person.hash_password(password)
 
     # Generate a JWT token with a specified expiration time of 240 hours
-    
-                
 
     # Send the verification code to the user's email
     session.add(new_person)
-    
+
     # Commit the session to the database
     session.commit()
-    
+
     send_verify_status = send_verification_code(new_person.id, email)
     send_verify_status_code = send_verify_status.status_code
     send_verify_status_text = json.loads(send_verify_status.content)['answer']
 
-
-    refresh_token = generate_new_refresh_token(new_person,session).get('token')
+    refresh_token = generate_new_refresh_token(
+        new_person, session).get('token')
     access_token = generate_new_access_token(new_person.id).get('token')
 
-
-    
     # Create the appropriate user type object and add to the database
     if person_type == "user":
-    
+
         new_user = Users(person=new_person)
         session.add(new_user)
         session.commit()
 
         create_shopping_session(request)
-        
-    elif person_type == "employee":                
+
+    elif person_type == "employee":
         new_employee = Employees(person=new_person)
         session.add(new_employee)
-    
+
         session.commit()
+
+    if gender is not None:
+        new_person.gender = gender
 
     # Return a success response
     person_json = new_person.to_json()
-    person_json['access_token']=access_token
-    person_json['refresh_token']=refresh_token
+    person_json['access_token'] = access_token
+    person_json['refresh_token'] = refresh_token
     response = JsonResponse(
         {"answer": "The new account has been successfully created. Please check your email account and verify your account.",
-            "person":person_json,
-            "send_verify_status_code":send_verify_status_code,
-            "send_verify_status_text":send_verify_status_text,
-            
-            },
+            "person": person_json,
+            "send_verify_status_code": send_verify_status_code,
+            "send_verify_status_text": send_verify_status_text,
+
+         },
         status=200
     )
-    
-    response.set_cookie('person_id', new_person.id)            
-    response.set_cookie('access_token', access_token)            
+
+    response.set_cookie('person_id', new_person.id)
+    response.set_cookie('access_token', access_token)
     response.set_cookie('refresh_token', refresh_token)
-    
+
     add_get_params(response)
     return response
-
-
 
 
 @csrf_exempt
@@ -215,7 +205,7 @@ def add_or_change_person_profile_image(request):
         image_file = request.FILES.get('image')
         image_title = request.data.get("image_title")
         session = request.session
-            
+
         # Get the current person object from the request object
         person = request.person
 
@@ -226,32 +216,31 @@ def add_or_change_person_profile_image(request):
                 status=400
             )
             add_get_params(response)
-            
+
             return response
 
         # Save the image file to the server
         path = PROFIL_IMAGE_ROOT / 'persons'
-        image_path = save_uploaded_image(image_file, path )
+        image_path = save_uploaded_image(image_file, path)
 
-
-        
-        old_profil_image = session.query(ProfilImage).filter_by(person_id = person.id).one_or_none()
-        if old_profil_image:
+        if (
+            old_profil_image := session.query(ProfilImage)
+            .filter_by(person_id=person.id)
+            .one_or_none()
+        ):
             session.delete(old_profil_image)
             session.commit()
 
-
         image_data = {
-            "image_url" : image_path,                
-            "title" : image_title,     
-            "person_id" : person.id 
+            "image_url": image_path,
+            "title": image_title,
+            "person_id": person.id
         }
-        
-        profil_image = ProfilImage(**image_data)                
+
+        profil_image = ProfilImage(**image_data)
         # Commit the session to the database
         session.add(profil_image)
         session.commit()
-
 
         # Return a success response
         response = JsonResponse(
@@ -259,7 +248,7 @@ def add_or_change_person_profile_image(request):
              "person_profil_image": image_data},
             status=200
         )
-        
+
         add_get_params(response)
         return response
     except Exception as e:
@@ -267,8 +256,7 @@ def add_or_change_person_profile_image(request):
         response = GetErrorDetails(
             "Something went wrong when updating the profile image.", e, 500)
         add_get_params(response)
-        return response    
-    
+        return response
 
 
 @csrf_exempt
@@ -276,13 +264,11 @@ def add_or_change_person_profile_image(request):
 @login_required
 def add_person_address(request):
     person = request.person
-    resp = add_address_to_object(request,person)
+    resp = add_address_to_object(request, person)
     response = JsonResponse(
-    {'Success': 'The person has been successfully updated',  'resp':resp }, status=200)
+        {'Success': 'The person has been successfully updated',  'resp': resp}, status=200)
     add_get_params(response)
     return response
-
-
 
 
 @csrf_exempt
@@ -290,17 +276,15 @@ def add_person_address(request):
 @login_required
 def update_person_address(request):
     person = request.person
-    resp = update_object_address(request,person)
+    resp = update_object_address(request, person)
     response = JsonResponse(
-    {'Success': 'The person has been successfully updated',  'resp':resp }, status=200)
+        {'Success': 'The person has been successfully updated',  'resp': resp}, status=200)
     add_get_params(response)
     return response
 
 
-
-
 @csrf_exempt
-@require_http_methods(["POST","GET", "OPTIONS"])
+@require_http_methods(["POST", "GET", "OPTIONS"])
 def login(request):
     """
     This function handles user login by authenticating the user's credentials and returning a JWT token and a refresh token.
@@ -321,12 +305,10 @@ def login(request):
         # If user is not found, return an error response
         response = JsonResponse(
             {'answer': "Username and password must be include."}, status=411)
-        
+
         add_get_params(response)
         return response
-    
-    
-    
+
     # Query for the user object
     person = session.query(Person).filter_by(username=username).one_or_none()
 
@@ -334,7 +316,7 @@ def login(request):
         # If user is not found, return an error response
         response = JsonResponse(
             {'answer': "Invalid username."}, status=411)
-        
+
         add_get_params(response)
         return response
 
@@ -345,64 +327,56 @@ def login(request):
         add_get_params(response)
         return response
 
-
-
-    refresh_token = generate_new_refresh_token(person,session).get('token')
+    refresh_token = generate_new_refresh_token(person, session).get('token')
     access_token = generate_new_access_token(person.id).get('token')
-
-
 
     # Return the access token and the refresh token in the response
     person_json = person.to_json()
-    person_json['access_token']=access_token
-    person_json['refresh_token']=refresh_token
+    person_json['access_token'] = access_token
+    person_json['refresh_token'] = refresh_token
     response = JsonResponse(
         {"answer": "Login successful.",
-        'person': person_json,
-        },
+         'person': person_json,
+         },
         status=200
     )
 
-    
-    response.set_cookie('person_id', person.id)            
-    response.set_cookie('access_token', access_token)            
+    response.set_cookie('person_id', person.id)
+    response.set_cookie('access_token', access_token)
     response.set_cookie('refresh_token', refresh_token)
-    
+
     add_get_params(response)
     return response
 
 
-
 @csrf_exempt
-@require_http_methods(["POST","GET"])
+@require_http_methods(["POST", "GET"])
 @login_required
 def logout(request):
     """
     This function handles user login by authenticating the user's credentials and returning a JWT token.
-    
+
     """
     # Get the parameters from the request object
     data = request.data
     person = request.person
     session = request.session
 
-    refresh_token = generate_new_refresh_token(person,session).get('token')
+    refresh_token = generate_new_refresh_token(person, session).get('token')
 
     # Return a success response
     response = JsonResponse({
-        "answer": "Logout successfuly.",          
+        "answer": "Logout successfuly.",
         'person': '',
         "access_token": '',
-        "refresh_token": ''},status=200)
-    
-    response.set_cookie('person_id', '')            
-    response.set_cookie('access_token', '')            
+        "refresh_token": ''}, status=200)
+
+    response.set_cookie('person_id', '')
+    response.set_cookie('access_token', '')
     response.set_cookie('refresh_token', '')
-    
+
     add_get_params(response)
     return response
-
-
 
 
 @csrf_exempt
@@ -412,21 +386,18 @@ def change_password(request):
 
     data = request.data
     person = request.person
-    
+
     confirm_new_password = data.get('confirm_new_password')
     new_password = data.get('new_password')
     current_password = data.get('current_password')
-
 
     if not person.verify_password(current_password):
         # If password is incorrect, return an error response
         response = JsonResponse(
             {'answer': "Invalid current_password password."}, status=401)
 
-
         add_get_params(response)
         return response
-
 
     # Validate the new password meets the required complexity criteria
     if not is_valid_password(new_password):
@@ -434,37 +405,38 @@ def change_password(request):
             {"error": "The new password does not meet the required complexity criteria."},
             status=400
         )
-        
+
         add_get_params(response)
         return response
-    
+
     if confirm_new_password != new_password:
         response = JsonResponse(
             {"error": "The new password does not meet the confirm new password."},
             status=400
         )
-        
+
         add_get_params(response)
         return response
-    
-    
+
     # Change user password
     person.hash_password(new_password)
-    
-    reset_link = request.build_absolute_uri('/send_password_reset_link/?email=' + person.email)
-    
-    body_html_message_with_token = create_html_message_with_token(token_with_url = reset_link, 
-                                                                      header_text = 'Your password has changed', 
-                                                                      header_details_text = "Your password has changed. Get password reset link if you haven't.",
-                                                                      link_text = "Send me the password reset link")
-        
-    send_email(person.email, "Your password has changed.", body_html_message_with_token)
 
+    reset_link = request.build_absolute_uri(
+        f'/send_password_reset_link/?email={person.email}'
+    )
+
+    body_html_message_with_token = create_html_message_with_token(token_with_url=reset_link,
+                                                                  header_text='Your password has changed',
+                                                                  header_details_text="Your password has changed. Get password reset link if you haven't.",
+                                                                  link_text="Send me the password reset link")
+
+    send_email(person.email, "Your password has changed.",
+               body_html_message_with_token)
 
     # Generate new access and refresh tokens for the user
-    refresh_token = generate_new_refresh_token(person, request.session).get('token')
+    refresh_token = generate_new_refresh_token(
+        person, request.session).get('token')
     access_token = generate_new_access_token(person.id).get('token')
-
 
     # Create a response object with the new access and refresh tokens
     response = JsonResponse(
@@ -485,9 +457,8 @@ def change_password(request):
     # Add GET parameters to the response for easier debugging
     add_get_params(response)
     return response
-    
-    
-    
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
@@ -509,31 +480,32 @@ def update_person(request):
         ValueError: If the required request parameters are missing or invalid.
         PermissionDenied: If the requesting user does not have permission to update the specified user.
     """
-    
+
     # Extract required parameters from the request
-    data = request.data # get the data from the request
-    session = request.session # get the session from the request
-    person = request.person # get the person object from the request
-    new_values = data.get('new_values') # get the new_values from the data
+    data = request.data  # get the data from the request
+    session = request.session  # get the session from the request
+    person = request.person  # get the person object from the request
+    new_values = data.get('new_values')  # get the new_values from the data
 
     # Check that required parameters are present and valid
-    if not new_values: # check if new_values are missing
+    if not new_values:  # check if new_values are missing
         response = JsonResponse(
             {'answer': 'new_values are required fields'}, status=400)
         add_get_params(response)
         return response
-    
-    
+
     # Check if any of the disallowed columns are being updated
     # Update user object with new values
-    not_allowed_column = ['id','active','phone_verify','phone_number_id','location_id','person_type','_password','password','token']  # set of columns that cannot be updated through this endpoint
+    not_allowed_column = ['id', 'active', 'phone_verify', 'phone_number_id', 'location_id', 'person_type', '_password',
+                          'password', 'token', 'refresh_token_id']  # set of columns that cannot be updated through this endpoint
     check_change_email = False  # initialize flag for email change
     old_email = person.email  # get old email of person
-    for index, new_value in enumerate(new_values): # iterate through new_values
-        for column_name, value in new_value.items(): # iterate through the columns in the new_value
+    # iterate through new_values
+    for index, new_value in enumerate(new_values):
+        for column_name, value in new_value.items():  # iterate through the columns in the new_value
             if column_name in not_allowed_column:  # check if the column is disallowed
                 response = JsonResponse(
-                {'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
+                    {'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
                 add_get_params(response)
                 return response
 
@@ -541,59 +513,56 @@ def update_person(request):
                 check_change_email = True
 
             print(f"{column_name}:{value}")
-            setattr(person, column_name, value) # set the new value of the column in the person object
-
+            # set the new value of the column in the person object
+            setattr(person, column_name, value)
 
     """Handle special case where email is being updated"""
 
     if check_change_email:     # if email is being updated
-        return email_replacement_process(person,old_email)
+        return email_replacement_process(person, old_email)
     # Handle case where email is not being updated
-    
+
     response = JsonResponse(
         {'Success': 'The person has been successfully updated'}, status=200)
     add_get_params(response)
     return response
 
 
+def email_replacement_process(person, old_email):
+    header_text = 'Your Delta E-commerce account email has been changed.'
+    header_details_text = f'Your Delta E-commerce account email has been changed from {old_email} to {person.email}. If you did not do this, please ensure the security. Get your account back.'
+    link_text = 'Get account back!'
+    extra_variables = f'&email={old_email}'
 
-def email_replacement_process(person,old_email):
-        person_id = person.id
-        header_text = f'Your Delta E-commerce account email has been changed.'
-        header_details_text = f'Your Delta E-commerce account email has been changed from {old_email} to {person.email}. If you did not do this, please ensure the security. Get your account back.'
-        link_text = 'Get account back!'
-        extra_variables = '&email=' + old_email 
-        
-        
-        reset_token = generate_new_access_token(person_id,minutes=1440).get('token')
-        
-        token_with_url = str(HOST_URL) + '/give_reset_password_permission/?reset_token=' + reset_token + extra_variables
-    
-    
-        body_html_message_with_token = create_html_message_with_token(token_with_url = token_with_url, 
-                                                                      header_text = header_text, 
-                                                                      header_details_text = header_details_text,
-                                                                      link_text = link_text)
-        
-        send_email(old_email, "Your email has been changed", body_html_message_with_token)
-        person.active = False
-        
-        
-        
-        send_verification_code(person_id,person.email)
-        print(f"Your email changed from {old_email} to {person.email}. Please verify your new email.")
-        response = JsonResponse(
+    person_id = person.id
+    reset_token = generate_new_access_token(
+        person_id, minutes=1440).get('token')
+
+    token_with_url = f'{str(HOST_URL)}/give_reset_password_permission/?reset_token={reset_token}{extra_variables}'
+
+    body_html_message_with_token = create_html_message_with_token(token_with_url=token_with_url,
+                                                                  header_text=header_text,
+                                                                  header_details_text=header_details_text,
+                                                                  link_text=link_text)
+
+    send_email(old_email, "Your email has been changed",
+               body_html_message_with_token)
+    person.active = False
+
+    send_verification_code(person_id, person.email)
+    print(
+        f"Your email changed from {old_email} to {person.email}. Please verify your new email.")
+    response = JsonResponse(
         {
-        'answer': 'The person has been successfully updated',
-         'about_email':f"Your email changed from {old_email} to {person.email}. Please verify your new email."
-        }, status=200)        
-        add_get_params(response)
-        return response
-
+            'answer': 'The person has been successfully updated',
+            'about_email': f"Your email changed from {old_email} to {person.email}. Please verify your new email."
+        }, status=200)
+    add_get_params(response)
+    return response
 
 
 @csrf_exempt
-@require_http_methods(["POST","GET"])
+@require_http_methods(["POST", "GET"])
 def send_password_reset_link(request):
     """
     POST request to send a password reset link to a user's email address.
@@ -608,7 +577,7 @@ def send_password_reset_link(request):
     data = request.data
     email = data.get('email')
     session = request.session
-        
+
     # Query for the user object associated with the email address
     person = session.query(Person).filter_by(email=email).one_or_none()
 
@@ -616,19 +585,22 @@ def send_password_reset_link(request):
         # If user is not found, return an error response
         response = JsonResponse(
             {'answer': "No user account associated with this email address."}, status=400)
-        
+
         add_get_params(response)
         return response
 
     # Construct the password reset link
-    reset_token = generate_new_access_token(person.id, minutes=1440).get('token')
-    reset_link = request.build_absolute_uri('/give_reset_password_permission/?reset_token=' + reset_token)
+    reset_token = generate_new_access_token(
+        person.id, minutes=1440).get('token')
+    reset_link = request.build_absolute_uri(
+        f'/give_reset_password_permission/?reset_token={reset_token}'
+    )
 
     # Send the password reset link to the user's email
     send_email(
         email,
         'Password reset link',
-        'Please use the following link to reset your password: ' + reset_link,
+        f'Please use the following link to reset your password: {reset_link}',
     )
 
     # Indicate that the email was sent successfully
@@ -642,7 +614,6 @@ def send_password_reset_link(request):
     )
     add_get_params(response)
     return response
-
 
 
 @csrf_exempt
@@ -664,34 +635,33 @@ def give_reset_password_permission(request):
         email = data.get('email')
         # Start a new database session
         session = request.session
-        
-        
-        
 
         # Decode the reset token to extract the person ID
-        decoded_token = jwt.decode(reset_token, SECRET_KEY, algorithms=["HS256"])
+        decoded_token = jwt.decode(
+            reset_token, SECRET_KEY, algorithms=["HS256"])
         person_id = decoded_token.get('person_id')
 
-    
         # Query for the user object associated with the person ID
         person = session.query(Person).get(person_id)
 
         # If user is not found, return an error response
         if not person:
-            response = JsonResponse({'answer': "No person account associated with this username."}, status=400)
+            response = JsonResponse(
+                {'answer': "No person account associated with this username."}, status=400)
             add_get_params(response)
             return response
 
         if email:
             person.email = email
 
-
         # Generate new access and refresh tokens for the user
-        refresh_token = generate_new_refresh_token(person, session).get('token')
+        refresh_token = generate_new_refresh_token(
+            person, session).get('token')
         access_token = generate_new_access_token(person.id).get('token')
 
         # Return the access token and the refresh token in the response
-        response = JsonResponse({"answer": "Input new password.", "access_token": access_token, "refresh_token": refresh_token}, status=200)
+        response = JsonResponse({"answer": "Input new password.",
+                                "access_token": access_token, "refresh_token": refresh_token}, status=200)
 
         # Set the access and refresh tokens as cookies in the response
         response.set_cookie('person_id', person.id)
@@ -704,10 +674,10 @@ def give_reset_password_permission(request):
 
     except Exception as e:
         # Return an error response if there was an error decoding the reset token
-        response = JsonResponse({"error": "Something went wrong when resetting your password.", "details": str(e)}, status=400)
+        response = JsonResponse(
+            {"error": "Something went wrong when resetting your password.", "details": str(e)}, status=400)
         add_get_params(response)
         return response
-
 
 
 @csrf_exempt
@@ -733,7 +703,7 @@ def reset_password(request):
     # Get the user object associated with the request
 
     # Update the user's password in the database
-    
+
     person = request.person
 
     # Validate the new password meets the required complexity criteria
@@ -742,7 +712,7 @@ def reset_password(request):
             {"error": "The new password does not meet the required complexity criteria."},
             status=400
         )
-        
+
         add_get_params(response)
         return response
 
@@ -752,16 +722,18 @@ def reset_password(request):
             {"error": "The new password is not the same as the confirmation password."},
             status=400
         )
-        
+
         add_get_params(response)
         return response
 
     person.hash_password(new_password)
 
-    send_email(person.email,"Your password has changed.","Your new password has been successfully reset.")
+    send_email(person.email, "Your password has changed.",
+               "Your new password has been successfully reset.")
 
     # Generate new access and refresh tokens for the user
-    refresh_token = generate_new_refresh_token(person, request.session).get('token')
+    refresh_token = generate_new_refresh_token(
+        person, request.session).get('token')
     access_token = generate_new_access_token(person.id).get('token')
 
     # Create a response object with the new access and refresh tokens
@@ -786,7 +758,6 @@ def reset_password(request):
     return response
 
 
-
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
@@ -795,10 +766,8 @@ def change_null_password(request):
     # Start a database session
     session = request.session
 
-
     # Select all rows where username is empty
-    empty_usernames = session.query(Person).filter(
-        Person._password == None).all()
+    empty_usernames = session.query(Person).filter(Person._password is None).all()
 
     # Generate random word as new username
     for empty_username in empty_usernames:
@@ -809,4 +778,3 @@ def change_null_password(request):
         {'message': "Change null password process succesfully completed"})
     add_get_params(response)
     return response
-
