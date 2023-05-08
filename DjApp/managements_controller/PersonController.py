@@ -5,11 +5,11 @@ import datetime
 import json
 import jwt
 from DjApp.managements_controller.ShoppingController import create_shopping_session
-from DjAdvanced.settings import HOST_URL, PROFIL_IMAGE_ROOT, engine, SECRET_KEY
-from DjApp.managements_controller.LocationController import add_address_to_object, update_object_address
+from DjAdvanced.settings import HOST_URL, PROFIL_IMAGE_ROOT, SECRET_KEY
+from DjApp.managements_controller.LocationController import  create_address_object, update_object_address
 from .MailController import create_html_message_with_token, send_verification_code
 from ..helpers import GetErrorDetails, add_get_params,  save_uploaded_image
-from ..models import Country, Employees, Location, Person, PhoneNumber, ProfilImage, Users
+from ..models import Employees, Location, Person, PhoneNumber, ProfilImage, Users
 from ..decorators import permission_required, login_required, require_http_methods
 from .TokenController import generate_new_refresh_token, generate_new_access_token
 from .MailController import send_email
@@ -262,25 +262,37 @@ def add_or_change_person_profile_image(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-def add_person_address(request):
+def create_or_update_person_address(request):
     person = request.person
-    resp = add_address_to_object(request, person)
+    session = request.session
+    data = request.data
+    if person.location:
+        address_obj = update_object_address(person.location, data)
+    else:
+        address_obj = create_address_object(session, data)
+    
+    person.location = address_obj
+    session.commit()
+
     response = JsonResponse(
-        {'Success': 'The person has been successfully updated',  'resp': resp}, status=200)
+        {'Success': 'The person has been successfully updated',  
+         'person_id':person.id,
+         'new_address_obj_json': address_obj.to_json(), 
+         }, status=200)
     add_get_params(response)
     return response
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-@login_required
-def update_person_address(request):
-    person = request.person
-    resp = update_object_address(request, person)
-    response = JsonResponse(
-        {'Success': 'The person has been successfully updated',  'resp': resp}, status=200)
-    add_get_params(response)
-    return response
+# @csrf_exempt
+# @require_http_methods(["POST"])
+# @login_required
+# def update_person_address(request):
+#     person = request.person
+#     resp = update_object_address(request, person)
+#     response = JsonResponse(
+#         {'Success': 'The person has been successfully updated',  'resp': resp}, status=200)
+#     add_get_params(response)
+#     return response
 
 
 @csrf_exempt

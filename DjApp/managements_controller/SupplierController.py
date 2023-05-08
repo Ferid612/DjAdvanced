@@ -1,9 +1,9 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from DjAdvanced.settings import PROFIL_IMAGE_ROOT
-from DjApp.managements_controller.LocationController import add_address_to_object, update_object_address
+from DjApp.managements_controller.LocationController import create_address_object, update_object_address
 from ..helpers import GetErrorDetails, add_get_params, save_uploaded_image
-from ..models import Country,  PhoneNumber, ProfilImage, Supplier
+from ..models import PhoneNumber, ProfilImage, Supplier
 from ..decorators import permission_required, login_required, require_http_methods
 
 
@@ -42,7 +42,8 @@ def registration_of_supplier(request):
         return response
     # check exist phone number
     if (
-         session.query(PhoneNumber).filter_by(phone_number=phone_number).one_or_none()
+        session.query(PhoneNumber).filter_by(
+            phone_number=phone_number).one_or_none()
     ):
         # If phone number already exists, return an error response
         response = JsonResponse(
@@ -282,13 +283,28 @@ def delete_supplier(request):
 # @login_required
 # @permission_required('manage_supplier')
 def add_supplier_address(request):
+    
     supplier_name = request.data.get("supplier_name")
     supplier = request.session.query(
         Supplier).filter_by(name=supplier_name).first()
-    resp = add_address_to_object(request, supplier)
+
+
+
+    session = request.session
+    data = request.data
+    if supplier.location:
+        address_obj = update_object_address(supplier.location, data)
+    else:
+        address_obj = create_address_object(session, data)
+        
+    supplier.location = address_obj
+    session.commit()
 
     response = JsonResponse(
-        {'answer': 'The addres has been successfully applied to supplier', 'resp': resp}, status=200)
+        {'answer': 'The addres has been successfully applied to supplier',
+         'supplier_id': supplier.id,
+         'new_address_obj_json': address_obj.to_json(),
+         }, status=200)
     add_get_params(response)
     return response
 

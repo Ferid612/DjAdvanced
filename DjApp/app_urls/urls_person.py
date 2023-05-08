@@ -20,26 +20,34 @@ urlpatterns = [
 
 
     # MANAGMENT PERSONS
+
     path('create-person-registration/', PersonController.create_person_registration,
          name="create-person-registration"),
+
     path('add-or-change-person-profile-image/', PersonController.add_or_change_person_profile_image,
          name="add-or-change-person-profile-image"),
+
     path('login/', PersonController.login,
          name="login"),
+
     path('change-password/', PersonController.change_password,
          name="change-password"),
+
     path('update-person/', PersonController.update_person,
          name="update-person"),
-    path('add-person-address/', PersonController.add_person_address,
-         name="add-person-address"),
-    path('update-person-address/', PersonController.update_person_address,
+
+    path('update-person-address/', PersonController.create_or_update_person_address,
          name="update-person-address"),
+
     path('change-null-passwords/', PersonController.change_null_password,
          name="change-null-passwords"),
+
     path('send-password-reset-link/', PersonController.send_password_reset_link,
          name="send-password-reset-link"),
+
     path('give-reset-password-permission/', PersonController.give_reset_password_permission,
          name="give-reset-password-permission"),
+
     path('reset-password/', PersonController.reset_password,
          name="reset-password"),
 

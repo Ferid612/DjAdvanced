@@ -22,7 +22,7 @@ def get_person(request):
     - last_name
     - telephone
     - created_at
-    - modified_at   
+    - update_at   
     - active
     - phone_verify
     """
@@ -60,7 +60,7 @@ def get_person_data_by_username(request):
     - last_name
     - telephone
     - created_at
-    - modified_at
+    - update_at
     - active
     - phone_verify
     """

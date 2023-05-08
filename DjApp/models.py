@@ -35,12 +35,28 @@ class Location(Base, TimestampMixin):
     
     addres_line_1 = Column(EncryptedType(String, 'AES'), nullable=False)
     district = Column(EncryptedType(String, 'AES'))
-    postal_code = Column(EncryptedType(Integer, 'AES'), nullable=False)
+    postal_code = Column(EncryptedType(String, 'AES'), nullable=False)
     description = Column(EncryptedType(String, 'AES'))
 
     persons = relationship('Person', back_populates='location')
     employment_jobs = relationship('EmploymentJobs', back_populates='location')
     supplier = relationship('Supplier', back_populates='location')
+
+    def to_json(self):
+        return {
+                "id": self.id,
+                "country_name": self.country_name,
+                "country_short_name": self.country_short_name,
+                "currency_code": self.currency_code,
+                "currency_symbol": self.currency_symbol,
+                "country_phone_code": self.country_phone_code,
+                "city": self.city,
+                "state": self.state,
+                "addres_line_1": self.addres_line_1,
+                "district": self.district,
+                "postal_code": self.postal_code,
+                "description": self.description,
+        }
 
 
 class PhoneNumber(Base, TimestampMixin):
