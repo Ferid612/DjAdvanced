@@ -267,7 +267,7 @@ def create_or_update_person_address(request):
     session = request.session
     data = request.data
     if person.location:
-        address_obj = update_object_address(person.location, data)
+        address_obj = update_object_address(session, person.location, data)
     else:
         address_obj = create_address_object(session, data)
     
@@ -283,16 +283,7 @@ def create_or_update_person_address(request):
     return response
 
 
-# @csrf_exempt
-# @require_http_methods(["POST"])
-# @login_required
-# def update_person_address(request):
-#     person = request.person
-#     resp = update_object_address(request, person)
-#     response = JsonResponse(
-#         {'Success': 'The person has been successfully updated',  'resp': resp}, status=200)
-#     add_get_params(response)
-#     return response
+
 
 
 @csrf_exempt

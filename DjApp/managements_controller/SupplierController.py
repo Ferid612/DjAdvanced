@@ -282,7 +282,7 @@ def delete_supplier(request):
 @require_http_methods(["POST"])
 # @login_required
 # @permission_required('manage_supplier')
-def add_supplier_address(request):
+def update_supplier_address(request):
     
     supplier_name = request.data.get("supplier_name")
     supplier = request.session.query(
@@ -293,7 +293,7 @@ def add_supplier_address(request):
     session = request.session
     data = request.data
     if supplier.location:
-        address_obj = update_object_address(supplier.location, data)
+        address_obj = update_object_address(session, supplier.location, data)
     else:
         address_obj = create_address_object(session, data)
         
@@ -305,27 +305,5 @@ def add_supplier_address(request):
          'supplier_id': supplier.id,
          'new_address_obj_json': address_obj.to_json(),
          }, status=200)
-    add_get_params(response)
-    return response
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-# @login_required
-# @permission_required('manage_supplier')
-def update_supplier_address(request):
-    """
-    This function is used to update an existing user_adres in the database.
-    Parameters:
-        new_values (Dict[str, Union[str, float]]): A dictionary of the new values for the product. The keys in the dictionary should correspond to the names of the columns in the 'userAddres' table, and the values should be the new values for each column.
-    """
-
-    supplier_name = request.data.get("supplier_name")
-    supplier = request.session.query(
-        Supplier).filter_by(name=supplier_name).first()
-    resp = update_object_address(request, supplier)
-
-    response = JsonResponse(
-        {'Success': 'The person address has been successfully updated'}, status=200)
     add_get_params(response)
     return response

@@ -7,42 +7,59 @@ urlpatterns = [
 
     # VIEWS inventory
     path('product/<int:product_id>/', views_product.get_product, name='product'),
+    
     path('product/<int:product_id>/<int:product_entry_id>/',
          views_product.get_product, name='product-entry'),
+    
     path('product/entry/<int:product_entry_id>/',
          views_product.get_product_entry, name='product-entry-details'),
+    
     path('product/entries/<int:count>/<int:offset>/',
          views_product.get_entries, name='get-entries'),
+    
     path('product/card-entry/<int:product_entry_id>/',
          views_product.get_product_entry_for_card, name='product-entry-for-card'),
 
+    
     path('category/<int:category_id>/products/',
          views_category.get_products_by_category, name='products-by-category'),
+    
     path('category/<int:category_id>/products/<int:product_id>/',
          views_category.get_products_by_category, name='products-by-category-entry'),
+    
     path('category/<int:category_id>/products/<int:product_id>/<int:product_entry_id>/',
          views_category.get_products_by_category, name='products-by-category-entry-detail'),
 
+    
     path('category/<int:category_id>/products/all/',
          views_category.get_products_in_category, name='products-in-category'),
+    
     path('category/<int:category_id>/products/all/<int:product_id>/',
          views_category.get_products_in_category, name='products-in-category-detail'),
+    
     path('categories/', views_category.get_categories, name='categories'),
 
+    
     path('category/<int:category_id>/subcategories/',
          views_category.get_subcategory_categories, name='subcategory-categories'),
+    
     path('category/<int:category_id>/first-subcategories/',
          views_category.get_first_subcategory_categories, name='first-subcategory-categories'),
+    
     path('supplier/<int:supplier_id>/products/',
          views_supplier.get_all_products_by_supplier, name='products-by-supplier'),
 
 
     # Category URLs +++++
+    
     path('categories/add/', CategoryController.add_category, name="add_category"),
+    
     path('categories/<int:category_id>/subcategories/add/',
          CategoryController.add_subcategories, name="add-subcategory"),
+    
     path('categories/<int:category_id>/update/',
          CategoryController.update_category, name="update-category"),
+    
     path('categories/<int:category_id>/delete/',
          CategoryController.delete_category, name="delete-category"),
 

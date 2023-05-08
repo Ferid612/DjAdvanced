@@ -10,29 +10,43 @@ from passlib.context import CryptContext
 
 Base = declarative_base()
 
-
 class TimestampMixin:
     created_at = Column(DateTime, nullable=False, server_default='now()')
     updated_at = Column(DateTime, nullable=False,
                         server_default='now()', onupdate='now()')
     deleted_at = Column(DateTime, nullable=True)
 
+class Country(Base, TimestampMixin):
+    __tablename__ = 'country'
+    id = Column(Integer, primary_key=True)
+
+    name = Column(String, nullable=False)
+    short_name = Column(String, nullable=False)
+    currency_code = Column(String,  nullable=False)
+    currency_symbol = Column(String,  nullable=False)
+    phone_code = Column(Integer, nullable=False)
+
+    locations = relationship('Location', back_populates='country')
+
+    def to_json(self):
+        return {
+                "id": self.id,
+                "name": self.name,
+                "short_name": self.short_name,
+                "currency_code": self.currency_code,
+                "currency_symbol": self.currency_symbol,
+                "phone_code": self.phone_code,
+        }
+
 
 
 class Location(Base, TimestampMixin):
     __tablename__ = 'location'
     id = Column(Integer, primary_key=True)    
-    
-    country_name = Column(String, nullable=False)
-    country_short_name = Column(String, nullable=False)
-    
-    currency_code = Column(String,  nullable=False)
-    currency_symbol = Column(String,  nullable=False)
-    country_phone_code = Column(Integer, nullable=False)
-    
+    country_id = Column(Integer, ForeignKey('country.id'), nullable=False)
+
     city = Column(EncryptedType(String, 'AES'), nullable=False)
     state = Column(EncryptedType(String, 'AES'), nullable=False)
-    
     addres_line_1 = Column(EncryptedType(String, 'AES'), nullable=False)
     district = Column(EncryptedType(String, 'AES'))
     postal_code = Column(EncryptedType(String, 'AES'), nullable=False)
@@ -41,15 +55,13 @@ class Location(Base, TimestampMixin):
     persons = relationship('Person', back_populates='location')
     employment_jobs = relationship('EmploymentJobs', back_populates='location')
     supplier = relationship('Supplier', back_populates='location')
+    country = relationship('Country', back_populates='locations')
 
     def to_json(self):
         return {
                 "id": self.id,
-                "country_name": self.country_name,
-                "country_short_name": self.country_short_name,
-                "currency_code": self.currency_code,
-                "currency_symbol": self.currency_symbol,
-                "country_phone_code": self.country_phone_code,
+                "country_id": self.country_id,
+                "country_name": self.country.name,
                 "city": self.city,
                 "state": self.state,
                 "addres_line_1": self.addres_line_1,
@@ -57,6 +69,7 @@ class Location(Base, TimestampMixin):
                 "postal_code": self.postal_code,
                 "description": self.description,
         }
+
 
 
 class PhoneNumber(Base, TimestampMixin):

@@ -8,19 +8,22 @@ urlpatterns = [
     # VIEWS PERSONS
     path('get-person/', views_person.get_person,
          name="get-person"),
+    
     path('get-person-by-username/',
          views_person.get_person_data_by_username,
          name="get-person-by-name"),
+    
     path('get-all-persons-data/',
          views_person.get_all_persons_data,
          name="get-user-info"),
+    
     path('profil-images/<int:image_id>/',
          views_person.get_person_profil_image,
          name='get-profil-image'),
 
 
     # MANAGMENT PERSONS
-
+    
     path('create-person-registration/', PersonController.create_person_registration,
          name="create-person-registration"),
 

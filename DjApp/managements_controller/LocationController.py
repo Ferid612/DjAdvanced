@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import datetime
 from ..helpers import GetErrorDetails, add_get_params
-from ..models import Location
+from ..models import Country, Location
 from ..decorators import permission_required, login_required, require_http_methods
 from .TokenController import generate_new_refresh_token, generate_new_access_token
 from .MailController import send_email
@@ -31,12 +31,7 @@ def create_address_object(session, data):
 
     # Get the parameters from the request object
     
-    country_name = data.get('country_name')
-    country_short_name = data.get('country_short_name')
-    
-    currency_code = data.get('currency_code')
-    currency_symbol = data.get('currency_symbol')
-    country_phone_code = data.get('country_phone_code')
+
     
     state = data.get('state')
     city = data.get('city')
@@ -47,21 +42,42 @@ def create_address_object(session, data):
     description = data.get('description')
 
 
+    country_name = data.get('country_name')
+    
     if not (addres_line_1 and city and country_name and state and postal_code):
         response = JsonResponse(
             {'answer': 'False', 'message': 'Missing data error. Addres line 1, City, State, Postal Code F and Telephone section must be filled'}, status=404)
         add_get_params(response)
         return response
 
+    if(
+        country := session.query(Country).filter_by(name = country_name).first()
+    ):
+        
+        country_id = country.id
+    else:
+        
+        country_short_name = data.get('country_short_name')
+        country_currency_code = data.get('currency_code')
+        country_currency_symbol = data.get('currency_symbol')
+        country_phone_code = data.get('country_phone_code')
+    
+        new_country = Country(
+            name = country_name,
+            short_name = country_short_name,
+            currency_code = country_currency_code,
+            currency_symbol = country_currency_symbol,
+            phone_code = country_phone_code,
+        )
+        session.add(new_country)
+        session.commit()
+        
+        country_id = new_country.id 
 
 
     # Create a new address object with the given parameters
     new_address = Location(
-        country_name = country_name,
-        country_short_name = country_short_name,
-        country_phone_code = country_phone_code,
-        currency_code = currency_code,
-        currency_symbol = currency_symbol,
+        country_id = country_id,
         state = state,
         city = city,
         addres_line_1 = addres_line_1,
@@ -83,13 +99,40 @@ def create_address_object(session, data):
 
 
 @csrf_exempt
-def update_object_address(obj_address, data):
+def update_object_address(session, obj_address, data ):
     """ 
     This function is used to update an existing user_adres in the database.
     Parameters:
         new_values (Dict[str, Union[str, float]]): A dictionary of the new values for the product. The keys in the dictionary should correspond to the names of the columns in the 'userAddres' table, and the values should be the new values for each column.
     """
-
+    
+    
+    if country_name := data.get('country_name'):
+        if(
+            country := session.query(Country).filter_by(name = country_name).first()
+        ):
+            
+            country_id = country.id
+        else:
+            
+            country_short_name = data.get('country_short_name')
+            country_currency_code = data.get('currency_code')
+            country_currency_symbol = data.get('currency_symbol')
+            country_phone_code = data.get('country_phone_code')
+        
+            new_country = Country(
+                name = country_name,
+                short_name = country_short_name,
+                currency_code = country_currency_code,
+                currency_symbol = country_currency_symbol,
+                phone_code = country_phone_code,
+            )
+            session.add(new_country)
+            session.commit()
+            
+            country_id = new_country.id 
+        
+        obj_address.country_id = country_id        
 
     if not data:
         response = JsonResponse(
