@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import include, path
 from DjApp.app_urls import urls_fag_question_comment
 from DjApp.app_urls import urls_supplier, urls_inventory, urls_person, urls_discount, urls_wishlist 
-from DjApp.app_urls import urls_roles_and_groups, urls_mail, urls_sms, urls_location,urls_shopping, urls_apis, urls_google_auth
+from DjApp.app_urls import urls_roles_and_groups, urls_mail, urls_sms, urls_location,urls_shopping, urls_apis, urls_google_auth, urls_search
 
 
 urlpatterns = [
@@ -33,7 +33,9 @@ urlpatterns = [
          name="apis-urls"),
     path('google_auth/', include(urls_google_auth),
          name="Google Authentication"),
-
+    
+    path('search/', include(urls_search), 
+         name="Search Product"),
 
     
     # path("", views_auth0_2.home,
