@@ -21,6 +21,10 @@ urlpatterns = [
          views_person.get_person_profil_image,
          name='get-profil-image'),
 
+     path('address/',
+         views_person.get_person_address,
+         name='get-person-address'),
+
 
     # MANAGMENT PERSONS
     

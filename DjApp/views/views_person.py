@@ -131,3 +131,26 @@ def get_person_profil_image(request, image_id):
     )
     add_get_params(response)
     return response
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST", "OPTIONS"])
+@login_required
+def get_person_address(request):
+    
+    person_location = request.person.location 
+    if not person_location:
+        # If user is not found, return an error response
+        response = JsonResponse(
+            {'answer': "Person location don't exist."}, status=501)
+        add_get_params(response)
+        return response
+
+
+    # Return a success response
+    response = JsonResponse(
+        {"person_location": person_location.to_json()},
+        status=200
+    )
+    add_get_params(response)
+    return response
