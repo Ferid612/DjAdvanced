@@ -344,9 +344,9 @@ def login(request):
         status=200
     )
 
-    response.set_cookie('person_id', person.id)
-    response.set_cookie('access_token', access_token)
-    response.set_cookie('refresh_token', refresh_token)
+    response['Set-Cookie'] = f"person_id={person.id}; path=/;"
+    response['Set-Cookie'] = f"access_token={access_token}; path=/;"
+    response['Set-Cookie'] = f"refresh_token={refresh_token}; path=/;"
 
     add_get_params(response)
     return response
