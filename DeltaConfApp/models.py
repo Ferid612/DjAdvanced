@@ -1,12 +1,7 @@
-import os
-import sys
-
-from sqlalchemy import CheckConstraint, ForeignKeyConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String,DECIMAL
+from sqlalchemy import DateTime, Float, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from DjAdvanced.settings import engine
 from DjApp.models import Base
-# from ..DjApp.models import Base
-
 
 class TimestampMixin:
     created_at = Column(DateTime, nullable=False, server_default='now()')
@@ -21,13 +16,39 @@ class ImageGallery(Base, TimestampMixin):
     name = Column(String, unique=True, nullable=False)
     description = Column(String)
     slide_photos = relationship('SlidePhotos', back_populates='image_gallery')  
+    new_arrival_photos = relationship('NewArrival', back_populates='image_gallery')  
     def to_json(self):
         return {
         'id': self.id,
-        'url': self.name,
+        'name': self.name,
         'title': self.description,
   }
     
+
+
+class NewArrival(Base, TimestampMixin):
+    __tablename__ = 'new_arrival_photos'
+    id = Column(Integer, primary_key=True)
+    index = Column(Integer, nullable=False, default=1)
+    url = Column(String, nullable = False)
+    title = Column(String, unique=True, nullable=False)
+    relavant_url = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    gallery_id = Column(Integer, ForeignKey('image_gallery.id'), nullable=False) 
+    image_gallery = relationship('ImageGallery', back_populates='new_arrival_photos')  
+
+
+    def to_json(self):
+       
+        return {
+        'id': self.id,
+        'index': self.index,
+        'url': self.url,
+        'relavant_url': self.relavant_url,
+        'title': self.title,
+        'description': self.description,
+        'gallery_id': self.gallery_id,
+        }
     
     
 class SlidePhotos(Base, TimestampMixin):

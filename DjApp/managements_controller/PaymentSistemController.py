@@ -2,10 +2,9 @@ import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjAdvanced.settings import engine
-from DjApp.models import  UserPayment
+from DjApp.models import UserPayment
 from ..helpers import GetErrorDetails, add_get_params
 from ..decorators import login_required, require_http_methods
-
 
 
 @csrf_exempt
@@ -34,29 +33,29 @@ def add_user_payment(request):
         account_no = data.get('account_no')
         expiry = data.get('expiry')
 
-
         user_id = request.user.id
         # Create a new user payment object with the given parameters
-    
+
         new_payment = UserPayment(user_id=user_id,
-                                payment_type=payment_type,
-                                provider=provider,
-                                account_no=account_no,
-                                expiry=expiry)
+                                  payment_type=payment_type,
+                                  provider=provider,
+                                  account_no=account_no,
+                                  expiry=expiry)
 
         # Add the new payment information to the database and commit the changes
         session.add(new_payment)
-    
+
         # Return a JSON response with a success message
-        response = JsonResponse({"Success": "The payment information has been successfully added."}, status=200)
+        response = JsonResponse(
+            {"Success": "The payment information has been successfully added."}, status=200)
         add_get_params(response)
         return response
     except Exception as e:
         # Return a JSON response with an error message and the error details
-        response = GetErrorDetails("Something went wrong when adding payment information.", e, 500)
+        response = GetErrorDetails(
+            "Something went wrong when adding payment information.", e, 500)
         add_get_params(response)
         return response
-
 
 
 @csrf_exempt
@@ -76,11 +75,10 @@ def update_user_payment(request):
     """
     try:
 
-
         # Get the parameters from the request object
         data = request.data
         session = request.session
-        
+
         payment_type = data.get('payment_type')
         provider = data.get('provider')
         account_no = data.get('account_no')
@@ -88,8 +86,9 @@ def update_user_payment(request):
 
         user_id = request.user.id
         # Query the database for the user with the given ID
-        
-        user_payment = session.query(UserPayment).filter_by(user_id=user_id).first()
+
+        user_payment = session.query(
+            UserPayment).filter_by(user_id=user_id).first()
 
         # Update the payment information for the user
         user_payment.payment_type = payment_type
@@ -98,21 +97,22 @@ def update_user_payment(request):
         user_payment.expiry = expiry
 
         # Return a JSON response with a success message and the updated user payment information
-        response = JsonResponse({"Success":"The payment information has been successfully updated.","user_id": user_id, "payment_type": payment_type, "provider": provider, "account_no": account_no, "expiry": expiry}, status=200)
+        response = JsonResponse({"Success": "The payment information has been successfully updated.", "user_id": user_id,
+                                "payment_type": payment_type, "provider": provider, "account_no": account_no, "expiry": expiry}, status=200)
         add_get_params(response)
         return response
     except Exception as e:
         # Return a JSON response with an error message and the error details
-        response = GetErrorDetails("Something went wrong when updating the payment information.", e, 500)
+        response = GetErrorDetails(
+            "Something went wrong when updating the payment information.", e, 500)
         add_get_params(response)
         return response
-
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-def delete_user_payment(request):
+def delete_user_payment(request):  # sourcery skip: raise-specific-error
     """
     This function deletes a user payment from the database.
     The function receives the following parameters from the request object:
@@ -127,27 +127,27 @@ def delete_user_payment(request):
         # Get the user payment with the specified id
         user_id = request.user.id
         session = request.session
-        
+
         # Query the database for the user with the given ID
-    
-        user_payment = session.query(UserPayment).filter_by(user_id=user_id).first()
 
         # Check if the user payment exists
-        if user_payment is None:
+        if (
+            user_payment := session.query(UserPayment).filter_by(user_id=user_id).first() is None
+        ):
+
             raise Exception("User payment not found.")
 
         # Delete the user payment from the database and commit the changes
         session.delete(user_payment)
 
-
         # Return a JSON response with a success message
-        response = JsonResponse({"Success":"The user payment has been successfully deleted."}, status=200)
+        response = JsonResponse(
+            {"Success": "The user payment has been successfully deleted."}, status=200)
         add_get_params(response)
         return response
     except Exception as e:
         # Return a JSON response with an error message and the error details
-        response = GetErrorDetails("Something went wrong when deleting user payment.", e, 500)
+        response = GetErrorDetails(
+            "Something went wrong when deleting user payment.", e, 500)
         add_get_params(response)
         return response
-
-

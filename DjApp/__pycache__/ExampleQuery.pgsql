@@ -64,3 +64,4 @@
     --     REFERENCES public.category (id) MATCH SIMPLE
     --     ON UPDATE NO ACTION
     --     ON DELETE NO ACTION
+-- UPDATE persons  set location_id = null where username LIKE '%arid%';

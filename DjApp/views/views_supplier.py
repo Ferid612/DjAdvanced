@@ -6,7 +6,7 @@ from DjApp.models import Category, Product, ProfilImage, Supplier
 
 
 @csrf_exempt
-@require_http_methods(["GET","OPTIONS"])
+@require_http_methods(["GET", "OPTIONS"])
 # @login_required
 # @permission_required('manage_supplier')
 def get_all_suppliers(request):
@@ -26,14 +26,13 @@ def get_all_suppliers(request):
         {"suppliers": suppliers_json},
         status=200
     )
-
+    add_get_params(response)
     return response
 
 
-
 @csrf_exempt
-@require_http_methods(["GET","OPTIONS"])
-def get_all_products_by_supplier(request,supplier_id):
+@require_http_methods(["GET", "OPTIONS"])
+def get_all_products_by_supplier(request, supplier_id):
     """
     This function returns all products that belong to a supplier by given supplier name.
     The supplier name is passed as a query parameter in the GET request.
@@ -43,24 +42,26 @@ def get_all_products_by_supplier(request,supplier_id):
     # Get the supplier name from the GET request
     data = request.data
     session = request.session
-    
+
     # Check if the supplier_name parameter was provided in the GET request
     if not supplier_id:
-       response = JsonResponse({'answer': 'supplier_id is not a required parameter'}, status=400)
-       add_get_params(response)    
-       return response         
-   
-   
-    supplier = session.query(Supplier).get(supplier_id)
-    if not supplier:
-        response = JsonResponse({'answer': 'Supplier does not exist'}, status=400)
+        response = JsonResponse(
+            {'answer': 'supplier_id is not a required parameter'}, status=400)
         add_get_params(response)
         return response
 
-    
-    all_products = session.query(Product).filter_by(supplier_id=supplier_id).order_by(Category.id)
-    
+    supplier = session.query(Supplier).get(supplier_id)
+    if not supplier:
+        response = JsonResponse(
+            {'answer': 'Supplier does not exist'}, status=400)
+        add_get_params(response)
+        return response
+
+    all_products = session.query(Product).filter_by(
+        supplier_id=supplier_id).order_by(Category.id)
+
     products_data = [product.to_json() for product in all_products]
-    response = JsonResponse({f'{supplier.name} products': products_data}, status=200)
+    response = JsonResponse(
+        {f'{supplier.name} products': products_data}, status=200)
     add_get_params(response)
     return response

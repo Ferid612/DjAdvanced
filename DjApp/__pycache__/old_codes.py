@@ -1822,5 +1822,336 @@ def add_column_to_table(request):
     response = JsonResponse({'message': 'Column added successfully.'}, status=200)
     add_get_params(response)
     return response
+
+
+# @csrf_exempt
+# @require_http_methods(["POST"])
+# @login_required
+# def CompleteOrder(request):
+#     """
+#     API endpoint to add a product_entry to a user's shopping session.
+#     The request should contain the following parameters:
+#     - session_id: the ID of the shopping session to add the product_entry to
+#     - product_entry_id: the ID of the product_entry to add
+#     - quantity: the quantity of the product_entry to add
+#     """
+#     # Get the user object associated with the request
+#     user = request.person.user[0]
+#     session = request.session
+#     shopping_session = user.shopping_session[0]
+#     # Get the shopping session associated with the specified session ID and user ID
+
+#     cart_items_in_order = filter(lambda x: x.status == 'inOrder', shopping_session.cart_items)
+    
+    
+#     if not cart_items_in_order:
+#         response = JsonResponse({'message':'Order item is not in the cart'},status=404) 
+#         add_get_params(response)
+#         return response
+    
+#     new_order = Order(user_id=user.id, total_price=0, status='preparing')
+#     session.add(new_order)
+#     session.commit()
+        
+#     total_price = 0
+#     for cart_item in cart_items_in_order:
+
+#         current_price = cart_item.product_entry.discount_data.get('discounted_price')
+#         total_price = total_price + current_price * cart_item.quantity
+
+#         new_order_item = OrderItem(
+#             order_id = new_order.id,
+#             product_entry_id = cart_item.product_entry.id,
+#             quantity = cart_item.quantity,
+#             price = current_price 
+#             )
+        
+#         session.add(new_order_item)
+    
+#     new_order.total_price = total_price
+#     session.commit()
+    
+#     payment = Payment(
+#         order_id=new_order.id,
+#         amount = new_order.total_price,
+#         status = 'pending'
+#         )    
+    
+#     session.add(payment)
+#     session.commit()
+    
+
+#     data = request.data
+#     payment_method = data.get('payment_method')
+#     if payment_method == 'cash':
+#         payment.payment_method = 'cash'
+        
+#         cash_payment = CashPayment(payment_id = payment.id)    
+#         session.add(cash_payment)
+#         session.commit()
+        
+#     elif payment_method == 'credit_card':    
+#         payment.payment_method = 'credit_card'
+    
+#         card_number = data.get('card_number')
+#         cvv = data.get('cvv')
+#         expiration_date = data.get('expiration_date')
+        
+#         credit_card_payment = CreditCardPayment(
+#             payment_id = payment.id,
+#             card_number = card_number, 
+#             cvv = cvv,
+#             expiration_date = expiration_date
+#             )    
+#         session.add(credit_card_payment)
+#         session.commit()
+        
+#         save_credit_card = data.get('save_credit_card')
+        
+#         if save_credit_card == 'True' or save_credit_card == True:
+#             try:
+#                 add_credit_card_response = add_credit_card(request)
+#             except Exception as e:
+#                 add_credit_card_response = GetErrorDetails(e=e)
+#     else:
+#         session.rollback()
+#         response = JsonResponse({'message':'Something went wrong at payment time.'},status=404) 
+#         add_get_params(response)
+#         return response
+
+#     payment.status = 'completed'
+
+    
+    
+#     # Return a success response
+#     response = JsonResponse(
+#         {"answer": "The add_or_change cart item precess successfully finished.",
+#         "shopping_session_id" : shopping_session.id,
+#         "add_credit_card_response" : add_credit_card_response,
+#         "user_id":user.id
+#             },
+#         status=200
+#     )
+#     add_get_params(response)
+        
+#     return response
+
+
+# @csrf_exempt
+# @require_http_methods(["POST"])
+# @login_required
+# def CompleteOrderOptimized(request):
+#     """
+#     API endpoint to complete an order.
+#     The request should contain the following parameters:
+#     - session_id: the ID of the shopping session to add the product_entry to
+#     - payment_method: the payment method to use for the order (cash or credit_card)
+#     - If payment method is credit_card, the request should also contain the following parameters:
+#         - card_number: the credit card number
+#         - cvv: the credit card CVV code
+#         - expiration_date: the credit card expiration date in the format YYYY-MM-DD
+#         - save_credit_card: a boolean indicating whether to save the credit card information for future orders
+#     """
+
+#     # Get the user object associated with the request
+#     user = request.person.user[0]
+#     shopping_session = user.shopping_session[0]
+#     session = request.session
+#     # Filter cart items in order
+#     cart_items_in_order = filter(lambda x: x.status == 'inOrder', shopping_session.cart_items)
+    
+#     if not cart_items_in_order:
+#         response = JsonResponse({'message':'Order item is not in the cart'},status=404) 
+#         add_get_params(response)
+#         return response
+
+#     # Create a new order and add order items to it
+#     total_price = 0
+#     new_order = Order(user_id=user.id, total_price=0, status='preparing')
+#     session.add(new_order)
+#     session.commit()
+    
+#     for cart_item in cart_items_in_order:
+#         current_price = cart_item.product_entry.discount_data.get('discounted_price')
+#         total_price = total_price + current_price * cart_item.quantity
+#         new_order_item = OrderItem(
+#             order_id = new_order.id,
+#             product_entry_id = cart_item.product_entry.id,
+#             quantity = cart_item. quantity,
+#             price = current_price 
+#         )
+#         session.add(new_order_item)
+#         session.commit()
+    
+#     new_order.total_price = total_price
+
+#     # Create a payment and add it to the order
+#     payment = Payment(
+#         order_id=new_order.id, 
+#         amount=new_order.total_price,
+#         status='pending',
+#         payment_method=request.data.get('payment_method')
+#     )
+#     session.add(payment)
+#     session.commit()
+
+#     # If payment is by credit card, create a CreditCardPayment object and add it to the payment
+#     if payment.payment_method == 'credit_card':
+#         credit_card_payment = CreditCardPayment(
+#             payment_id=payment.id,
+#             card_number=request.data.get('card_number'),
+#             cvv=request.data.get('cvv'),
+#             expiration_date=request.data.get('expiration_date')
+#         )
+#         session.add(credit_card_payment)
+
+#         # If save_credit_card is true, create a CreditCard object and associate it with the user
+#         if request.data.get('save_credit_card', False):
+#             credit_card = CreditCard(
+#                 user_id=user.id,
+#                 card_number=request.data.get('card_number'),
+#                 cvv=request.data.get('cvv'),
+#                 expiration_date=request.data.get('expiration_date')
+#             )
+#             session.add(credit_card)
+
+#     # If payment is by cash, create a CashPayment object and add it to the payment
+#     elif payment.payment_method == 'cash':
+#         cash_payment = CashPayment(payment_id=payment.id)
+#         session.add(cash_payment)
+
+#     session.commit()
+#     # Update the payment status to completed
+#     payment.status = 'completed'
+    
+#     # Return a success response
+#     response = JsonResponse(
+#         {
+#             "answer": "The add_or_change cart item process successfully finished.",
+#             "shopping_session_id" : shopping_session.id,
+#             "user_id":user.id
+#         },
+#         status=200
+#     )
+#     add_get_params(response)
+#     return response
+
+class Country(Base, TimestampMixin):
+    __tablename__ = 'country'
+    id = Column(Integer, primary_key=True)
+    country_code = Column(Integer, unique=True, nullable=False)
+    country_name = Column(String, unique=True, nullable=False)
+    currency_code = Column(String,  nullable=False)
+
+    locations = relationship('Location', back_populates='country')
+    employment_jobs = relationship('EmploymentJobs', back_populates='country')
+
+@csrf_exempt
+@require_http_methods(["POST"])
+# @login_required
+def add_country(request):
+    """
+    Add a new country to the database.
+    """
+    try:
+        # Get the parameters from the request object
+        data = request.data
+        country_code = data.get('country_code')
+        country_name = data.get('country_name')
+        currency_code = data.get('currency_code')
+        session = request.session
+
+        if not (country_code and country_name and currency_code):
+            response = JsonResponse(
+                {'message': 'Missing data error. Country code, country name, and currency code must be filled.'}, status=400)
+            add_get_params(response)
+            return response
+
+        # Create a new country object with the given parameters
+        new_country = Country(
+            country_code=country_code,
+            country_name=country_name,
+            currency_code=currency_code,
+        )
+
+        # Add the new country to the database and commit the changes
+
+        session.add(new_country)
+
+        # Return a JSON response with a success message and the country's information
+        response = JsonResponse({'message': 'Country added successfully.', 'country_id': new_country.id,
+                                'country_code': country_code, 'country_name': country_name, 'currency_code': currency_code}, status=200)
+        add_get_params(response)
+
+        return response
+
+    except Exception as e:
+        # Return a JSON response with an error message and the error details
+        response = GetErrorDetails(
+            'Something went wrong when adding the country.', e, 500)
+        add_get_params(response)
+
+        return response
+        
+        
+        
+@csrf_exempt
+@require_http_methods(["POST"])
+# @login_required
+def add_countries(request):
+    """
+    This function handles adding multiple countries to the database. It receives a list of countries in the following format:
+    [
+        {
+            "country_code": "1",
+            "country_name": "Country 1",
+            "currency_code": "CUR1"
+        },
+        {
+            "country_code": "2",
+            "country_name": "Country 2",
+            "currency_code": "CUR2"
+        },
+        ...
+    ]
+    If the countries are added successfully, the function returns a JSON response with a success message and the countries' information.
+    If an error occurs during the country creation process, the function returns a JSON response with an error message and the error details.
+    """
+
+    # Get the list of countries from the request
+    data = request.data
+    session = request.session
+
+    countries = data.get('countries')
+
+    # Lists to keep track of existing and added countries
+    existing_countries = []
+    added_countries = []
+
+    # Create a session for database operations
+    existing_countries = [c.country_name for c in session.query(Country.country_name).filter(
+        Country.country_name.in_([country.get('country_name') for country in countries])).all()]
+    added_countries = [country for country in countries if country.get(
+        'country_name') not in existing_countries]
+
+    # Create new country objects for the added countries
+    new_countries = []
+    for country in added_countries:
+        new_country = Country(
+            country_code=country.get('country_code'),
+            country_name=country.get('country_name'),
+            currency_code=country.get('currency_code')
+        )
+        new_countries.append(new_country)
+
+    # Insert the new countries into the database
+    session.bulk_save_objects(new_countries)
+
+    # Return a JSON response with the existing and added countries
+    response_data = {'existing_countries': existing_countries,
+                     'added_countries': [c.country_name for c in new_countries]}
+    response = JsonResponse(response_data, status=200)
+    add_get_params(response)
+    return response
 '''
 
