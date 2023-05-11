@@ -344,6 +344,7 @@ def login(request):
         status=200
     )
 
+
     response.set_cookie('person_id', person.id)
     response.set_cookie('access_token', access_token)
     response.set_cookie('refresh_token', refresh_token)
