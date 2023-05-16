@@ -479,6 +479,65 @@ class ProductTag(Base):
     tag_id = Column(Integer, ForeignKey('tag.id'), primary_key=True)
 
 
+class Campaign(Base):
+    __tablename__ = 'campaign'
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+    
+    valid_from = Column(DateTime, nullable=False, server_default='now()')
+    valid_to = Column(DateTime, nullable=False)
+    # Define the relationship to CampaignProduct
+    product_entries = relationship('CampaignProduct', back_populates='campaign')
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "valid_from": self.valid_from.isoformat() if self.valid_from else None,
+            "valid_to": self.valid_to.isoformat() if self.valid_to else None,
+        }
+
+    def get_campaign_products(self):
+        """
+        Get the products associated with the campaign.
+
+        Returns:
+            list: A list of campaign product data.
+        """
+        campaign_products = []
+
+        for campaign_product in self.product_entries:
+            campaign_product_data = campaign_product.to_json()
+            campaign_products.append(campaign_product_data)
+
+        return campaign_products
+
+
+class CampaignProduct(Base):
+    __tablename__ = 'campaign_product'
+    id = Column(Integer, primary_key=True)
+    campaign_id = Column(Integer, ForeignKey('campaign.id', ondelete='CASCADE'), nullable=False)
+    product_id = Column(Integer, ForeignKey('product.id', ondelete='CASCADE'), nullable=False)
+    quantity_required = Column(Integer, nullable=False)
+    quantity_discounted = Column(Integer, nullable=False)
+
+    # Define the relationship to Campaign
+    campaign = relationship('Campaign', back_populates='product_entries')
+    product_entry = relationship('Product')
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "campaign_id": self.campaign_id,
+            "product_id": self.product_id,
+            "quantity_required": self.quantity_required,
+            "quantity_discounted": self.quantity_discounted,
+        }
+
+
+
 class ProductMeasureValue(Base):
     __tablename__ = 'product_measure_value'
     id = Column(Integer, primary_key=True)
