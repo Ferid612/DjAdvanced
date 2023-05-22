@@ -7,7 +7,6 @@ from sqlalchemy.orm import joinedload
 from ..models import Category, Product, ProductColor, ProductEntry, ProductMaterial, ProductMeasure, Supplier
 from ..helpers import add_get_params
 from typing import List
-from sqlalchemy.orm import joinedload
 
 
 @csrf_exempt

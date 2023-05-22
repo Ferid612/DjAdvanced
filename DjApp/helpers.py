@@ -77,19 +77,17 @@ def serializer(rows) -> list:
 def escape_dict(data):
     if isinstance(data, list):
         for x, l in enumerate(data):
-            if isinstance(l, dict) or isinstance(l, list):
+            if isinstance(l, (dict, list)):
                 escape_dict(l)
-            else:
-                if l is not None:
-                    data[x] = escape(l)
+            elif l is not None:
+                data[x] = escape(l)
 
     if isinstance(data, dict):
         for k, v in data.items():
-            if isinstance(v, dict) or isinstance(v, list):
+            if isinstance(v, (dict, list)):
                 escape_dict(v)
-            else:
-                if v is not None:
-                    data[k] = escape(v)
+            elif v is not None:
+                data[k] = escape(v)
         return data
 
 
