@@ -5,7 +5,7 @@ from sqlalchemy_utils import database_exists, create_database
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY") or ""
 
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 HOST_URL = "http://127.0.0.1:8000"
 
