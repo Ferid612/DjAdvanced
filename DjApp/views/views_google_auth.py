@@ -13,7 +13,7 @@ def google_login_callback(request):
             "web": {
                 "client_id": "1061024007426-37p2ccs7suqcb2s5cec4gn63j8v7h2s6.apps.googleusercontent.com",
                 "client_secret": "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",
-                "redirect_uri": "https://nebuwear.com/google_auth/google-login-callback/",
+                "redirect_uri": "https://e-delta.store/google_auth/google-login-callback/",
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
                 "userinfo_uri": "https://openidconnect.googleapis.com/v1/userinfo",
@@ -22,7 +22,7 @@ def google_login_callback(request):
         },
         scopes=["https://www.googleapis.com/auth/userinfo.email",
                 "https://www.googleapis.com/auth/userinfo.profile", "openid"],
-        redirect_uri='https://nebuwear.com' + reverse("google_login_callback"),
+        redirect_uri='localhost:3000' + reverse("google_login_callback"),
     )
 
     if "code" in request.GET:

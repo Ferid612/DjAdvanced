@@ -47,19 +47,12 @@ AUTH0_DOMAIN = "dev-xrvdjg4v1xa41kws.eu.auth0.com"
 AUTH0_AUDIENCE = "https://delta.com"
 
 
-
 # SQL Alchemy Configuration
 def get_engine(user, passwd, host, port, db):
-    print("host: "+host)
     url = f"postgresql://{user}:{passwd}@{host}:{port}/{db}"
     if not database_exists(url):
         create_database(url)
-    engine = create_engine(url, pool_size=50, echo=False)
-    return engine
-
-
-
-
+    return create_engine(url, pool_size=50, echo=False)
 
 
 engine = get_engine(DATABASE_USER, DATABASE_PASSWORD, DATABASE_SERVER, DATABASE_PORT, DATABASE_NAME)
@@ -83,8 +76,6 @@ AUTH0_CLIENT_ID="ualhORzYGKAOIqk3yy9c0xVO0nNJHPuv"
 APP_SECRET_KEY="ALongRandomlyGeneratedString"
 AUTH0_CLIENT_SECRET="jPKrWxGTCzdPg8azDGqs4Sq0eZpKwBwgrPhOXGkoISzuf23mknxd7of_1KDsiwh0"
 AUTH0_DOMAIN="dev-xrvdjg4v1xa41kws.eu.auth0.com"
-
-
 
 
 INSTALLED_APPS = [
