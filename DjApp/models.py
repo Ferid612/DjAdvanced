@@ -1311,8 +1311,10 @@ class Payment(Base, TimestampMixin):
     def to_json(self):
         if self.payment_method == 'cash':
             payment_id = self.cash_payment.id
+            credit_card_details = None
         else:
             payment_id = self.credit_card_payment.id
+            credit_card_details = self.credit_card_payment.to_json()
 
         return {
             "id": self.id,
@@ -1321,7 +1323,7 @@ class Payment(Base, TimestampMixin):
             "amount": self.amount,
             "payment_method": self.payment_method,
             "status": self.status,
-
+            "credit_card_details": credit_card_details,
         }
 
 
@@ -1335,6 +1337,14 @@ class CreditCardPayment(Base):
 
     payment = relationship('Payment', back_populates='credit_card_payment')
 
+    def to_json(self):
+      
+        return {
+            "id": self.id,
+            "payment_id": self.payment_id,
+            "card_number": self.card_number,
+            "expiration_date": self.expiration_date,
+        }
 
 class CashPayment(Base):
     __tablename__ = 'cash_payment'

@@ -1,10 +1,10 @@
 from datetime import datetime
-from django.http import JsonResponse
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from DjApp.managements_controller.UserController import add_credit_card
 from DjApp.models import CashPayment, CreditCard, CreditCardPayment, DiscountCoupon, DiscountCouponUser, Order, OrderItem, Payment
-from ..helpers import GetErrorDetails, add_get_params
+from ..helpers import GetErrorDetails, add_get_params, create_pdf
 from ..decorators import login_required, require_http_methods
+
 
 
 @csrf_exempt
@@ -25,7 +25,8 @@ def CompleteOrder(request):
 
     session = request.session
     try:
-        user = request.person.user[0]
+        person = request.person
+        user = person.user[0]
         shopping_session = user.shopping_session[0]
         cart_items_in_order = get_cart_items_in_order(shopping_session)
         new_order = create_order(session, user, cart_items_in_order)
@@ -37,16 +38,26 @@ def CompleteOrder(request):
 
         delete_items_from_cart(session, cart_items_in_order)
         session.commit()
-        response = JsonResponse(
-            {
-                "answer": "The add_or_change cart item process successfully finished.",
-                "order_details": new_order.to_json()
-            },
-            status=200
-        )
+        
+        order_details = new_order.to_json()
+        
+        person_firstname = person.first_name
+        person_lastname = person.last_name
+        report_type = "Order Details"
+
+        
+        now_date = datetime.now().strftime("%Y-%m-%d__%H:%M:%S")
+        file_name = f"{person_firstname}_{person_lastname}_order_details_{now_date}.pdf"
+
+        # Generate the PDF
+        pdf = create_pdf(file_name, person_firstname, person_lastname, report_type, order_details)
+        
+        # Create an HTTP response with the PDF file    
+        response = HttpResponse(bytes(pdf.output()), content_type="application/pdf")
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
         add_get_params(response)
         return response
-
+    
     except Exception as e:
         print("here is working error")
         try:

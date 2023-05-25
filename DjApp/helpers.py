@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 import uuid
 from django.utils.html import escape
@@ -6,8 +7,100 @@ from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 import json
 import traceback
-from DjAdvanced import settings
-from DjAdvanced.settings import SECRET_KEY, engine
+from DjAdvanced.settings import engine
+from fpdf import FPDF
+
+
+
+def create_pdf(file_name, person_name, person_surname, report_type, order_details):
+    """
+    Generates a PDF file with order details.
+
+    Args:
+        file_name (str): The desired file name for the PDF.
+        person_name (str): The person's first name.
+        person_surname (str): The person's surname.
+        report_type (str): The type of the report.
+        order_details (dict): The order details.
+
+    Returns:
+        HttpResponse: The HTTP response object with the generated PDF file as an attachment.
+    """
+    # Define the header text
+    header_text = f"{person_name} {person_surname}'s {report_type} report"
+
+    # Define the file path for the Delta logo
+    delta_logo_path = 'deltaLogo.png'
+
+    # Define the Delta Commercial Community footer details
+    delta_footer_text = "Delta Commercial Community"
+    delta_phone_number = "+994-070-333-5610"
+    delta_email = "info@deltacommercial.com"
+
+    # Define a helper function to flatten the order details dictionary
+    def flatten_dict(d, parent_key='', sep=' '):
+        """
+        Recursively flattens a nested dictionary into a flat dictionary.
+
+        Args:
+            d (dict): The dictionary to be flattened.
+            parent_key (str): The parent key for the current level of recursion.
+            sep (str): The separator used to join parent and child keys.
+
+        Returns:
+            dict: The flattened dictionary.
+        """
+        items = []
+        for k, v in d.items():
+            new_key = parent_key + sep + k if parent_key else k
+            if isinstance(v, dict):
+                items.extend(flatten_dict(v, new_key, sep=sep).items())
+            else:
+                items.append((new_key, v))
+        return dict(items)
+
+    # Flatten the order details dictionary and create a list of tuples for the table data
+    flattened_order_details = flatten_dict(order_details)
+    TABLE_DATA = [("Field", "Value")]
+    TABLE_DATA.extend(list(flattened_order_details.items()))
+
+    # Create a new PDF object and set the font and page size
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Times", size=12)
+
+    # Add the Delta logo to the PDF
+    pdf.image(delta_logo_path, x=10, y=10, w=30)
+
+    # Add the header text and current date to the PDF
+    now_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    pdf.ln(5)
+    pdf.cell(40)  # Add empty cell to position the header text and date on the right side
+    pdf.cell(0, 10, header_text, ln=1)  # Header text on the right
+    pdf.cell(40)  # Add empty cell for spacing
+    pdf.cell(0, 10, f"Date: {now_date}", ln=1)  # Date on the right
+
+    # Add a line break before the table
+    pdf.ln(10)
+
+    # Calculate the column width based on the length of the longest value in the table data
+    col_width = max(pdf.get_string_width(str(row[1])) for row in TABLE_DATA) + 36
+
+    # Add the table data to the PDF
+    for row in TABLE_DATA:
+        pdf.cell(col_width, 10, str(row[0]), border=1)
+        pdf.cell(col_width, 10, str(row[1]), border=1)
+        pdf.ln()
+
+    # Add a line break before the footer
+    pdf.ln(10)
+
+    # Add the Delta Commercial Community footer to the PDF
+    pdf.cell(0, 10, delta_footer_text, ln=1, align='C')
+    pdf.cell(0, 10, f"Phone: {delta_phone_number} | Email: {delta_email}", ln=1, align='C')
+
+    return pdf
+
 
 
 def GetErrorDetails(from_dev="Something went wrong.", e=Exception, status=400):

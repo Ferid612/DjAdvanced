@@ -20,7 +20,6 @@ urlpatterns = [
     path('delete-from-basket/<int:cart_item_id>',
          ShoppingController.delete_cart_item,
          name="delete-from-basket"),
-
     
     path('complete-order/', OrderController.CompleteOrder,
          name="complete-order"),
