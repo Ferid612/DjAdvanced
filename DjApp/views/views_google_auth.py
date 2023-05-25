@@ -22,7 +22,7 @@ def google_login_callback(request):
         },
         scopes=["https://www.googleapis.com/auth/userinfo.email",
                 "https://www.googleapis.com/auth/userinfo.profile", "openid"],
-        redirect_uri='localhost:3000' + reverse("google_login_callback"),
+        redirect_uri='https://e-delta.store' + reverse("google_login_callback"),
     )
 
     if "code" in request.GET:
