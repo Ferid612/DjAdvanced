@@ -1,6 +1,6 @@
 from ..settings.base import *
 
-DEBUG = True
+DEBUG = False
 
 HOST_URL = "http://127.0.0.1:8000"
 
