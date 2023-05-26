@@ -8,7 +8,6 @@ SECRET_KEY = os.getenv("SECRET_KEY") or ""
 
 MEDIA_ROOT = BASE_DIR / 'DjApp' / 'media'
 PROFIL_IMAGE_ROOT = MEDIA_ROOT / 'profil_images'
-DEBUG = True
 
 # Password validation
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
