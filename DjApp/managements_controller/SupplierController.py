@@ -1,6 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from DjAdvanced.settings import PROFIL_IMAGE_ROOT
+from DjAdvanced.settings.production import PROFIL_IMAGE_ROOT
 from DjApp.managements_controller.LocationController import create_address_object, update_object_address
 from ..helpers import GetErrorDetails, add_get_params, save_uploaded_image
 from ..models import PhoneNumber, ProfilImage, Supplier

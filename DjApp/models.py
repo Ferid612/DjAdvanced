@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import CheckConstraint, Boolean, DateTime, Float, Column, ForeignKey, Integer, String, DECIMAL
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
-from DjAdvanced.settings import engine
+from DjAdvanced.settings.production import engine
 from sqlalchemy_utils import EncryptedType
 from sqlalchemy.ext.declarative import declarative_base
 from passlib.context import CryptContext

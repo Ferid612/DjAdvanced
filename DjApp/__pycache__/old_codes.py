@@ -368,7 +368,7 @@ def add_some_data():
 from sqlalchemy import Table
 from sqlalchemy import Float, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship, sessionmaker
-from DjAdvanced.settings import engine
+from DjAdvanced.settings.production import engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.schema import MetaData, Table
 from ..helpers import GetErrorDetails

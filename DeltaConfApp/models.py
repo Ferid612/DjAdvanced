@@ -1,6 +1,6 @@
 from sqlalchemy import DateTime, Float, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-from DjAdvanced.settings import engine
+from DjAdvanced.settings.production import engine
 from DjApp.models import Base
 
 class TimestampMixin:

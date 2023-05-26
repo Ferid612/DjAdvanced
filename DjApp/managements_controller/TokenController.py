@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 import json
 import traceback
-from DjAdvanced.settings import SECRET_KEY, engine
+from DjAdvanced.settings.production import SECRET_KEY, engine
 from DjApp.models import Person
 
 

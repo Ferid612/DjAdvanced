@@ -1,7 +1,7 @@
 import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from DjAdvanced.settings import engine
+from DjAdvanced.settings.production import engine
 from DjApp.models import UserPayment
 from ..helpers import GetErrorDetails, add_get_params
 from ..decorators import login_required, require_http_methods

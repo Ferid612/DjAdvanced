@@ -2,7 +2,7 @@ import os
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 
-from DjAdvanced.settings import MEDIA_ROOT, engine
+from DjAdvanced.settings.production import MEDIA_ROOT, engine
 from ..decorators import permission_required, login_required, require_http_methods
 from ..helpers import GetErrorDetails, add_get_params, save_uploaded_image
 from ..models import ProductEntry, ProductImage

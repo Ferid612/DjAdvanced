@@ -5,7 +5,7 @@ import datetime
 import json
 import jwt
 from DjApp.managements_controller.ShoppingController import create_shopping_session
-from DjAdvanced.settings import HOST_URL, PROFIL_IMAGE_ROOT, SECRET_KEY
+from DjAdvanced.settings.production import HOST_URL, PROFIL_IMAGE_ROOT, SECRET_KEY
 from DjApp.managements_controller.LocationController import  create_address_object, update_object_address
 from .MailController import create_html_message_with_token, send_verification_code
 from ..helpers import GetErrorDetails, add_get_params,  save_uploaded_image

@@ -3,7 +3,6 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
 SECRET_KEY = os.getenv("SECRET_KEY") or ""
 
 
@@ -48,6 +47,7 @@ AUTH0_AUDIENCE = "https://delta.com"
 # SQL Alchemy Configuration
 def get_engine(user, passwd, host, port, db):
     url = f"postgresql://{user}:{passwd}@{host}:{port}/{db}"
+    print(url)
     if not database_exists(url):
         create_database(url)
     return create_engine(url, pool_size=50, echo=False)

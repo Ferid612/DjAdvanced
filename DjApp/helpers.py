@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 import json
 import traceback
-from DjAdvanced.settings import engine
+from DjAdvanced.settings.production import engine
 from fpdf import FPDF
 
 
