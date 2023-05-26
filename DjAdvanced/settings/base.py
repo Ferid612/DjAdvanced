@@ -2,12 +2,12 @@ import os
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 SECRET_KEY = os.getenv("SECRET_KEY") or ""
 
-DEBUG = True
+
 ALLOWED_HOSTS = ['*']
-HOST_URL = "http://127.0.0.1:8000"
 
 MEDIA_ROOT = BASE_DIR / 'DjApp' / 'media'
 PROFIL_IMAGE_ROOT = MEDIA_ROOT / 'profil_images'
