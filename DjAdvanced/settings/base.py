@@ -7,8 +7,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY") or ""
 
 
-ALLOWED_HOSTS = ['*']
-
 MEDIA_ROOT = BASE_DIR / 'DjApp' / 'media'
 PROFIL_IMAGE_ROOT = MEDIA_ROOT / 'profil_images'
 
