@@ -13,7 +13,7 @@ urlpatterns = [
          views_person.get_person_data_by_username,
          name="get-person-by-name"),
     
-    path('get-all-persons-data/',
+    path('get-all-persons-dataa/',
          views_person.get_all_persons_data,
          name="get-user-info"),
     
