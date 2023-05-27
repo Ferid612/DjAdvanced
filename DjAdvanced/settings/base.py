@@ -3,35 +3,32 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+
 SECRET_KEY = os.getenv("SECRET_KEY") or ""
-
-
 MEDIA_ROOT = BASE_DIR / 'DjApp' / 'media'
 PROFIL_IMAGE_ROOT = MEDIA_ROOT / 'profil_images'
 
 # Password validation
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-EMAIL_PORT= '587'
 
 
 
-DATABASE_NAME = "DeltaDB"
-DATABASE_USER = "postgres"
-DATABASE_SERVER = "deltadb-0.cepwuiqxjppx.eu-north-1.rds.amazonaws.com"
-DATABASE_PASSWORD = "Farid612"
-DATABASE_PORT = "5432"
+DATABASE_NAME = os.getenv("DATABASE_NAME") 
+DATABASE_USER = os.getenv("DATABASE_USER") 
+DATABASE_SERVER = os.getenv("DATABASE_SERVER") 
+DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+DATABASE_PORT = os.getenv("DATABASE_PORT") 
 
 # Password validation
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+EMAIL_HOST= os.getenv("EMAIL_HOST")
+EMAIL_PORT= '587'
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER") 
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD") 
 
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = "587"
-EMAIL_HOST_USER = "deltacommercial01@gmail.com"
-EMAIL_HOST_PASSWORD = "ipadngxwgtdnejpc"
-
-account_sid = "AC428c18a1b0804ed80dee8c43a7fd75d3"
-auth_token = "799d48dfd33f3cfb86ff9197f8bfc6ba"
-verify_sid = "VAe37f03b885939bed9bf78ec0a6067d84"
+account_sid = os.getenv("account_sid") 
+auth_token = os.getenv("auth_token") 
+verify_sid = os.getenv("verify_sid") 
 
 SECRET_KEY = "django-insecure-v3!1=71op)$(g^fz+qw6wgvhpp%)%p(rd^zds5ul3j=vikj3pr"
 DJANGO_SECRET_KEY = "km67%dzc7bl7ecii#%gn8q8*sc0_j2t4t$k0zjk5$#5e@lsj3b"
