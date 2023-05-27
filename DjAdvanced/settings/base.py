@@ -14,11 +14,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-DATABASE_NAME = os.getenv("DATABASE_NAME") 
-DATABASE_USER = os.getenv("DATABASE_USER") 
-DATABASE_SERVER = os.getenv("DATABASE_SERVER") 
-DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
-DATABASE_PORT = os.getenv("DATABASE_PORT") 
+# DATABASE_NAME = os.getenv("DATABASE_NAME") 
+# DATABASE_USER = os.getenv("DATABASE_USER") 
+# DATABASE_SERVER = os.getenv("DATABASE_SERVER") 
+# DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
+# DATABASE_PORT = os.getenv("DATABASE_PORT") 
+
+DATABASE_NAME = "DeltaDB"
+DATABASE_USER = "postgres"
+DATABASE_SERVER = "deltadb-0.cepwuiqxjppx.eu-north-1.rds.amazonaws.com"
+DATABASE_PASSWORD = "Farid612"
+DATABASE_PORT = "5432"
 
 # Password validation
 EMAIL_HOST= os.getenv("EMAIL_HOST")
