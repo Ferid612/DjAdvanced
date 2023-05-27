@@ -118,7 +118,7 @@ def GetErrorDetails(from_dev="Something went wrong.", e=Exception, status=400):
 
 
 def add_get_params(resp):
-    # resp["Access-Control-Allow-Origin"] = "https://delicate-tanuki-8a4bb0.netlify.app"
+    resp["Access-Control-Allow-Origin"] = "*"
     resp["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS, PUT"
     resp["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept, X-Requested-With, user"
     resp["Access-Control-Max-Age"] = 86400  # 24 hours
