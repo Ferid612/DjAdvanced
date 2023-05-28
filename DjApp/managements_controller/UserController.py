@@ -1,8 +1,7 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from ..decorators import permission_required, login_required, require_http_methods
-from ..helpers import add_get_params
-from ..models import CreditCard, Supplier
+from ..models import CreditCard
 
 
 @csrf_exempt
@@ -28,22 +27,19 @@ def add_credit_card(request):
     cvv = data.get('cvv')
 
     if not (card_number and expiration_date and cvv):
-        response = JsonResponse(
-            {'error': 'Missing required fields'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse({'error': 'Missing required fields'}, status=400)
     # check credit_card is exist
     if (
          session.query(CreditCard)
         .filter_by(user_id=user.id, card_number=card_number)
         .first()
     ):
-        response = JsonResponse(
-            {'error': 'A credit card with the same card number already exists for this user'}, status=409)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'error': 'A credit card with the same card number already exists for this user'
+            },
+            status=409,
+        )
     # Create a new CreditCard object for the user
     credit_card = CreditCard(
         user_id=user.id,
@@ -56,11 +52,9 @@ def add_credit_card(request):
     session.add(credit_card)
     session.commit()
 
-    # Create the response
-    response = JsonResponse(
-        {'message': 'Credit card added successfully'}, status=201)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {'message': 'Credit card added successfully'}, status=201
+    )
 
 
 @csrf_exempt
@@ -81,17 +75,19 @@ def delete_credit_card(request, card_id):
         id=card_id, user_id=user.id).first()
 
     if not credit_card:
-        response = JsonResponse(
-            {'message': f'Credit card with ID {card_id} does not exist or does not belong to user ID {user.id}'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'message': f'Credit card with ID {card_id} does not exist or does not belong to user ID {user.id}'
+            },
+            status=404,
+        )
     # Delete the credit card
     session.delete(credit_card)
     session.commit()
 
-    # Create the response
-    response = JsonResponse(
-        {'message': f'Credit card with ID {card_id} deleted for user ID {user.id}'}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'message': f'Credit card with ID {card_id} deleted for user ID {user.id}'
+        },
+        status=200,
+    )

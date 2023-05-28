@@ -1,4 +1,3 @@
-from DjApp.helpers import add_get_params
 from DjApp.models import Campaign
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -27,12 +26,9 @@ def get_campaign(request, campaign_id):
 
     # Check if the campaign exists
     if not campaign:
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'Campaign not found'},
-            status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'False', 'message': 'Campaign not found'}, status=404
+        )
     # Retrieve all product entries associated with the campaign
     product_entries = campaign.product_entries
 
@@ -43,14 +39,13 @@ def get_campaign(request, campaign_id):
     # Add the product entries data to the campaign data
     campaign_data['product_entries'] = product_entries_data
 
-    # Return a JSON response containing the retrieved campaign data with product entries
-    response = JsonResponse({
-        "answer": "Campaign retrieved successfully.",
-        "campaign": campaign_data
-    }, status=200)
-
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            "answer": "Campaign retrieved successfully.",
+            "campaign": campaign_data,
+        },
+        status=200,
+    )
 
 
 
@@ -77,11 +72,10 @@ def get_all_campaigns(request):
     # Convert the campaigns to a list of JSON objects
     campaigns_data = [campaign.to_json() for campaign in campaigns]
 
-    # Return a JSON response containing the retrieved campaigns data
-    response = JsonResponse({
-        "answer": "Campaigns retrieved successfully.",
-        "campaigns": campaigns_data
-    }, status=200)
-
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            "answer": "Campaigns retrieved successfully.",
+            "campaigns": campaigns_data,
+        },
+        status=200,
+    )

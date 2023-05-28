@@ -112,19 +112,20 @@ def GetErrorDetails(from_dev="Something went wrong.", e=Exception, status=400):
         "Traceback ": str(traceback.format_exc()),
     }
     traceback.print_tb(e.__traceback__)
-    response = JsonResponse(error_data, status=status)
-    add_get_params(response)
-    return response
+    return JsonResponse(error_data, status=status)
 
 
-def add_get_params(resp):
-    resp["Access-Control-Allow-Origin"] = "*"
-    resp["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS, PUT"
-    resp["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept, X-Requested-With, user"
-    resp["Access-Control-Max-Age"] = 86400  # 24 hours
-    resp['Access-Control-Allow-Credentials'] = 'true'
-
-
+def add_get_params(response, request):
+    origin = request.headers.get("Origin")
+    if origin in ["https://delicate-tanuki-8a4bb0.netlify.app", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002"]:
+        response["Access-Control-Allow-Origin"] = "origin"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS, PUT"
+    response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept, X-Requested-With, user"
+    response["Access-Control-Max-Age"] = 86400  # 24 hours
+    response['Access-Control-Allow-Credentials'] = 'true'
+    
+    
+    
 @contextmanager
 def session_scope():
 

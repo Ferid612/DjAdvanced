@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required, require_http_methods
-from DjApp.helpers import GetErrorDetails, add_get_params
+from DjApp.helpers import GetErrorDetails
 from DjAdvanced.settings.production import engine
 from DjApp.models import Person, ProfilImage
 # from ..models import Users
@@ -10,7 +10,6 @@ from DjApp.models import Person, ProfilImage
 @csrf_exempt
 @require_http_methods(["POST", "GET", "OPTIONS"])
 @login_required
-# @permission_required("")
 def get_person(request):
     """
     API endpoint to retrieve user information by username.
@@ -32,23 +31,16 @@ def get_person(request):
         # Build the user data dictionary
         user_data = person.to_json()
 
-        # Return a JSON response with the user data
-        response = JsonResponse(user_data, status=200)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(user_data, status=200)
     except Exception as e:
-        # Return a JSON response with an error message and the error details if an exception occurs
-        response = GetErrorDetails(
-            "An error occurred while getting user information.", e, 500)
-        add_get_params(response)
-        return response
+        return GetErrorDetails(
+            "An error occurred while getting user information.", e, 500
+        )
 
 
 @csrf_exempt
 @require_http_methods(["POST", "GET", "OPTIONS"])
 @login_required
-# @permission_required("")
 def get_person_data_by_username(request):
     """
     API endpoint to retrieve user information by username.
@@ -71,22 +63,15 @@ def get_person_data_by_username(request):
         # Build the user data dictionary
         user_data = person.to_json()
 
-        # Return a JSON response with the user data
-        response = JsonResponse(user_data, status=200)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(user_data, status=200)
     except Exception as e:
-        # Return a JSON response with an error message and the error details if an exception occurs
-        response = GetErrorDetails(
-            "An error occurred while getting user information.", e, 500)
-        add_get_params(response)
-        return response
+        return GetErrorDetails(
+            "An error occurred while getting user information.", e, 500
+        )
 
 
 @csrf_exempt
 @require_http_methods(["GET", "POST", "OPTIONS"])
-# @login_required
 def get_all_persons_data(request):
     """
     API endpoint to retrieve all person data in JSON format.
@@ -106,9 +91,7 @@ def get_all_persons_data(request):
     response_data = {
         "persons": persons_data
     }
-    response = JsonResponse(response_data, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(response_data, status=200)
 
 
 @csrf_exempt
@@ -116,21 +99,14 @@ def get_all_persons_data(request):
 def get_person_profil_image(request, image_id):
     session = request.session
 
-    profil_image = session.query(ProfilImage).get(image_id)
-    if not profil_image:
-        # If user is not found, return an error response
-        response = JsonResponse(
-            {'answer': "Profil image don't exist."}, status=501)
-        add_get_params(response)
-        return response
-
-    # Return a success response
-    response = JsonResponse(
-        {"profil_image": profil_image.to_json()},
-        status=200
-    )
-    add_get_params(response)
-    return response
+    if profil_image := session.query(ProfilImage).get(image_id):
+        return JsonResponse(
+            {"profil_image": profil_image.to_json()}, status=200
+        )
+    else:
+        return JsonResponse(
+            {'answer': "Profil image don't exist."}, status=501
+        )
 
 
 @csrf_exempt
@@ -138,19 +114,11 @@ def get_person_profil_image(request, image_id):
 @login_required
 def get_person_address(request):
     
-    person_location = request.person.location 
-    if not person_location:
-        # If user is not found, return an error response
-        response = JsonResponse(
-            {'answer': "Person location don't exist."}, status=501)
-        add_get_params(response)
-        return response
-
-
-    # Return a success response
-    response = JsonResponse(
-        {"person_location": person_location.to_json()},
-        status=200
-    )
-    add_get_params(response)
-    return response
+    if person_location := request.person.location:
+        return JsonResponse(
+            {"person_location": person_location.to_json()}, status=200
+        )
+    else:
+        return JsonResponse(
+            {'answer': "Person location don't exist."}, status=501
+        )

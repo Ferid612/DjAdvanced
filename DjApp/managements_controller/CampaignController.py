@@ -1,4 +1,3 @@
-from DjApp.helpers import add_get_params
 from DjApp.models import Campaign, CampaignProduct, ProductEntry
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -44,23 +43,25 @@ def create_campaign(request):
 
     # Check if any required data is missing
     if not (name and description and valid_from and valid_to):
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'Missing data error. Name, Description, Valid From and Valid To must be filled'},
-            status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Missing data error. Name, Description, Valid From and Valid To must be filled',
+            },
+            status=404,
+        )
     # Get the SQLAlchemy session from the request object
     session = request.session
 
     # Check if a campaign with the given name already exists
     if session.query(Campaign).filter_by(name=name).one_or_none():
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'Campaign with that name already exists'},
-            status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Campaign with that name already exists',
+            },
+            status=404,
+        )
     # Create the campaign object
     campaign = Campaign(name=name, description=description,
                         valid_from=valid_from, valid_to=valid_to)
@@ -69,14 +70,13 @@ def create_campaign(request):
     session.add(campaign)
     session.commit()
 
-    # Return a JSON response containing the created campaign object
-    response = JsonResponse({
-        "answer": "Created campaign object successfully.",
-        "campaign": campaign.to_json()
-    }, status=200)
-
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            "answer": "Created campaign object successfully.",
+            "campaign": campaign.to_json(),
+        },
+        status=200,
+    )
 
 
 
@@ -113,12 +113,13 @@ def assign_campaign_to_products(request):
 
     # Check if any required data is missing
     if not (campaign_id and campaign_products):
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'Missing data error. Campaign ID and Campaign Products must be provided'},
-            status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Missing data error. Campaign ID and Campaign Products must be provided',
+            },
+            status=404,
+        )
     # Get the SQLAlchemy session from the request object
     session = request.session
 
@@ -127,12 +128,9 @@ def assign_campaign_to_products(request):
 
     # Check if the campaign exists
     if not campaign:
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'Campaign not found'},
-            status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'False', 'message': 'Campaign not found'}, status=404
+        )
     # Assign the products to the campaign
     for product_data in campaign_products:
         product_id = product_data.get('product_id')
@@ -144,12 +142,13 @@ def assign_campaign_to_products(request):
 
         # Check if the product entry exists
         if not product_entry:
-            response = JsonResponse(
-                {'answer': 'False', 'message': f"Product entry not found for product ID {product_id}"},
-                status=404)
-            add_get_params(response)
-            return response
-
+            return JsonResponse(
+                {
+                    'answer': 'False',
+                    'message': f"Product entry not found for product ID {product_id}",
+                },
+                status=404,
+            )
         # Create the campaign product and associate it with the campaign and product_entry
         campaign_product = CampaignProduct(
             campaign=campaign,
@@ -164,12 +163,9 @@ def assign_campaign_to_products(request):
     # Commit the changes to the session
     session.commit()
 
-    # Return a JSON response indicating success
-    response = JsonResponse({
-        "answer": "Products assigned to the campaign successfully."
-    }, status=200)
-
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {"answer": "Products assigned to the campaign successfully."},
+        status=200,
+    )
 
 

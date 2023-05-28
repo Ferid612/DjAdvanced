@@ -41,7 +41,7 @@ def require_http_methods(request_method_list):
                     response=response,
                     request=request,
                 )
-                add_get_params(response)
+                add_get_params(response, request)
                 return response
 
             # for the standardization of functions
@@ -52,11 +52,7 @@ def require_http_methods(request_method_list):
                     data = request.POST
             else:
                 auth_data = request.headers.get('Authorization')
-                if auth_data:
-                    data = json.loads(auth_data)
-                else:
-                    data = request.GET
-
+                data = json.loads(auth_data) if auth_data else request.GET
                 print(auth_data)
             # for the standardization of functions
             request.data = data
@@ -64,7 +60,9 @@ def require_http_methods(request_method_list):
             with session_scope() as session:
                 request.session = session
 
-                return func(request, *args, **kwargs)
+                response = func(request, *args, **kwargs)
+                add_get_params(response, request)
+                return response
 
         return inner
 
@@ -83,7 +81,7 @@ def login_required_fast(func):
         if not access_token or not refresh_token:
             response = JsonResponse(
                 {'answer': "False", 'message': 'Missing token'}, status=401)
-            add_get_params(response)
+
             return response
 
         try:
@@ -110,7 +108,6 @@ def login_required_fast(func):
         response.set_cookie('access_token', access_token)
         response.set_cookie('refresh_token', refresh_token)
 
-        add_get_params(response)
         return response
 
     return wrapper
@@ -125,7 +122,7 @@ def login_required(func):
         if not access_token:
             response = JsonResponse(
                 {'answer': "False", 'message': 'Missing token'}, status=401)
-            add_get_params(response)
+
             return response
 
         session = request.session
@@ -145,7 +142,6 @@ def login_required(func):
         response.set_cookie('access_token', access_token)
         response.set_cookie('refresh_token', refresh_token)
 
-        add_get_params(response)
         return response
 
     return wrapper
@@ -189,15 +185,20 @@ def permission_required(*permission_names):
             print("person_permission_names: ", person_permission_names)
 
             # Check if the user has all of the required permissions
-            if not all(name in person_permission_names for name in permission_names):
+            if any(
+                name not in person_permission_names
+                for name in permission_names
+            ):
                 response = JsonResponse(
                     {'answer': "False", 'message': 'You do not have permission to access this resource.'}, status=403)
-                add_get_params(response)
+
                 return response
 
             # Call the original function if the user has all of the required permissions
             return f(request, *args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -214,7 +215,6 @@ def google_authenticated(view_func):
 
         if not credentials.valid:
             return redirect(reverse("google_login_callback"))
-
         return view_func(request, *args, **kwargs)
 
     return wrapper

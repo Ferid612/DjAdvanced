@@ -1,14 +1,8 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 from django.http import JsonResponse
-from sqlalchemy import func
 from DjApp.decorators import require_http_methods
-from sqlalchemy.orm import joinedload
-from ..models import Category, Product, ProductColor, ProductEntry, ProductMaterial, ProductMeasure, Supplier
-from ..helpers import add_get_params
-from typing import List
-from sqlalchemy.orm import joinedload
-
+from ..models import Category
 
 @csrf_exempt
 @require_http_methods(["GET", "OPTIONS"])
@@ -28,10 +22,9 @@ def get_products_by_category(request, category_id, product_id=None, product_entr
 
     products = category.get_self_products()
 
-    response = JsonResponse(
-        {'category': category.to_json(), 'products': products}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {'category': category.to_json(), 'products': products}, status=200
+    )
 
 
 @csrf_exempt
@@ -50,10 +43,9 @@ def get_products_in_category(request, category_id, product_id=None):
 
     products = category.get_all_products()
 
-    response = JsonResponse(
-        {'category': category.to_json(), 'products': products}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {'category': category.to_json(), 'products': products}, status=200
+    )
 
 
 @csrf_exempt
@@ -105,9 +97,7 @@ def get_subcategory_categories(request, category_id):
             else:
                 stack.append(child_category)
 
-    response = JsonResponse({'categories': result}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse({'categories': result}, status=200)
 
 
 @csrf_exempt
@@ -116,11 +106,7 @@ def get_first_subcategory_categories(request, category_id):
     session = request.session
     print(category_id)
     if not category_id and category_id != 0:
-        response = JsonResponse(
-            {'error': 'Category id must be exist'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse({'error': 'Category id must be exist'}, status=404)
     # Query the category by ID and retrieve its child categories
     categories = []
     if category_id == 0:
@@ -131,12 +117,7 @@ def get_first_subcategory_categories(request, category_id):
             parent_id=category_id).order_by(Category.id)
 
     if not categories:
-        response = JsonResponse({'error': 'Category not found'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse({'error': 'Category not found'}, status=404)
     result = [category.to_json() for category in categories]
 
-    response = JsonResponse({'categories': result}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse({'categories': result}, status=200)

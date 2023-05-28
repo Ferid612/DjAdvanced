@@ -2,7 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from DjAdvanced.settings.production import PROFIL_IMAGE_ROOT
 from DjApp.managements_controller.LocationController import create_address_object, update_object_address
-from ..helpers import GetErrorDetails, add_get_params, save_uploaded_image
+from ..helpers import GetErrorDetails, save_uploaded_image
 from ..models import PhoneNumber, ProfilImage, Supplier
 from ..decorators import permission_required, login_required, require_http_methods
 
@@ -35,22 +35,22 @@ def registration_of_supplier(request):
         session.query(Supplier).filter_by(name=supplier_name).one_or_none()
     ):
         # If Supplier name already exists, return an error response
-        response = JsonResponse(
+        return JsonResponse(
             {'answer': f"This supplier name '{supplier_name}' belongs to another supplier account."}, status=400)
 
-        add_get_params(response)
-        return response
+        
+        
     # check exist phone number
     if (
         session.query(PhoneNumber).filter_by(
             phone_number=phone_number).one_or_none()
     ):
         # If phone number already exists, return an error response
-        response = JsonResponse(
+        return JsonResponse(
             {'answer': "This phone number belongs to another supplier account."}, status=400)
 
-        add_get_params(response)
-        return response
+        
+        
 
     # Create a new phone number object
     new_phone = PhoneNumber(
@@ -74,15 +74,15 @@ def registration_of_supplier(request):
     session.commit()
 
     # Return a success response
-    response = JsonResponse(
+    return JsonResponse(
         {"answer": "The new supplier account has been successfully created.",
             "supplier": new_supplier.to_json(),
          },
         status=200
     )
 
-    add_get_params(response)
-    return response
+    
+    
 
 
 @csrf_exempt
@@ -106,24 +106,24 @@ def add_or_change_supplier_profile_image(request):
     supplier = session.query(Supplier).get(supplier_id)
     if not supplier:
         # If supplier not found
-        response = JsonResponse(
+        return JsonResponse(
             {"error": "Supplier id is not correct."},
             status=400
         )
 
-        add_get_params(response)
+        
 
-        return response
+        
 
     if not image_file:
         # If no image file is provided, return an error response
-        response = JsonResponse(
+        return JsonResponse(
             {"error": "No image file provided."},
             status=400
         )
-        add_get_params(response)
+        
 
-        return response
+        
 
     # Save the image file to the server
     path = PROFIL_IMAGE_ROOT / 'persons'
@@ -149,14 +149,14 @@ def add_or_change_supplier_profile_image(request):
     session.commit()
 
     # Return a success response
-    response = JsonResponse(
+    return JsonResponse(
         {"answer": "The profile image has been updated successfully.",
             "supplier_profil_image": image_data},
         status=200
     )
 
-    add_get_params(response)
-    return response
+    
+    
 
 
 @csrf_exempt
@@ -191,19 +191,19 @@ def update_supplier_data(request):
 
     # Check that required parameters are present and valid
     if not supplier_name or not new_values:  # check if supplier_id and/or new_values are missing
-        response = JsonResponse(
+        return JsonResponse(
             {'answer': 'supplier_name and new_values are required fields'}, status=400)
-        add_get_params(response)
-        return response
+        
+        
 
     # Get the supplier object from the database
     supplier = session.query(Supplier).filter_by(name=supplier_name).first()
 
     if not supplier:  # check if supplier object is found
-        response = JsonResponse(
+        return JsonResponse(
             {'answer': f"Could not find supplier with name {supplier_name}"}, status=404)
-        add_get_params(response)
-        return response
+        
+        
 
     # Check if any of the disallowed columns are being updated
     # Update supplier object with new values
@@ -212,18 +212,18 @@ def update_supplier_data(request):
     for new_value in new_values:
         for column_name, value in new_value.items():
             if column_name in not_allowed_columns:  # check if the column is disallowed
-                response = JsonResponse(
+                return JsonResponse(
                     {'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
-                add_get_params(response)
-                return response
+                
+                
 
             # set the new value of the column in the supplier object
             setattr(supplier, column_name, value)
 
-    response = JsonResponse(
+    return JsonResponse(
         {'success': f"Supplier with name {supplier_name} has been updated."}, status=200)
-    add_get_params(response)
-    return response
+    
+    
 
 
 @csrf_exempt
@@ -253,29 +253,29 @@ def delete_supplier(request):
     session = request.session
     # Check that required parameters are present and valid
     if not supplier_name:
-        response = JsonResponse(
+        return JsonResponse(
             {'answer': 'supplier_name is a required field'}, status=400)
-        add_get_params(response)
-        return response
+        
+        
 
     # Retrieve the supplier object from the database
     supplier = session.query(Supplier).filter_by(name=supplier_name).first()
 
     # Check if the supplier exists
     if not supplier:
-        response = JsonResponse(
+        return JsonResponse(
             {'answer': f'Supplier {supplier_name} not found'}, status=404)
-        add_get_params(response)
-        return response
+        
+        
 
     # Delete the supplier from the database
     session.delete(supplier)
 
     # Return a success message
-    response = JsonResponse(
+    return JsonResponse(
         {'success': 'Supplier {supplire_name} successfully deleted'}, status=200)
-    add_get_params(response)
-    return response
+    
+    
 
 
 @csrf_exempt
@@ -300,10 +300,10 @@ def update_supplier_address(request):
     supplier.location = address_obj
     session.commit()
 
-    response = JsonResponse(
+    return JsonResponse(
         {'answer': 'The addres has been successfully applied to supplier',
          'supplier_id': supplier.id,
          'new_address_obj_json': address_obj.to_json(),
          }, status=200)
-    add_get_params(response)
-    return response
+    
+    

@@ -3,10 +3,9 @@ from django.http import JsonResponse
 import jwt
 from DjAdvanced.settings.production import EMAIL_HOST_USER, HOST_URL
 from DjApp.decorators import login_required, require_http_methods
-from DjApp.helpers import GetErrorDetails, add_get_params
+from DjApp.helpers import GetErrorDetails
 from DjApp.managements_controller.TokenController import generate_new_access_token
 from django.views.decorators.csrf import csrf_exempt
-from DjAdvanced.settings.production import engine
 # from DjApp.models import Users
 from django.core.mail import send_mail
 
@@ -85,11 +84,9 @@ def send_email(usermail, subject, body):
         send_mail(subject, body, sender_email, [usermail], html_message=body)
         print("message", f"Mail succesfully sending to {usermail}")
     except Exception as e:
-        # in case of an error, print the error message
-        response = JsonResponse(
-            {"answer": "something went wrong when sending mail"}, status=400)
-        add_get_params(response)
-        return response
+        return JsonResponse(
+            {"answer": "something went wrong when sending mail"}, status=400
+        )
 
 
 @csrf_exempt
@@ -155,21 +152,16 @@ def send_verification_code_after_login(request):
         # Send the verification code
         send_verification_code(person_id, email)
 
-        # Return a JSON response indicating success
-        response = JsonResponse({
-            "answer": f"The new token has been successfully sent to {email}. Please check your email account and verify your account."
-        }, status=200)
-
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                "answer": f"The new token has been successfully sent to {email}. Please check your email account and verify your account."
+            },
+            status=200,
+        )
     except Exception as e:
-        # If there was an error sending the email, return the error details
-        response = GetErrorDetails(
-            "Something went wrong when sending verification code.", e, 500)
-        add_get_params(response)
-
-        return response
+        return GetErrorDetails(
+            "Something went wrong when sending verification code.", e, 500
+        )
 
 
 @csrf_exempt
@@ -182,24 +174,25 @@ def verify_account(request):
         person = request.person
         person.active = True
 
-        # db.session.commit()
-        response = JsonResponse(
-            {"answer": "True", "message": "Your account has been verified. Please log in to continue.", }, status=200)
-        add_get_params(response)
-
-        return response
-
+        return JsonResponse(
+            {
+                "answer": "True",
+                "message": "Your account has been verified. Please log in to continue.",
+            },
+            status=200,
+        )
     except jwt.ExpiredSignatureError:
-        response = JsonResponse(
-            {"answer": "False", 'answer': 'The verification link has expired. Please register again.', }, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                "answer": "False",
+                'answer': 'The verification link has expired. Please register again.',
+            },
+            status=400,
+        )
     except jwt.InvalidTokenError:
-        response = JsonResponse(
-            {"answer": "False", 'answer': 'Invalid token.'}, status=400)
-        add_get_params(response)
-        return response
+        return JsonResponse(
+            {"answer": "False", 'answer': 'Invalid token.'}, status=400
+        )
 
 
 @csrf_exempt
@@ -229,13 +222,7 @@ def contact_us(request):
         send_email(EMAIL_HOST_USER, subject, message)
 
     except Exception as e:
-        # Catch and log any exceptions that occur during email sending
-        response = JsonResponse(
-            {"answer": "something went wrong when sending mail"}, status=400)
-        add_get_params(response)
-        return response
-
-    # Return a JSON response indicating success
-    response = JsonResponse({"answer": "Mail successfully sent"}, status=200)
-    add_get_params(response)
-    return response
+        return JsonResponse(
+            {"answer": "something went wrong when sending mail"}, status=400
+        )
+    return JsonResponse({"answer": "Mail successfully sent"}, status=200)

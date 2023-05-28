@@ -1,7 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from ..decorators import permission_required, login_required, require_http_methods
-from ..helpers import add_get_params
 from ..models import Category, ProductColor, ProductEntry, Product, ProductMaterial, ProductMeasureValue, Supplier
 
 
@@ -27,28 +26,25 @@ def create_product_template(request):
     product_list = data.get('product_list')
 
     if not (category_id and supplier_id and product_list):
-        response = JsonResponse(
-            {'answer': 'category_id, supplier_id, and product_list are required fields'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'category_id, supplier_id, and product_list are required fields'
+            },
+            status=400,
+        )
     # Get or create supplier
     supplier = session.query(Supplier).get(supplier_id)
 
     if not supplier:
-        response = JsonResponse(
-            {'answer': f'There is no Supplier id {supplier_id}'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': f'There is no Supplier id {supplier_id}'}, status=400
+        )
     # Get the category
     category = session.query(Category).get(category_id)
     if not category:
-        response = JsonResponse(
-            {'answer': f'There is no category id {category_id}'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': f'There is no category id {category_id}'}, status=400
+        )
     # Get the names of existing products
     existing_products = [p.name for p in session.query(Product.name).filter(
         Product.name.in_([p['name'] for p in product_list])).all()]
@@ -68,11 +64,13 @@ def create_product_template(request):
     # Add the new products to the session
     session.bulk_save_objects(products_to_add)
 
-    # Create the response
-    response = JsonResponse({'existing_products': existing_products, 'added_products': [p['name'] for p in new_products]},
-                            status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'existing_products': existing_products,
+            'added_products': [p['name'] for p in new_products],
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
@@ -108,38 +106,34 @@ def create_product_entry(request):
     # Check if the product with the given id exists
     product = session.query(Product).get(product_id)
     if not product:
-        response = JsonResponse(
-            {'answer': f"Product with id {product_id} does not exist."}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': f"Product with id {product_id} does not exist."},
+            status=404,
+        )
     # Check if the color with the given id exists
     color = session.query(ProductColor).get(color_id)
     if not color:
-        response = JsonResponse(
-            {'answer': f"Color with id {color_id} does not exist."}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': f"Color with id {color_id} does not exist."}, status=404
+        )
     # Check if the material with the given id exists
     material = session.query(ProductMaterial).get(material_id)
     if not material:
-        response = JsonResponse(
-            {'answer': f"Material with id {material_id} does not exist."}, status=404)
-        add_get_params(response)
-        return response
-
-
+        return JsonResponse(
+            {'answer': f"Material with id {material_id} does not exist."},
+            status=404,
+        )
     # Check if the measure with the given id exists
     if measure_value_id:
         measure = session.query(ProductMeasureValue).get(measure_value_id)
 
         if not measure:
-            response = JsonResponse(
-                {'answer': f"Measure with id {measure_value_id} does not exist."}, status=404)
-            add_get_params(response)
-            return response
-
+            return JsonResponse(
+                {
+                    'answer': f"Measure with id {measure_value_id} does not exist."
+                },
+                status=404,
+            )
         new_entry = ProductEntry(product_id=product_id, measure_value_id=measure_value_id,
                                  color_id=color_id, material_id=material_id, quantity=quantity, SKU=SKU, price=price)
         print("NEASURE ADDING TO ENTRY")
@@ -164,10 +158,10 @@ def create_product_entry(request):
         'price': new_entry.price
 
     }
-    response = JsonResponse(
-        {'answer': 'Product entry created successfully', 'entry': entry_info}, status=201)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {'answer': 'Product entry created successfully', 'entry': entry_info},
+        status=201,
+    )
 
 
 @csrf_exempt
@@ -187,19 +181,17 @@ def update_product(request):
     new_values = data.get('new_values')
 
     if not product_id or not new_values:
-        response = JsonResponse(
-            {'answer': 'product_id and new_values are required fields'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'product_id and new_values are required fields'},
+            status=400,
+        )
     # Get the product with the given id
     product = session.query(Product).get(product_id)
     if not product:
-        response = JsonResponse(
-            {'answer': 'A product with the given id does not exist'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'A product with the given id does not exist'},
+            status=400,
+        )
     # Update the values for each column in the product table
     not_allowed_columns = ['id']
     response_details = []
@@ -207,11 +199,12 @@ def update_product(request):
     for index, new_value in enumerate(new_values):
         for column_name, value in new_value.items():  # iterate through the columns in the new_value
             if column_name in not_allowed_columns:
-                response = JsonResponse(
-                    {'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
-                add_get_params(response)
-                return response
-
+                return JsonResponse(
+                    {
+                        'answer': f"Cannot update {column_name} through this endpoint."
+                    },
+                    status=400,
+                )
             if column_name == "supplier_id":
                 if supplier := session.query(Supplier).get(value):
                     product.supplier_id = supplier.id
@@ -230,16 +223,17 @@ def update_product(request):
 
             setattr(product, column_name, value)
 
-    response = JsonResponse({'Success': 'The product has been successfully updated',
-                            "response_details": response_details}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'Success': 'The product has been successfully updated',
+            "response_details": response_details,
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-# @login_required
-# @permission_required("manage_products")
 def update_product_entry(request, entry_id):
     """
     This function is used to update an existing product in the database.
@@ -253,19 +247,17 @@ def update_product_entry(request, entry_id):
     new_values = data.get('new_values')
 
     if not entry_id or not new_values:
-        response = JsonResponse(
-            {'answer': 'entry_id and new_values are required fields'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'entry_id and new_values are required fields'},
+            status=400,
+        )
     # Get the product_entry with the given id
     product_entry = session.query(ProductEntry).get(entry_id)
     if not product_entry:
-        response = JsonResponse(
-            {'answer': 'A product_entry with the given id does not exist'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'A product_entry with the given id does not exist'},
+            status=400,
+        )
     # Update the values for each column in the product_entry table
     not_allowed_columns = ['id']
     response_details = []
@@ -273,23 +265,25 @@ def update_product_entry(request, entry_id):
     for index, new_value in enumerate(new_values):
         for column_name, value in new_value.items():  # iterate through the columns in the new_value
             if column_name in not_allowed_columns:
-                response = JsonResponse(
-                    {'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
-                add_get_params(response)
-                return response
-
+                return JsonResponse(
+                    {
+                        'answer': f"Cannot update {column_name} through this endpoint."
+                    },
+                    status=400,
+                )
             setattr(product_entry, column_name, value)
 
-    response = JsonResponse({'Success': 'The product has been successfully updated',
-                            "response_details": response_details}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'Success': 'The product has been successfully updated',
+            "response_details": response_details,
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-# @login_required
-# @permission_required("manage_products")
 def delete_product(request):
     """
     This function is used to delete a specific product.
@@ -304,22 +298,22 @@ def delete_product(request):
     product = session.query(Product).get(product_id)
 
     if not product:
-        response = JsonResponse(
-            {'answer': f'No product found with product.id {product_id}'}, status=404)
-        add_get_params(response)
-        return response
+        return JsonResponse(
+            {'answer': f'No product found with product.id {product_id}'},
+            status=404,
+        )
     session.delete(product)
 
-    response = JsonResponse(
-        {'message': f'Product with product.id {product_id} has been successfully deleted.'}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'message': f'Product with product.id {product_id} has been successfully deleted.'
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-# @login_required
-# @permission_required("manage_products")
 def delete_product_entry(request, entry_id):
     """
     This function is used to delete a specific product.
@@ -333,22 +327,24 @@ def delete_product_entry(request, entry_id):
     product_entry = session.query(ProductEntry).get(entry_id)
 
     if not product_entry:
-        response = JsonResponse(
-            {'answer': f'No product_entry found with product_entry.id {entry_id}'}, status=404)
-        add_get_params(response)
-        return response
+        return JsonResponse(
+            {
+                'answer': f'No product_entry found with product_entry.id {entry_id}'
+            },
+            status=404,
+        )
     session.delete(product_entry)
 
-    response = JsonResponse(
-        {'message': f'product_entry with product_entry.id {entry_id} has been successfully deleted.'}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'message': f'product_entry with product_entry.id {entry_id} has been successfully deleted.'
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-# @login_required
-# @permission_required("manage_products")
 def update_all_product_entries(request):
     """
     This function is used to update an existing product in the database.
@@ -373,14 +369,18 @@ def update_all_product_entries(request):
         for index, new_value in enumerate(new_values):
             for column_name, value in new_value.items():  # iterate through the columns in the new_value
                 if column_name in not_allowed_columns:
-                    response = JsonResponse(
-                        {'answer': f"Cannot update {column_name} through this endpoint."}, status=400)
-                    add_get_params(response)
-                    return response
-
+                    return JsonResponse(
+                        {
+                            'answer': f"Cannot update {column_name} through this endpoint."
+                        },
+                        status=400,
+                    )
                 setattr(product_entry, column_name, value)
 
-    response = JsonResponse({'Success': 'The product has been successfully updated',
-                            "response_details": response_details}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'Success': 'The product has been successfully updated',
+            "response_details": response_details,
+        },
+        status=200,
+    )

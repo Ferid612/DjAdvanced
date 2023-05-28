@@ -1,9 +1,7 @@
 from django.http import JsonResponse
-from sqlalchemy.orm import joinedload
 from DjApp.models import WishList
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import login_required, require_http_methods
-from ..helpers import  add_get_params
 
 
 
@@ -25,16 +23,23 @@ def get_user_wishlists_list(request,count=None):
 
 
     if not user:
-        response = JsonResponse({'answer': 'False', 'message': 'User with the given ID does not exist.'}, status=404)
-        add_get_params(response)
-        return response
-    
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'User with the given ID does not exist.',
+            },
+            status=404,
+        )
     wishlists = user.get_user_wishlists_list(count)
-    
-    # Return a JSON response with a success message and the wishlists' information
-    response = JsonResponse({'Success': 'The user wishlists have been successfully retrieved.','user_id':user.id, "wishlists":wishlists }, status=200)
-    add_get_params(response)
-    return response
+
+    return JsonResponse(
+        {
+            'Success': 'The user wishlists have been successfully retrieved.',
+            'user_id': user.id,
+            "wishlists": wishlists,
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
@@ -54,24 +59,33 @@ def get_user_wishlist(request,wishlist_id):
     session = request.session
 
     if not user:
-        response = JsonResponse({'answer': 'False', 'message': 'User with the given ID does not exist.'}, status=404)
-        add_get_params(response)
-        return response
-    
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'User with the given ID does not exist.',
+            },
+            status=404,
+        )
     wishlist = session.query(WishList).filter_by(id=wishlist_id, user_id=user.id).first()
     if not wishlist:
-        response = JsonResponse({'answer': 'False','message': 'Wishlist with given ID does not exist in this user'}, status=404)
-        add_get_params(response)
-        return response
-    
-    
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Wishlist with given ID does not exist in this user',
+            },
+            status=404,
+        )
     wishlist_data = wishlist.to_json()
-    
-    
-    # Return a JSON response with a success message and the wishlists' information
-    response = JsonResponse({'Success': 'The user wishlists have been successfully retrieved.','user_id':user.id, "wishlists":wishlist_data }, status=200)
-    add_get_params(response)
-    return response
+
+
+    return JsonResponse(
+        {
+            'Success': 'The user wishlists have been successfully retrieved.',
+            'user_id': user.id,
+            "wishlists": wishlist_data,
+        },
+        status=200,
+    )
 
 
 

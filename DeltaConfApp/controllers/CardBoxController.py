@@ -4,7 +4,6 @@ from django.http import JsonResponse
 from DeltaConfApp.models import CardBox, ProductEntryCardBox
 from DjApp.models import ProductEntry
 from DjApp.decorators import login_required, require_http_methods
-from DjApp.helpers import  GetErrorDetails, add_get_params
 
 
 @csrf_exempt
@@ -25,30 +24,38 @@ def create_card_box(request):
     session = request.session
 
     if not (name and description):
-        response = JsonResponse({'answer': 'False', 'message': 'Missing data error. Name and description must be filled.'}, status=404)
-        add_get_params(response)
-        return response
-    
-    card_box_exist = session.query(CardBox).filter_by(name=name).first()
-    if card_box_exist:
-        response = JsonResponse({'answer': 'False','message': 'Card box with the given name already exists.'}, status=404)
-        add_get_params(response)
-        return response
-    
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Missing data error. Name and description must be filled.',
+            },
+            status=404,
+        )
+    if card_box_exist := session.query(CardBox).filter_by(name=name).first():
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Card box with the given name already exists.',
+            },
+            status=404,
+        )
     # Create a new card box object with the given parameters
     new_card_box = CardBox(
         name=name,
         description=description,
     )
-    
+
     # Add the new card box to the database and commit the changes
     session.add(new_card_box)
     session.commit()
 
-    # Return a JSON response with a success message and the new card box's information
-    response = JsonResponse({'Success': 'The new card box has been successfully created.', "card_box":new_card_box.to_json()}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'Success': 'The new card box has been successfully created.',
+            "card_box": new_card_box.to_json(),
+        },
+        status=200,
+    )
 
 
 
@@ -70,27 +77,30 @@ def update_card_box(request, pk):
     card_box = session.query(CardBox).get(pk)
 
     if not card_box:
-        response = JsonResponse({'answer': 'False', 'message': 'Card box with the given ID does not exist.'}, status=404)
-        add_get_params(response)
-        return response
-
-    # Update the card box attributes based on the provided parameters, if any
-    name = request.data.get("name")
-    if name:
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Card box with the given ID does not exist.',
+            },
+            status=404,
+        )
+    if name := request.data.get("name"):
         card_box.name = name
 
-    description = request.data.get("description")
-    if description:
+    if description := request.data.get("description"):
         card_box.description = description
 
     # Save the updated card box to the database and commit the changes
     session.add(card_box)
     session.commit()
 
-    # Return a JSON response with a success message and the updated card box's information
-    response = JsonResponse({'Success': 'The card box has been successfully updated.', 'card_box': card_box.to_json()}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'Success': 'The card box has been successfully updated.',
+            'card_box': card_box.to_json(),
+        },
+        status=200,
+    )
 
 
 
@@ -109,25 +119,31 @@ def delete_card_box(request, pk):
     card_box = session.query(CardBox).get(pk)
 
     if not card_box:
-        response = JsonResponse({'answer': 'False', 'message': 'Card box with the given ID does not exist.'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Card box with the given ID does not exist.',
+            },
+            status=404,
+        )
     try:
         # Delete the card box from the database and commit the changes
         session.delete(card_box)
         session.commit()
 
-        # Return a JSON response with a success message
-        response = JsonResponse({'Success': 'The card box has been successfully deleted.'}, status=200)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'Success': 'The card box has been successfully deleted.'},
+            status=200,
+        )
     except Exception as e:
-        # Handle any errors that occur during the deletion process and return a JSON response with an error message
-        response = JsonResponse({'answer': 'False', 'message': 'An error occurred while deleting the card box.', 'error_details': str(e)}, status=500)
-        add_get_params(response)
-        return response
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'An error occurred while deleting the card box.',
+                'error_details': str(e),
+            },
+            status=500,
+        )
 
 
 
@@ -150,24 +166,32 @@ def add_product_entry_to_card_box(request, pk):
     # Check if the card box with the given ID exists
     card_box = session.query(CardBox).get(pk)
     if not card_box:
-        response = JsonResponse({'answer': 'False', 'message': 'Card box with the given ID does not exist.'}, status=404)
-        add_get_params(response)
-        return response
-    
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Card box with the given ID does not exist.',
+            },
+            status=404,
+        )
     # Check if the product entry with the given ID exists
     product_entry = session.query(ProductEntry).get(product_entry_id)
     if not product_entry:
-        response = JsonResponse({'answer': 'False', 'message': 'Product entry with the given ID does not exist.'}, status=404)
-        add_get_params(response)
-        return response
-    
-    
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Product entry with the given ID does not exist.',
+            },
+            status=404,
+        )
     # Check if the card box already has the product entry
     if session.query(ProductEntryCardBox).filter_by(card_box_id=pk, product_entry_id=product_entry_id).first():
-        response = JsonResponse({'answer': 'False', 'message': 'The card box already has the given product entry.'}, status=400)
-        add_get_params(response)
-        return response
-    
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'The card box already has the given product entry.',
+            },
+            status=400,
+        )
     # Add the product entry to the card box
     product_entry_card_box = ProductEntryCardBox(
         card_box_id=pk,
@@ -176,10 +200,13 @@ def add_product_entry_to_card_box(request, pk):
     session.add(product_entry_card_box)
     session.commit()
 
-    # Return a JSON response with a success message and the updated card box's information
-    response = JsonResponse({'Success': 'The product entry has been successfully added to the card box.','card_box': card_box.to_json_with_entries(session)}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'Success': 'The product entry has been successfully added to the card box.',
+            'card_box': card_box.to_json_with_entries(session),
+        },
+        status=200,
+    )
 
 
 
@@ -197,22 +224,27 @@ def delete_product_entry_from_card_box(request, pk):
 
     # Get the parameters from the request object
     session = request.session
-    
+
     # Check if the card box has the product entry
     product_entry_card_box = session.query(ProductEntryCardBox).get(pk)
     if not product_entry_card_box:
-        response = JsonResponse({'answer': 'False', 'message': 'The card box does not have the given product entry.'}, status=400)
-        add_get_params(response)
-        return response
-    
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'The card box does not have the given product entry.',
+            },
+            status=400,
+        )
     # Remove the product entry from the card box
     session.delete(product_entry_card_box)
     session.commit()
 
-    # Return a JSON response with a success message and the updated card box's information
-    response = JsonResponse({'Success': 'The product entry has been successfully deleted from the card box.'}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'Success': 'The product entry has been successfully deleted from the card box.'
+        },
+        status=200,
+    )
 
 
 

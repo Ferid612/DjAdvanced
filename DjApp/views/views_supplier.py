@@ -1,14 +1,11 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from DjApp.decorators import login_required, permission_required, require_http_methods
-from DjApp.helpers import add_get_params
-from DjApp.models import Category, Product, ProfilImage, Supplier
+from DjApp.models import Category, Product, Supplier
 
 
 @csrf_exempt
 @require_http_methods(["GET", "OPTIONS"])
-# @login_required
-# @permission_required('manage_supplier')
 def get_all_suppliers(request):
     """
     This function retrieves all suppliers from the database and returns them as a JSON response.
@@ -21,13 +18,7 @@ def get_all_suppliers(request):
     # Convert each supplier object to JSON format
     suppliers_json = [supplier.to_json() for supplier in suppliers]
 
-    # Return a success response with the list of suppliers
-    response = JsonResponse(
-        {"suppliers": suppliers_json},
-        status=200
-    )
-    add_get_params(response)
-    return response
+    return JsonResponse({"suppliers": suppliers_json}, status=200)
 
 
 @csrf_exempt
@@ -45,23 +36,16 @@ def get_all_products_by_supplier(request, supplier_id):
 
     # Check if the supplier_name parameter was provided in the GET request
     if not supplier_id:
-        response = JsonResponse(
-            {'answer': 'supplier_id is not a required parameter'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'supplier_id is not a required parameter'}, status=400
+        )
     supplier = session.query(Supplier).get(supplier_id)
     if not supplier:
-        response = JsonResponse(
-            {'answer': 'Supplier does not exist'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse({'answer': 'Supplier does not exist'}, status=400)
     all_products = session.query(Product).filter_by(
         supplier_id=supplier_id).order_by(Category.id)
 
     products_data = [product.to_json() for product in all_products]
-    response = JsonResponse(
-        {f'{supplier.name} products': products_data}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {f'{supplier.name} products': products_data}, status=200
+    )

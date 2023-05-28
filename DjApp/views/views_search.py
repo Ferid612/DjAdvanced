@@ -3,7 +3,6 @@ from ..models import Product
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import require_http_methods
 from django.http import JsonResponse
-from ..helpers import add_get_params
 
 @csrf_exempt
 @require_http_methods(["GET", "OPTIONS"])
@@ -22,8 +21,6 @@ def search_product(request):
     result_data = [product.to_json() for product in result]
 
     # Return a JSON response containing the search result
-    response = JsonResponse({
+    return JsonResponse({
         'result': result_data
     }, status=200)
-    add_get_params(response)
-    return response

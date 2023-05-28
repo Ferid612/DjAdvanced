@@ -1,7 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required, require_http_methods
-from DjApp.helpers import add_get_params
 from ..models import ImageGallery, NewArrival
 
 
@@ -33,20 +32,21 @@ def add_new_arrival(request):
     session = request.session
 
     if not url or not description or not image_gallery_id or not relevant_url or not index:
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'The required data is missing.'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'False', 'message': 'The required data is missing.'},
+            status=404,
+        )
     # Retrieve the ImageGallery object based on the given ID
     gallery = session.query(ImageGallery).get(image_gallery_id)
 
     if not gallery:
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'The Image Gallery name  is not exists.'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'The Image Gallery name  is not exists.',
+            },
+            status=404,
+        )
     # Create a new NewArrival object and add it to the ImageGallery's list of slide photos
     new_arrival = NewArrival(gallery_id=image_gallery_id, index=index, url=url,
                              title=title, description=description, relavant_url=relevant_url)
@@ -54,10 +54,13 @@ def add_new_arrival(request):
 
     # Commit the changes to the database
     session.commit()
-    response = JsonResponse({"Success": "The new new_arrival has been successfully added to gallery.",
-                            "new_arrival": new_arrival.to_json()}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            "Success": "The new new_arrival has been successfully added to gallery.",
+            "new_arrival": new_arrival.to_json(),
+        },
+        status=200,
+    )
 
 
 # @login_required
@@ -87,11 +90,9 @@ def add_new_arrivals(request):
     gallery = session.query(ImageGallery).get(image_gallery_id)
 
     if not gallery:
-        response = JsonResponse(
-            {'Error': 'The Image Gallery does not exist.'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'Error': 'The Image Gallery does not exist.'}, status=404
+        )
     for photo in new_arrival:
         url = photo.get("url")
         title = photo.get("title")
@@ -110,10 +111,12 @@ def add_new_arrivals(request):
 
     # Commit the changes to the database
     session.commit()
-    response = JsonResponse(
-        {"Success": "The new arrival photos have been successfully added to the gallery."}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            "Success": "The new arrival photos have been successfully added to the gallery."
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
@@ -144,11 +147,13 @@ def update_new_arrival(request, new_arrival_id):
     new_arrival = session.query(NewArrival).get(new_arrival_id)
 
     if not new_arrival:
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'The New Arrival object is not exists.'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'The New Arrival object is not exists.',
+            },
+            status=404,
+        )
     # Update the NewArrival object's properties
     if url:
         new_arrival.url = url
@@ -162,10 +167,13 @@ def update_new_arrival(request, new_arrival_id):
         new_arrival.description = description
     # Commit the changes to the database
     session.commit()
-    response = JsonResponse({"Success": "The new_arrival object has been successfully updated.",
-                            "new_arrival": new_arrival.to_json()}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            "Success": "The new_arrival object has been successfully updated.",
+            "new_arrival": new_arrival.to_json(),
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
@@ -186,16 +194,21 @@ def delete_new_arrival(request, new_arrival_id):
     new_arrival = session.query(NewArrival).get(new_arrival_id)
 
     if not new_arrival:
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'The New Arrival slide is not exists.'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'The New Arrival slide is not exists.',
+            },
+            status=404,
+        )
     # Remove the NewArrival object from the database
     session.delete(new_arrival)
     session.commit()
 
-    response = JsonResponse({"Success": "The new_arrival slide has been successfully deleted.",
-                            "new_arrival": new_arrival.to_json()}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            "Success": "The new_arrival slide has been successfully deleted.",
+            "new_arrival": new_arrival.to_json(),
+        },
+        status=200,
+    )

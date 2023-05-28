@@ -4,7 +4,6 @@ from DjAdvanced.settings.production import auth_token, account_sid, verify_sid
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import login_required, require_http_methods
 from DjAdvanced.settings.production import engine
-from DjApp.helpers import add_get_params
 
 
 @csrf_exempt
@@ -26,9 +25,7 @@ def send_verification_code_with_twilio(request):
 
     print(verification.status)
 
-    response = JsonResponse({"message": verification.status}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse({"message": verification.status}, status=200)
 
 
 @csrf_exempt
@@ -52,15 +49,22 @@ def verify_twilio(request):
         .create(to=verified_number, code=otp_code)
 
     if verification_check.status != "Approved":
-        response = JsonResponse({"answer": "False", "message": "The verification code is incorrect.",
-                                "verification_check.status": verification_check.status}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                "answer": "False",
+                "message": "The verification code is incorrect.",
+                "verification_check.status": verification_check.status,
+            },
+            status=400,
+        )
     person.phone_verify = True
-    response = JsonResponse({"answer": "True", "message": "Your phone number has been verified successfully.",
-                            "verification_check.status": verification_check.status}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            "answer": "True",
+            "message": "Your phone number has been verified successfully.",
+            "verification_check.status": verification_check.status,
+        },
+        status=200,
+    )
 
     # print(verification_check.send_code_attempts)

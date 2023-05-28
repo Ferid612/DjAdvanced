@@ -2,7 +2,6 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import requests
-from DjApp.helpers import add_get_params
 from DjApp.decorators import require_http_methods
 
 
@@ -29,10 +28,10 @@ def get_person_location(request):
     response = requests.request("GET", url, headers=headers)
     resp_text = json.loads(response.text)
 
-    response = JsonResponse({"ip_data": resp_text}, status=200)
-    add_get_params(response)
+    return JsonResponse({"ip_data": resp_text}, status=200)
+    
 
-    return response
+    
 
 
 @csrf_exempt
@@ -57,11 +56,11 @@ def image_search(request):
     print(response.text)
     resp_text = json.loads(response.text)
 
-    response = JsonResponse({"ip_data": resp_text}, status=200)
+    return JsonResponse({"ip_data": resp_text}, status=200)
 
-    add_get_params(response)
+    
 
-    return response
+    
 
 
 @csrf_exempt
@@ -86,10 +85,10 @@ def web_search(request):
     print(response.text)
     resp_text = json.loads(response.text)
 
-    response = JsonResponse({"ip_data": resp_text}, status=200)
+    return JsonResponse({"ip_data": resp_text}, status=200)
 
-    add_get_params(response)
-    return response
+    
+    
 
 
 @csrf_exempt
@@ -111,9 +110,9 @@ def auto_complete(request):
     print(response.text)
     resp_text = json.loads(response.text)
 
-    response = JsonResponse({"ip_data": resp_text}, status=200)
+    return JsonResponse({"ip_data": resp_text}, status=200)
 
-    return response
+    
 
 
 @require_http_methods(["POST", "GET"])
@@ -134,9 +133,9 @@ def spell_check(request):
         "GET", url, headers=headers, params=querystring)
     resp_text = response.text
 
-    response = JsonResponse({"ip_data": resp_text}, status=200)
+    return JsonResponse({"ip_data": resp_text}, status=200)
 
-    return response
+    
 
 
 @csrf_exempt
@@ -191,9 +190,9 @@ def get_countiries(request):
 
     resp_text = json.loads(response.text)
 
-    response = JsonResponse({"ip_data": resp_text}, status=200)
+    return JsonResponse({"ip_data": resp_text}, status=200)
 
-    return response
+    
 
 
 @csrf_exempt
@@ -218,6 +217,6 @@ def get_cities(request):
         "GET", url, headers=headers, params=querystring)
     resp_text = json.loads(response.text)
 
-    response = JsonResponse({"ip_data": resp_text}, status=200)
+    return JsonResponse({"ip_data": resp_text}, status=200)
 
-    return response
+    

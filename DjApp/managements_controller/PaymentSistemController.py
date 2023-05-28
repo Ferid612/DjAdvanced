@@ -1,9 +1,7 @@
-import datetime
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from DjAdvanced.settings.production import engine
 from DjApp.models import UserPayment
-from ..helpers import GetErrorDetails, add_get_params
+from ..helpers import GetErrorDetails
 from ..decorators import login_required, require_http_methods
 
 
@@ -45,17 +43,16 @@ def add_user_payment(request):
         # Add the new payment information to the database and commit the changes
         session.add(new_payment)
 
-        # Return a JSON response with a success message
-        response = JsonResponse(
-            {"Success": "The payment information has been successfully added."}, status=200)
-        add_get_params(response)
-        return response
+        return JsonResponse(
+            {
+                "Success": "The payment information has been successfully added."
+            },
+            status=200,
+        )
     except Exception as e:
-        # Return a JSON response with an error message and the error details
-        response = GetErrorDetails(
-            "Something went wrong when adding payment information.", e, 500)
-        add_get_params(response)
-        return response
+        return GetErrorDetails(
+            "Something went wrong when adding payment information.", e, 500
+        )
 
 
 @csrf_exempt
@@ -96,23 +93,29 @@ def update_user_payment(request):
         user_payment.account_no = account_no
         user_payment.expiry = expiry
 
-        # Return a JSON response with a success message and the updated user payment information
-        response = JsonResponse({"Success": "The payment information has been successfully updated.", "user_id": user_id,
-                                "payment_type": payment_type, "provider": provider, "account_no": account_no, "expiry": expiry}, status=200)
-        add_get_params(response)
-        return response
+        return JsonResponse(
+            {
+                "Success": "The payment information has been successfully updated.",
+                "user_id": user_id,
+                "payment_type": payment_type,
+                "provider": provider,
+                "account_no": account_no,
+                "expiry": expiry,
+            },
+            status=200,
+        )
     except Exception as e:
-        # Return a JSON response with an error message and the error details
-        response = GetErrorDetails(
-            "Something went wrong when updating the payment information.", e, 500)
-        add_get_params(response)
-        return response
+        return GetErrorDetails(
+            "Something went wrong when updating the payment information.",
+            e,
+            500,
+        )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-def delete_user_payment(request):  # sourcery skip: raise-specific-error
+def delete_user_payment(request):    # sourcery skip: raise-specific-error
     """
     This function deletes a user payment from the database.
     The function receives the following parameters from the request object:
@@ -140,14 +143,11 @@ def delete_user_payment(request):  # sourcery skip: raise-specific-error
         # Delete the user payment from the database and commit the changes
         session.delete(user_payment)
 
-        # Return a JSON response with a success message
-        response = JsonResponse(
-            {"Success": "The user payment has been successfully deleted."}, status=200)
-        add_get_params(response)
-        return response
+        return JsonResponse(
+            {"Success": "The user payment has been successfully deleted."},
+            status=200,
+        )
     except Exception as e:
-        # Return a JSON response with an error message and the error details
-        response = GetErrorDetails(
-            "Something went wrong when deleting user payment.", e, 500)
-        add_get_params(response)
-        return response
+        return GetErrorDetails(
+            "Something went wrong when deleting user payment.", e, 500
+        )

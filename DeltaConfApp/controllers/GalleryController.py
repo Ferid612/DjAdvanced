@@ -1,7 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required, require_http_methods
-from DjApp.helpers import  add_get_params
 from ..models import ImageGallery, SlidePhotos
 
 
@@ -28,27 +27,33 @@ def add_slide_photo(request):
     url = data.get("url")
     title = data.get("title")
     relevant_url = data.get("relevant_url")
-    
-    
+
+
     session = request.session
-    
+
     # Retrieve the ImageGallery object based on the given ID
     gallery = session.query(ImageGallery).filter_by(id=image_gallery_id).one_or_none()
 
     if not gallery:
-        response = JsonResponse({'answer':'False', 'message':'The Image Gallery name  is not exists.'}, status=404)            
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'The Image Gallery name  is not exists.',
+            },
+            status=404,
+        )
     # Create a new SlidePhotos object and add it to the ImageGallery's list of slide photos
     slide_photo = SlidePhotos(gallery_id=image_gallery_id,url=url, title=title, relavant_url=relevant_url)
     session.add(slide_photo)
-    
+
     # Commit the changes to the database
     session.commit()
-    response = JsonResponse({"Success":"The new slide_photo has been successfully added to gallery."}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            "Success": "The new slide_photo has been successfully added to gallery."
+        },
+        status=200,
+    )
 
 
  
@@ -74,15 +79,12 @@ def add_slide_photos(request):
     slide_photos = data.get("slide_photos")
 
     session = request.session
-    
+
     # Retrieve the ImageGallery object based on the given ID
     gallery = session.query(ImageGallery).filter_by(id=image_gallery_id).one_or_none()
 
     if not gallery:
-        response = JsonResponse({'Error': 'The Image Gallery does not exist.'}, status=404)
-        add_get_params(response)
-        return response
-    
+        return JsonResponse({'Error': 'The Image Gallery does not exist.'}, status=404)
     for photo in slide_photos:
         url = photo.get("url")
         title = photo.get("title")
@@ -90,14 +92,17 @@ def add_slide_photos(request):
 
         # Create a new SlidePhotos object and add it to the ImageGallery's list of slide photos
         slide_photo = SlidePhotos(gallery_id=image_gallery_id,url=url, title=title, relavant_url=relevant_url)
-        
+
         session.add(slide_photo)
-    
+
     # Commit the changes to the database
     session.commit()
-    response = JsonResponse({"Success": "The new slide photos have been successfully added to the gallery."}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            "Success": "The new slide photos have been successfully added to the gallery."
+        },
+        status=200,
+    )
 
 
 
@@ -120,24 +125,27 @@ def create_image_gallery(request):
     description = data.get("description")
 
     session = request.session
-    
+
     # Retrieve the ImageGallery object based on the given ID
     gallery = session.query(ImageGallery).filter_by(name=name).one_or_none()
 
     if gallery:
-        response = JsonResponse({'answer':'False', 'message':'The Image Gallery name is allready exists.'}, status=404)            
-        add_get_params(response)
-        return response
-    
-    
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'The Image Gallery name is allready exists.',
+            },
+            status=404,
+        )
     # Create a new ImageGallery object with the given name and description
     gallery = ImageGallery(name=name, description=description)
 
     # Save the new ImageGallery object to the database
     session.add(gallery)
     session.commit()
-    response = JsonResponse({"Success": "The new Image Gallery has been successfully created."}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {"Success": "The new Image Gallery has been successfully created."},
+        status=200,
+    )
 
 

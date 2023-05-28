@@ -1,13 +1,8 @@
-import uuid
+
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import datetime
-from ..helpers import GetErrorDetails, add_get_params
 from ..models import Country, Location
-from ..decorators import permission_required, login_required, require_http_methods
-from .TokenController import generate_new_refresh_token, generate_new_access_token
-from .MailController import send_email
-import re
 
 
 
@@ -30,12 +25,12 @@ def create_address_object(session, data):
     """
 
     # Get the parameters from the request object
-    
 
-    
+
+
     state = data.get('state')
     city = data.get('city')
-    
+
     addres_line_1 = data.get('addres_line_1')
     district = data.get('district')
     postal_code = data.get('postal_code')
@@ -43,25 +38,27 @@ def create_address_object(session, data):
 
 
     country_name = data.get('country_name')
-    
-    if not (addres_line_1 and city and country_name and state and postal_code):
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'Missing data error. Addres line 1, City, State, Postal Code F and Telephone section must be filled'}, status=404)
-        add_get_params(response)
-        return response
 
+    if not (addres_line_1 and city and country_name and state and postal_code):
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Missing data error. Addres line 1, City, State, Postal Code F and Telephone section must be filled',
+            },
+            status=404,
+        )
     if(
         country := session.query(Country).filter_by(name = country_name).first()
     ):
-        
+
         country_id = country.id
     else:
-        
+
         country_short_name = data.get('country_short_name')
         country_currency_code = data.get('currency_code')
         country_currency_symbol = data.get('currency_symbol')
         country_phone_code = data.get('country_phone_code')
-    
+
         new_country = Country(
             name = country_name,
             short_name = country_short_name,
@@ -71,7 +68,7 @@ def create_address_object(session, data):
         )
         session.add(new_country)
         session.commit()
-        
+
         country_id = new_country.id 
 
 
@@ -84,7 +81,7 @@ def create_address_object(session, data):
         postal_code = postal_code,
         district = district,
         description = description,
-       
+
         created_at = datetime.datetime.now(),
         updated_at = datetime.datetime.now(),
     )
@@ -111,15 +108,15 @@ def update_object_address(session, obj_address, data ):
         if(
             country := session.query(Country).filter_by(name = country_name).first()
         ):
-            
+
             country_id = country.id
         else:
-            
+
             country_short_name = data.get('country_short_name')
             country_currency_code = data.get('currency_code')
             country_currency_symbol = data.get('currency_symbol')
             country_phone_code = data.get('country_phone_code')
-        
+
             new_country = Country(
                 name = country_name,
                 short_name = country_short_name,
@@ -129,17 +126,15 @@ def update_object_address(session, obj_address, data ):
             )
             session.add(new_country)
             session.commit()
-            
+
             country_id = new_country.id 
-        
+
         obj_address.country_id = country_id        
 
     if not data:
-        response = JsonResponse(
-            {'answer': 'new_values are required fields'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'new_values are required fields'}, status=400
+        )
     # Update the values for each column in the users table
     for column_name, value in data.items():
         print(f"{column_name}:{value}")

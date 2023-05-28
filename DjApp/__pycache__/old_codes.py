@@ -1113,7 +1113,7 @@ def add_products_to_subcategory(request):
     product_list = request.POST.getlist('product_list')
     if not subcategory_name or not product_list:
         response =  JsonResponse({'answer': 'subcategory_name and product_list are required fields'}, status=400)
-        add_get_params(response)
+        
         return response
     
     session = sessionmaker(bind=engine)()
@@ -1142,7 +1142,7 @@ def add_products_to_subcategory(request):
     # Commit the changes to the database
     session.commit()
     response =  JsonResponse({'existing_products': existing_products,'added_products':added_products}, status=200)
-    add_get_params(response)
+    
     return response
     
     
@@ -1530,7 +1530,7 @@ def login_required(func):
         # Check if either the token or username is missing
         if not input_token:
             response = JsonResponse({'answer':"False",'message': 'Missing token or username'}, status=401)
-            add_get_params(response)
+            
             return response
         
         
@@ -1542,7 +1542,7 @@ def login_required(func):
             except jwt.exceptions.ExpiredSignatureError:
                 # Handle the case where the token has expired
                 response =  JsonResponse({'answer':"False",'message': 'Token has expired'}, status=401)
-                add_get_params(response)
+                
                 return response
             
             username = decoded_token.get('username')
@@ -1567,7 +1567,7 @@ def refresh_token_rotation(func):
         # Check if either the token or username is missing
         if not input_token:
             response = JsonResponse({'answer':"False",'message': 'Missing token or username'}, status=401)
-            add_get_params(response)
+            
             return response
 
         try:
@@ -1579,7 +1579,7 @@ def refresh_token_rotation(func):
 
                 if not person:
                     response = JsonResponse({'answer': "False", 'message': 'Invalid user'}, status=401)
-                    add_get_params(response)
+                    
                     return response
 
                 request.person = person
@@ -1598,7 +1598,7 @@ def refresh_token_rotation(func):
         except jwt.exceptions.ExpiredSignatureError:
             # Handle the case where the token has expired
             response =  JsonResponse({'answer':"False",'message': 'Token has expired'}, status=401)
-            add_get_params(response)
+            
             return response
 
         except Exception as e:
@@ -1693,7 +1693,7 @@ def get_user_shopping_session_data(request):
         'whole_cargo_fee + ':whole_cargo_fee,
         'amount_to_be_paid':amount_to_be_paid,
         'cart_items': cart_item_data})
-    add_get_params(response)
+    
     
     return response
 
@@ -1715,14 +1715,14 @@ def get_products_by_category_name(request):
     
     if not category_name:
         response = JsonResponse({'answer': 'category_name is a required parameter'}, status=400)
-        add_get_params(response)
+        
         return response
 
     # Get the category object
     category = session.query(Category).filter_by(name=category_name).first()
     if not category:
         response = JsonResponse({'answer': f"{category_name} does not exist in the category table."}, status=404)
-        add_get_params(response)
+        
         return response
 
     # Get the ids of all subcategories under the specified category
@@ -1737,7 +1737,7 @@ def get_products_by_category_name(request):
     products_data = [{'id':product.id, 'name': product.name, 'description': product.description, 'price': product.price} for product in products]
 
     response = JsonResponse({'data': products_data}, status=200)
-    add_get_params(response)
+    
     return response
         
 
@@ -1755,11 +1755,11 @@ def delete_all_tables(request):
     if user == "Farid":    
         Base.metadata.drop_all(bind=engine,checkfirst=True)
         response = JsonResponse({"message":"Deleted all tables succesfully."},status=200)
-        add_get_params(response)
+        
         return response
     else:
         response = JsonResponse({"message":"User is not admin."},status=200)
-        add_get_params(response)
+        
         return response
 
 
@@ -1816,11 +1816,11 @@ def add_column_to_table(request):
                     (table_name, column_name, column_type))
     except Exception as e:
         response =  GetErrorDetails("Something went wrong at execution time.",e,500)
-        add_get_params(response)
+        
         return response
         
     response = JsonResponse({'message': 'Column added successfully.'}, status=200)
-    add_get_params(response)
+    
     return response
 
 
@@ -1846,7 +1846,7 @@ def add_column_to_table(request):
     
 #     if not cart_items_in_order:
 #         response = JsonResponse({'message':'Order item is not in the cart'},status=404) 
-#         add_get_params(response)
+#         
 #         return response
     
 #     new_order = Order(user_id=user.id, total_price=0, status='preparing')
@@ -1916,7 +1916,7 @@ def add_column_to_table(request):
 #     else:
 #         session.rollback()
 #         response = JsonResponse({'message':'Something went wrong at payment time.'},status=404) 
-#         add_get_params(response)
+#         
 #         return response
 
 #     payment.status = 'completed'
@@ -1932,7 +1932,7 @@ def add_column_to_table(request):
 #             },
 #         status=200
 #     )
-#     add_get_params(response)
+#     
         
 #     return response
 
@@ -1962,7 +1962,7 @@ def add_column_to_table(request):
     
 #     if not cart_items_in_order:
 #         response = JsonResponse({'message':'Order item is not in the cart'},status=404) 
-#         add_get_params(response)
+#         
 #         return response
 
 #     # Create a new order and add order items to it
@@ -2033,7 +2033,7 @@ def add_column_to_table(request):
 #         },
 #         status=200
 #     )
-#     add_get_params(response)
+#     
 #     return response
 
 class Country(Base, TimestampMixin):
@@ -2064,7 +2064,7 @@ def add_country(request):
         if not (country_code and country_name and currency_code):
             response = JsonResponse(
                 {'message': 'Missing data error. Country code, country name, and currency code must be filled.'}, status=400)
-            add_get_params(response)
+            
             return response
 
         # Create a new country object with the given parameters
@@ -2081,7 +2081,7 @@ def add_country(request):
         # Return a JSON response with a success message and the country's information
         response = JsonResponse({'message': 'Country added successfully.', 'country_id': new_country.id,
                                 'country_code': country_code, 'country_name': country_name, 'currency_code': currency_code}, status=200)
-        add_get_params(response)
+        
 
         return response
 
@@ -2089,7 +2089,7 @@ def add_country(request):
         # Return a JSON response with an error message and the error details
         response = GetErrorDetails(
             'Something went wrong when adding the country.', e, 500)
-        add_get_params(response)
+        
 
         return response
         
@@ -2151,7 +2151,7 @@ def add_countries(request):
     response_data = {'existing_countries': existing_countries,
                      'added_countries': [c.country_name for c in new_countries]}
     response = JsonResponse(response_data, status=200)
-    add_get_params(response)
+    
     return response
 '''
 

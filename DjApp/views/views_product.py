@@ -1,12 +1,9 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 from django.http import JsonResponse
-from sqlalchemy import func
 from DjApp.decorators import require_http_methods
 from sqlalchemy.orm import joinedload
-from ..models import Category, Product, ProductColor, ProductEntry, ProductMaterial, ProductMeasure, Supplier
-from ..helpers import add_get_params
-from typing import List
+from ..models import Product, ProductColor, ProductEntry, ProductMaterial, ProductMeasure
 
 
 @csrf_exempt
@@ -21,27 +18,21 @@ def get_product(request, product_id, product_entry_id=None):
         return redirect('product-entry-details', product_entry_id=product_entry_id)
 
     if not product_id:
-        response = JsonResponse(
-            {'answer': 'product_id is a required field'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'product_id is a required field'}, status=400
+        )
     # Get the product from the database
     session = request.session
-    product = session.query(Product).get(product_id)
-
-    if not product:
-        response = JsonResponse({'answer': 'Product not found'}, status=404)
-        add_get_params(response)
-        return response
-    # Get the product category chain
-    response = JsonResponse({
-        'product': product.to_json(),
-        'product_entries': product.get_exist_entries(),
-    }, status=200)
-
-    add_get_params(response)
-    return response
+    if product := session.query(Product).get(product_id):
+        return JsonResponse(
+            {
+                'product': product.to_json(),
+                'product_entries': product.get_exist_entries(),
+            },
+            status=200,
+        )
+    else:
+        return JsonResponse({'answer': 'Product not found'}, status=404)
 
 
 @csrf_exempt
@@ -53,28 +44,21 @@ def get_product_entry(request, product_entry_id):
         product_entry_id (int): The id of the product entry to retrieve.
     """
     if not product_entry_id:
-        response = JsonResponse(
-            {'answer': 'product_entry_id is a required field'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'product_entry_id is a required field'}, status=400
+        )
     # Get the product entry from the database
     session = request.session
-    entry = session.query(ProductEntry).get(product_entry_id)
-
-    if not entry:
-        response = JsonResponse(
-            {'answer': 'Product entry not found'}, status=404)
-        add_get_params(response)
-        return response
-
-    response = JsonResponse({
-        'product': entry.product.to_json(),
-        'entry': entry.to_json(),
-    }, status=200)
-
-    add_get_params(response)
-    return response
+    if entry := session.query(ProductEntry).get(product_entry_id):
+        return JsonResponse(
+            {
+                'product': entry.product.to_json(),
+                'entry': entry.to_json(),
+            },
+            status=200,
+        )
+    else:
+        return JsonResponse({'answer': 'Product entry not found'}, status=404)
 
 
 @csrf_exempt
@@ -91,9 +75,7 @@ def get_entries(request, count=3, offset=0):
     # Convert each entry to a dictionary using list comprehension
     entry_dicts = [entry.to_json_for_card() for entry in entries]
 
-    response = JsonResponse({'entries': entry_dicts}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse({'entries': entry_dicts}, status=200)
 
 
 @csrf_exempt
@@ -105,26 +87,18 @@ def get_product_entry_for_card(request, product_entry_id):
         product_entry_id (int): The id of the product entry to retrieve.
     """
     if not product_entry_id:
-        response = JsonResponse(
-            {'answer': 'product_entry_id is a required field'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'product_entry_id is a required field'}, status=400
+        )
     # Get the product entry from the database
     session = request.session
 
     entry = session.query(ProductEntry).get(product_entry_id)
 
     if not entry:
-        response = JsonResponse(
-            {'answer': 'Product entry not found'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse({'answer': 'Product entry not found'}, status=404)
     entry_card_data = entry.to_json_for_card()
-    response = JsonResponse(entry_card_data, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(entry_card_data, status=200)
 
 
 @csrf_exempt
@@ -166,6 +140,4 @@ def get_product_properties(request):
     product_properties = {"materials_data": materials_data,
                           "colors_data": colors_data, "measure_data": measure_data}
 
-    response = JsonResponse(product_properties, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(product_properties, status=200)

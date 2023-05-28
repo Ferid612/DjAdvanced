@@ -1,7 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.decorators import permission_required, login_required, require_http_methods
-from DjApp.helpers import GetErrorDetails, add_get_params
 from DjAdvanced.settings.production import engine
 from ..models import EmployeeEmployeeGroupRole, Permission, Person, UserRole, RolePermission, UserGroup, UserUserGroupRole
 from ..models import EmployeeRole, EmployeeGroup
@@ -10,7 +9,6 @@ from ..models import EmployeeRole, EmployeeGroup
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-# @permission_required("Manage roles and groups")
 def create_role(request):
     """
      This function adds a new role to the roles table in the database.
@@ -30,13 +28,13 @@ def create_role(request):
 
     # Check if the role name or description is not included in the request
     if not (role_name and role_description and role_type):
-        # Return a JSON response with a message indicating the error
-        response = JsonResponse({'answer': 'False',
-                                 'message': "Role name or role description or role_type are not included."},
-                                status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': "Role name or role description or role_type are not included.",
+            },
+            status=404,
+        )
     # Create a new role object
     if role_type == "user_role":
         role = UserRole(name=role_name, description=role_description)
@@ -46,7 +44,7 @@ def create_role(request):
         response = JsonResponse({'answer': 'False',
                                 'message': "role_type is not correct."},
                                 status=404)
-        add_get_params(response)
+
 
     # Add the new role to the session
     session.add(role)
@@ -54,7 +52,7 @@ def create_role(request):
     # Return a success message
     response = JsonResponse(
         {"message": "New role added successfully."}, status=200)
-    add_get_params(response)
+
     return response
 
 
@@ -76,14 +74,13 @@ def create_roles(request):
 
     # Check if roles are included in the request
     if not roles:
-        # Return a JSON response with a message indicating the error
-        response = JsonResponse({
-            'answer': 'False',
-            'message': 'No roles included in the request.'
-        }, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'No roles included in the request.',
+            },
+            status=404,
+        )
     # Get existing roles
     role_names = {r['role_name'] for r in roles}
     existing_roles = session.query(UserRole.name).filter(UserRole.name.in_(role_names)).union(
@@ -100,10 +97,14 @@ def create_roles(request):
 
     # Return a success message with added and existing roles
     added_roles = [r.name for r in new_roles]
-    response = JsonResponse({'message': 'Request succesfully finished.',
-                            'added_roles': added_roles, 'existing_roles': list(existing_role_names)}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'message': 'Request succesfully finished.',
+            'added_roles': added_roles,
+            'existing_roles': list(existing_role_names),
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
@@ -129,13 +130,13 @@ def create_permission(request):
 
     # Check if the permission name or description is not included in the request
     if not (permission_name and permission_description):
-        # Return a JSON response with a message indicating the error
-        response = JsonResponse({'answer': 'False',
-                                 'message': "Permission name or description are not included."},
-                                status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': "Permission name or description are not included.",
+            },
+            status=404,
+        )
     # Create a new session
 
     # Create a new permission object
@@ -145,11 +146,9 @@ def create_permission(request):
     # Add the new permission to the session
     session.add(permission)
 
-    # Return a success message
-    response = JsonResponse(
-        {"message": "New permission added successfully."}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {"message": "New permission added successfully."}, status=200
+    )
 
 
 @csrf_exempt
@@ -170,14 +169,13 @@ def create_permissions(request):
 
     # Check if permissions are included in the request
     if not permissions:
-        # Return a JSON response with a message indicating the error
-        response = JsonResponse({
-            'answer': 'False',
-            'message': 'No permissions included in the request.'
-        }, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'No permissions included in the request.',
+            },
+            status=404,
+        )
     # Create a new session
     # Get existing permissions
     permission_names = {p['name'] for p in permissions}
@@ -195,16 +193,19 @@ def create_permissions(request):
     # Return a success message with added and existing permissions
     added_permissions = [p.name for p in new_permissions]
 
-    response = JsonResponse({'message': 'New permissions added successfully.', 'added_permissions': added_permissions,
-                            'existing_permissions': list(existing_permission_names)}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'message': 'New permissions added successfully.',
+            'added_permissions': added_permissions,
+            'existing_permissions': list(existing_permission_names),
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-# @permission_required("Manage roles and groups")
 def assign_permission_to_role(request):
     """
     This function add permission to the roles table in the database.
@@ -222,13 +223,13 @@ def assign_permission_to_role(request):
 
     # Check if the permission name or description is not included in the request
     if not (permission_name and role_name and role_type):
-        # Return a JSON response with a message indicating the error
-        response = JsonResponse({'answer': 'False',
-                                 'message': "Permission name or description or role_type are not included."},
-                                status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': "Permission name or description or role_type are not included.",
+            },
+            status=404,
+        )
     if role_type == "user_role":
         role_id = session.query(UserRole).filter_by(name=role_name).first().id
 
@@ -240,7 +241,7 @@ def assign_permission_to_role(request):
         response = JsonResponse({'answer': 'False',
                                 'message': "role_type is not correct."},
                                 status=404)
-        add_get_params(response)
+
 
     permission_id = session.query(Permission).filter_by(
         name=permission_name).first().id
@@ -256,7 +257,7 @@ def assign_permission_to_role(request):
     response = JsonResponse(
         {"message": "New role-permission relation added successfully."}, status=200)
 
-    add_get_params(response)
+
     return response
 
 
@@ -280,33 +281,33 @@ def assign_permissions_to_role(request):
 
     # Check if the required fields are included in the request
     if not (role_name and role_type and permission_names):
-        response = JsonResponse({
-            'answer': 'False',
-            'message': 'Role name, type, or permission names not included in the request.'
-        }, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'Role name, type, or permission names not included in the request.',
+            },
+            status=400,
+        )
     # Get the role object based on the role type and name
     if role_type == 'user_role':
         role_cls = UserRole
     elif role_type == 'employee_role':
         role_cls = EmployeeRole
     else:
-        response = JsonResponse({
-            'answer': 'False',
-            'message': 'Role type is not correct.'
-        }, status=400)
-        return response
+        return JsonResponse(
+            {'answer': 'False', 'message': 'Role type is not correct.'},
+            status=400,
+        )
     role = session.query(role_cls).filter_by(name=role_name).first()
 
     if not role:
-        response = JsonResponse({
-            'answer': 'False',
-            'message': f'Role {role_name} with type {role_type} not found.'
-        }, status=404)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': f'Role {role_name} with type {role_type} not found.',
+            },
+            status=404,
+        )
     # Get the permission objects based on their names
     permissions = session.query(Permission).filter(
         Permission.name.in_(permission_names)).all()
@@ -314,12 +315,13 @@ def assign_permissions_to_role(request):
     if missing_permissions := set(permission_names) - {
         p.name for p in permissions
     }:
-        response = JsonResponse({
-            'answer': 'False',
-            'message': f'Permissions not found: {", ".join(missing_permissions)}'
-        }, status=404)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': f'Permissions not found: {", ".join(missing_permissions)}',
+            },
+            status=404,
+        )
     # Add the new role-permission relations to the session
     added_permissions = []
     existing_permissions = []
@@ -343,15 +345,19 @@ def assign_permissions_to_role(request):
 
     # Return a success message with added and existing permissions
     message = f'{len(added_permissions)} permission(s) added to role {role_name}.' if added_permissions else f'No new permissions added to role {role_name}.'
-    response = JsonResponse({'message': message, 'added_permissions': added_permissions,
-                            'existing_permissions': existing_permissions}, status=200)
-    return response
+    return JsonResponse(
+        {
+            'message': message,
+            'added_permissions': added_permissions,
+            'existing_permissions': existing_permissions,
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-# @permission_required("Manage roles and groups")
 def create_group(request):
     """
      This function adds new user groups to the user_groups table in the database.
@@ -369,13 +375,13 @@ def create_group(request):
 
     # Check if the user groups data is not included in the request
     if not (groups and group_type):
-        # Return a JSON response with a message indicating the error
-        response = JsonResponse({'answer': 'False',
-                                 'message': "User groups or group_type data is not included."},
-                                status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': "User groups or group_type data is not included.",
+            },
+            status=404,
+        )
     if group_type == "user_group":
         for group in groups:
             group = UserGroup(name=group['name'],
@@ -389,23 +395,19 @@ def create_group(request):
             session.add(added_group)
 
     else:
-        response = JsonResponse({'answer': 'False',
-                                 'message': "Incorrect group_type name."},
-                                status=404)
-        add_get_params(response)
-        return response
-
-    # Return a success message
-    response = JsonResponse(
-        {'answer': 'True', "message": "New groups added successfully."}, status=200)
-    add_get_params(response)
-    return response
+        return JsonResponse(
+            {'answer': 'False', 'message': "Incorrect group_type name."},
+            status=404,
+        )
+    return JsonResponse(
+        {'answer': 'True', "message": "New groups added successfully."},
+        status=200,
+    )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-# @permission_required("Manage users")
 def assign_user_to_group_role(request):
 
     data = request.data
@@ -415,12 +417,9 @@ def assign_user_to_group_role(request):
     assigned_group_name = data.get("assigned_group_name")
 
     if not (applied_username and assigned_role_name and assigned_group_name):
-        # Return a JSON response with an error message and the error details
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'Missing data error'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'False', 'message': 'Missing data error'}, status=404
+        )
     applied_user = session.query(Person).filter_by(
         username=applied_username).first().user[0]
     assigned_role = session.query(UserRole).filter_by(
@@ -429,10 +428,13 @@ def assign_user_to_group_role(request):
         name=assigned_group_name).first()
 
     if not (applied_user and assigned_role and assigned_group):
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'No record found matching either username, role name or group name'}, status=404)
-        add_get_params(response)
-        return response
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'No record found matching either username, role name or group name',
+            },
+            status=404,
+        )
     applied_user_id = applied_user.id
     assigned_role_id = assigned_role.id
     assigned_group_id = assigned_group.id
@@ -442,10 +444,13 @@ def assign_user_to_group_role(request):
 
     session.add(new_user_group_role_item)
 
-    response = JsonResponse(
-        {'answer': 'true', 'message': 'Assiging new group and role to user is succesfully finshed.'}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'answer': 'true',
+            'message': 'Assiging new group and role to user is succesfully finshed.',
+        },
+        status=200,
+    )
 
 
 # @permission_required("Manage employee")
@@ -462,12 +467,9 @@ def assign_employee_to_group_role(request):
     assigned_group_name = data.get("assigned_group_name")
 
     if not (applied_username and assigned_role_name and assigned_group_name):
-        # Return a JSON response with an error message and the error details
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'Missing data error'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': 'False', 'message': 'Missing data error'}, status=404
+        )
     applied_employee = session.query(Person).filter_by(
         username=applied_username).first().employee[0]
     assigned_role = session.query(EmployeeRole).filter_by(
@@ -476,11 +478,13 @@ def assign_employee_to_group_role(request):
         name=assigned_group_name).first()
 
     if not (applied_employee and assigned_role and assigned_group):
-        response = JsonResponse(
-            {'answer': 'False', 'message': 'No record found matching either employee, role name or group name'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': 'False',
+                'message': 'No record found matching either employee, role name or group name',
+            },
+            status=404,
+        )
     applied_employee_id = applied_employee.id
     assigned_role_id = assigned_role.id
     assigned_group_id = assigned_group.id
@@ -490,7 +494,10 @@ def assign_employee_to_group_role(request):
 
     session.add(new_user_group_role_item)
 
-    response = JsonResponse(
-        {'answer': 'true', 'message': 'Assiging new group and role to employee is succesfully finshed.'}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'answer': 'true',
+            'message': 'Assiging new group and role to employee is succesfully finshed.',
+        },
+        status=200,
+    )

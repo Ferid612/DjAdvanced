@@ -1,7 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from ..decorators import permission_required, login_required, require_http_methods
-from ..helpers import add_get_params
 from ..models import Category, Product
 
 
@@ -28,10 +27,13 @@ def add_category(request):
             session.add(new_category)  # add the new category to the session
             session.commit()    # commit the changes to the database
 
-    response = JsonResponse({'existing_categories': existing_categories,
-                            'added_categories': added_categories}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'existing_categories': existing_categories,
+            'added_categories': added_categories,
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
@@ -49,11 +51,10 @@ def add_subcategories(request, category_id):
     # check if the parent category exists
     parent_category = session.query(Category).get(category_id)
     if not parent_category:
-        response = JsonResponse(
-            {'message': f"Parent category '{category_id}' id does not exist"}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'message': f"Parent category '{category_id}' id does not exist"},
+            status=400,
+        )
     added_categories = []
     existing_categories = []
 
@@ -72,16 +73,17 @@ def add_subcategories(request, category_id):
 
     session.commit()  # commit all changes to the database
 
-    response = JsonResponse({'existing_categories': existing_categories,
-                            'added_categories': added_categories}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'existing_categories': existing_categories,
+            'added_categories': added_categories,
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-# @login_required
-# @permission_required("Manage product categories")
 def update_category(request, category_id):
     """
     This function updates an existing category in the 'category' table in the database.
@@ -97,11 +99,10 @@ def update_category(request, category_id):
     # check if the category exists
     category = session.query(Category).get(category_id)
     if not category:
-        response = JsonResponse(
-            {'message': f"Category '{category_id}' id does not exist"}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'message': f"Category '{category_id}' id does not exist"},
+            status=400,
+        )
     # update category attributes if provided
     if new_name is not None:
         category.name = new_name
@@ -110,11 +111,12 @@ def update_category(request, category_id):
         # check if the new parent category exists
         parent_category = session.query(Category).get(new_parent_id)
         if not parent_category:
-            response = JsonResponse(
-                {'message': f"Parent category '{new_parent_id}' id does not exist"}, status=400)
-            add_get_params(response)
-            return response
-
+            return JsonResponse(
+                {
+                    'message': f"Parent category '{new_parent_id}' id does not exist"
+                },
+                status=400,
+            )
         # check if the new parent category is not the same as the current parent category
         if category.parent_id != new_parent_id:
             category.parent_id = new_parent_id
@@ -131,9 +133,7 @@ def update_category(request, category_id):
         'parent_id': category.parent_id,
         'icon': category.icon,
     }
-    response = JsonResponse(updated_category, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(updated_category, status=200)
 
 
 @csrf_exempt
@@ -150,23 +150,25 @@ def delete_category(request, category_id):
     # Check if the category exists
     category = session.query(Category).get(category_id)
     if not category:
-        response = JsonResponse(
-            {'answer': f'No category found with category.id {category_id}'}, status=404)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {'answer': f'No category found with category.id {category_id}'},
+            status=404,
+        )
     # Check if the category has any products
     if category.has_products():
-        response = JsonResponse(
-            {'answer': f'Cannot delete category with category.id {category_id}, it has products associated with it.'}, status=400)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'answer': f'Cannot delete category with category.id {category_id}, it has products associated with it.'
+            },
+            status=400,
+        )
     session.delete(category)
-    response = JsonResponse(
-        {'message': f'Category with category.id {category_id} has been successfully deleted.'}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'message': f'Category with category.id {category_id} has been successfully deleted.'
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
@@ -188,7 +190,10 @@ def delete_null_category_products(request):
             f"Deleted {len(null_category_products)} products with null category_id")
         # Return the number of deleted products for confirmation
 
-    response = JsonResponse({"message": "deleted all products that have a null category_id succesfully.",
-                            "lentgth of null_category_products": len(null_category_products)}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            "message": "deleted all products that have a null category_id succesfully.",
+            "lentgth of null_category_products": len(null_category_products),
+        },
+        status=200,
+    )

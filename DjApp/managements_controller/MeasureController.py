@@ -1,7 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from ..decorators import permission_required, login_required, require_http_methods
-from ..helpers import add_get_params
 from ..models import ProductMeasure
 
 
@@ -18,9 +17,7 @@ def add_measure(request):
 
     print(new_measure.name)
 
-    response = JsonResponse({'answer': "success"}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse({'answer': "success"}, status=200)
 
 
 @csrf_exempt
@@ -39,6 +36,4 @@ def add_measure_values(request, measure_id):
     for value in values:
         product_measure.append_value(session, value)
 
-    response = JsonResponse({'answer': "success"}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse({'answer': "success"}, status=200)

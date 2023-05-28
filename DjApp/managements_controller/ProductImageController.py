@@ -4,7 +4,7 @@ from django.http import JsonResponse
 
 from DjAdvanced.settings.production import MEDIA_ROOT, engine
 from ..decorators import permission_required, login_required, require_http_methods
-from ..helpers import GetErrorDetails, add_get_params, save_uploaded_image
+from ..helpers import GetErrorDetails, save_uploaded_image
 from ..models import ProductEntry, ProductImage
 
 
@@ -30,20 +30,24 @@ def add_product_image(request, entry_id):
         image_file = request.FILES.get('image')
 
         if not (entry_id or image_file):
-            response = JsonResponse(
-                {'answer': 'False', 'message': 'Missing data error. Product ID, Image URL and Title must be filled'}, status=404)
-            add_get_params(response)
-            return response
-
+            return JsonResponse(
+                {
+                    'answer': 'False',
+                    'message': 'Missing data error. Product ID, Image URL and Title must be filled',
+                },
+                status=404,
+            )
         # Check if the product exists
         product_entry = session.query(ProductEntry).get(entry_id)
 
         if not product_entry:
-            response = JsonResponse(
-                {'answer': 'False', 'message': 'ProductEntry with the given ID does not exist'}, status=404)
-            add_get_params(response)
-            return response
-
+            return JsonResponse(
+                {
+                    'answer': 'False',
+                    'message': 'ProductEntry with the given ID does not exist',
+                },
+                status=404,
+            )
         if not image_url:
 
             # Check if the folder for the product images exists, and create it if it doesn't
@@ -69,24 +73,23 @@ def add_product_image(request, entry_id):
         # Add the new image to the database and commit the changes
         session.add(new_image)
         session.commit()
-        # Return a JSON response with a success message and the new image's information
-        response = JsonResponse(
-            {"Success": "The new image has been successfully added to the product.", 'image': new_image.to_json()}, status=200)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                "Success": "The new image has been successfully added to the product.",
+                'image': new_image.to_json(),
+            },
+            status=200,
+        )
     except Exception as e:
-        # Return a JSON response with an error message and the error details
-        response = GetErrorDetails(
-            "Something went wrong when adding the image to the product.", e, 404)
-        add_get_params(response)
-        return response
+        return GetErrorDetails(
+            "Something went wrong when adding the image to the product.",
+            e,
+            404,
+        )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-# @login_required
-# @permission_required("manage_products")
 def add_image_to_all_product_entries(request):
     """
     This function handles the addition of a new image to all product entries.
@@ -105,21 +108,22 @@ def add_image_to_all_product_entries(request):
         image_file = request.FILES.get('image')
 
         if not image_file and not image_url:
-            response = JsonResponse(
-                {'answer': 'False', 'message': 'Missing data error. Image URL and Title must be filled'}, status=404)
-            add_get_params(response)
-            return response
-
+            return JsonResponse(
+                {
+                    'answer': 'False',
+                    'message': 'Missing data error. Image URL and Title must be filled',
+                },
+                status=404,
+            )
         # Get all product entries
         product_entries = session.query(ProductEntry).all()
 
         # Check if there are any product entries
         if not product_entries:
-            response = JsonResponse(
-                {'answer': 'False', 'message': 'No product entries found.'}, status=404)
-            add_get_params(response)
-            return response
-
+            return JsonResponse(
+                {'answer': 'False', 'message': 'No product entries found.'},
+                status=404,
+            )
         # Check if the folder for the product images exists, and create it if it doesn't
         if not image_url:
             supplier_name = product_entries[0].product.supplier.name
@@ -133,8 +137,8 @@ def add_image_to_all_product_entries(request):
             # Create a new image object with the given parameters
             new_image = ProductImage(
                 product_entry_id=product_entry.id,
-                image_url=image_url if image_url else save_uploaded_image(
-                    image_file, folder_path),
+                image_url=image_url or save_uploaded_image(
+                                              image_file, folder_path),
                 title=image_title
             )
 
@@ -142,24 +146,22 @@ def add_image_to_all_product_entries(request):
             session.add(new_image)
             session.commit()
 
-        # Return a JSON response with a success message
-        response = JsonResponse(
-            {"Success": "The new image has been successfully added to all product entries."}, status=200)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                "Success": "The new image has been successfully added to all product entries."
+            },
+            status=200,
+        )
     except Exception as e:
-        # Return a JSON response with an error message and the error details
-        response = GetErrorDetails(
-            "Something went wrong when adding the image to the product entries.", e, 404)
-        add_get_params(response)
-        return response
+        return GetErrorDetails(
+            "Something went wrong when adding the image to the product entries.",
+            e,
+            404,
+        )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
-# @login_required
-# @permission_required("manage_products")
 def update_product_image(request, image_id):
     """
     This function handles updating a product image by changing its title and/or image URL.
@@ -179,21 +181,25 @@ def update_product_image(request, image_id):
         image_index = request.data.get('index')
 
         if not image_id:
-            response = JsonResponse(
-                {'answer': 'False', 'message': 'Missing data error. Please provide an image ID.'}, status=404)
-            add_get_params(response)
-            return response
-
+            return JsonResponse(
+                {
+                    'answer': 'False',
+                    'message': 'Missing data error. Please provide an image ID.',
+                },
+                status=404,
+            )
         # Get the product image object with the given ID
         product_image = session.query(ProductImage).get(image_id)
 
         if not product_image:
 
-            response = JsonResponse(
-                {'answer': 'False', 'message': 'Invalid image ID. No product image was found with the given ID.'}, status=404)
-            add_get_params(response)
-            return response
-
+            return JsonResponse(
+                {
+                    'answer': 'False',
+                    'message': 'Invalid image ID. No product image was found with the given ID.',
+                },
+                status=404,
+            )
         # Update the product image's title and/or image URL if new values are provided
         if title:
             product_image.title = title
@@ -202,24 +208,21 @@ def update_product_image(request, image_id):
         if image_index:
             product_image.index = image_index
 
-        # Return a JSON response with a success message and the updated product image's information
-        response = JsonResponse(
-            {'Success': 'The product image has been successfully updated.', 'image': product_image.to_json()}, status=200)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {
+                'Success': 'The product image has been successfully updated.',
+                'image': product_image.to_json(),
+            },
+            status=200,
+        )
     except Exception as e:
-        # Return a JSON response with an error message and the error details
-        response = GetErrorDetails(
-            'Something went wrong when updating the product image.', e, 404)
-        add_get_params(response)
-        return response
+        return GetErrorDetails(
+            'Something went wrong when updating the product image.', e, 404
+        )
 
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
-# @login_required
-# @permission_required("manage_products")
 def delete_product_image(request, image_id):
     """
     Deletes a product image from the database.
@@ -234,32 +237,31 @@ def delete_product_image(request, image_id):
         session = request.session
 
         if not image_id:
-            response = JsonResponse(
-                {'answer': 'False', 'message': 'Missing data error. Please provide the ID of the image you want to delete.'}, status=404)
-            add_get_params(response)
-            return response
-
+            return JsonResponse(
+                {
+                    'answer': 'False',
+                    'message': 'Missing data error. Please provide the ID of the image you want to delete.',
+                },
+                status=404,
+            )
         # Get the image object from the database
         image = session.query(ProductImage).get(image_id)
 
         if not image:
-            response = JsonResponse(
-                {'answer': 'False', 'message': 'The image with the specified ID does not exist in the database.'}, status=404)
-            add_get_params(response)
-            return response
-
+            return JsonResponse(
+                {
+                    'answer': 'False',
+                    'message': 'The image with the specified ID does not exist in the database.',
+                },
+                status=404,
+            )
         # Delete the image from the database and commit the changes
         session.delete(image)
 
-        # Return a JSON response with a success message
-        response = JsonResponse(
-            {"Success": "The image has been successfully deleted."}, status=200)
-        add_get_params(response)
-        return response
-
+        return JsonResponse(
+            {"Success": "The image has been successfully deleted."}, status=200
+        )
     except Exception as e:
-        # Return a JSON response with an error message and the error details
-        response = GetErrorDetails(
-            "Something went wrong when deleting the image.", e, 404)
-        add_get_params(response)
-        return response
+        return GetErrorDetails(
+            "Something went wrong when deleting the image.", e, 404
+        )

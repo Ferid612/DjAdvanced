@@ -1,6 +1,5 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from ..helpers import add_get_params
 from ..decorators import login_required, require_http_methods
 
 
@@ -21,9 +20,7 @@ def get_user_shopping_session_data(request):
         return JsonResponse({'answer': "The session data of the user could not be found."}, status=400)
 
     response_data = shopping_session.get_user_shopping_session_data(session)
-    response = JsonResponse(response_data)
-    add_get_params(response)
-    return response
+    return JsonResponse(response_data)
 
 
 @csrf_exempt
@@ -40,6 +37,4 @@ def get_cart_item_count(request):
 
     response_data = {
         "cart_item_count": shopping_session.get_count_of_cart_items()}
-    response = JsonResponse(response_data, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(response_data, status=200)

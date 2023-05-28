@@ -1,14 +1,11 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from DjApp.decorators import login_required, permission_required, require_http_methods
-from DjApp.helpers import add_get_params
 from DjApp.models import Discount, DiscountCoupon
 
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
-# @login_required
-# @permission_required("manage_discounts")
 def get_all_discounts(request):
     """
     Retrieve all discounts from the database.
@@ -26,15 +23,11 @@ def get_all_discounts(request):
 
     discounts_json = [discount.to_json() for discount in discounts]
 
-    response = JsonResponse(discounts_json, safe=False)
-    add_get_params(response)
-    return response
+    return JsonResponse(discounts_json, safe=False)
 
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
-# @login_required
-# @permission_required("manage_discounts")
 def get_all_discount_coupons(request):
     """
     Retrieve all discount coupons from the database.
@@ -52,9 +45,7 @@ def get_all_discount_coupons(request):
 
     coupons_json = [coupon.to_json() for coupon in discount_coupons]
 
-    response = JsonResponse(coupons_json, safe=False)
-    add_get_params(response)
-    return response
+    return JsonResponse(coupons_json, safe=False)
 
 
 @csrf_exempt
@@ -74,8 +65,11 @@ def get_user_discount_coupons(request):
 
     discount_coupons = user.get_user_discount_coupons()
 
-    # Return a JSON response with a success message and the discount coupons' information
-    response = JsonResponse({'Success': 'The user discount coupons have been successfully retrieved.',
-                            'user_id': user.id, "discount_coupons": discount_coupons}, status=200)
-    add_get_params(response)
-    return response
+    return JsonResponse(
+        {
+            'Success': 'The user discount coupons have been successfully retrieved.',
+            'user_id': user.id,
+            "discount_coupons": discount_coupons,
+        },
+        status=200,
+    )

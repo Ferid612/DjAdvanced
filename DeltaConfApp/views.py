@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DeltaConfApp.models import CardBox, ImageGallery, NewArrival, SlidePhotos
 from DjApp.decorators import require_http_methods
-from DjApp.helpers import GetErrorDetails, add_get_params
+from DjApp.helpers import GetErrorDetails
     
     
 
@@ -24,10 +24,7 @@ def get_slide_photos(request):
     slide_photo_dicts = [photo.to_json() for photo in slide_photos]
 
     response_data = {"slide_photos": slide_photo_dicts}
-    response = JsonResponse(response_data, status=200)
-
-    add_get_params(response)
-    return response
+    return JsonResponse(response_data, status=200)
 
 
 
@@ -49,10 +46,7 @@ def get_new_arrivals(request):
     new_arrivals_dict = [new_arrival.to_json() for new_arrival in new_arrivals]
 
     response_data = {"new_arrivals": new_arrivals_dict}
-    response = JsonResponse(response_data, status=200)
-
-    add_get_params(response)
-    return response
+    return JsonResponse(response_data, status=200)
 
 
 
@@ -74,10 +68,7 @@ def get_galleries(request):
     gallery_dicts = [gallery.to_json() for gallery in galleries]
 
     response_data = {"gallery_dicts": gallery_dicts}
-    response = JsonResponse(response_data, status=200)
-
-    add_get_params(response)
-    return response
+    return JsonResponse(response_data, status=200)
     
     
     
@@ -90,18 +81,11 @@ def get_card_box_entries(request,pk):
         session = request.session
         # Get the user object associated with the request
         card_box = session.query(CardBox).get(pk)
-        
-        card_box_with_entries = card_box.to_json_with_entries()
-        # Build the user data dictionary
 
-        # Return a JSON response with the user data
-        response = JsonResponse(card_box_with_entries, status=200)
-        add_get_params(response)
-        return response
-    
+        card_box_with_entries = card_box.to_json_with_entries()
+        return JsonResponse(card_box_with_entries, status=200)
     except Exception as e:
-        # Return a JSON response with an error message and the error details if an exception occurs
-        response = GetErrorDetails("An error occurred while getting user information.", e, 500)
-        add_get_params(response)
-        return response
+        return GetErrorDetails(
+            "An error occurred while getting user information.", e, 500
+        )
     

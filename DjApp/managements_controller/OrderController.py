@@ -2,7 +2,7 @@ from datetime import datetime
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.models import CashPayment, CreditCard, CreditCardPayment, DiscountCoupon, DiscountCouponUser, Order, OrderItem, Payment
-from ..helpers import GetErrorDetails, add_get_params, create_pdf
+from ..helpers import create_pdf
 from ..decorators import login_required, require_http_methods
 
 
@@ -55,7 +55,7 @@ def CompleteOrder(request):
         # Create an HTTP response with the PDF file    
         response = HttpResponse(bytes(pdf.output()), content_type="application/pdf")
         response['Content-Disposition'] = f'attachment; filename="{file_name}"'
-        add_get_params(response)
+        
         return response
     
     except Exception as e:
