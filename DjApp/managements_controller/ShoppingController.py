@@ -7,8 +7,7 @@ from ..helpers import GetErrorDetails
 from ..decorators import login_required, require_http_methods
 
 
-@csrf_exempt
-def create_shopping_session(request):
+def create_shopping_session(session, user):
     """
     This function handles the creation of a new shopping session by adding a new entry in the 'shopping_session' table.
     The function receives the following parameters from the request object:
@@ -18,16 +17,12 @@ def create_shopping_session(request):
     If the session creation is successful, the function returns a JSON response with a success message and the new session's information.
     If an error occurs during the session creation process, the function returns a JSON response with an error message and the error details.
     """
-    session = request.session
 
     # Get the parameters from the request object
-    user_id = request.person.user[0].id
-    new_session = ShoppingSession(user_id=user_id,
-                                  total=0)
+    new_session = ShoppingSession(user=user)
     # Add the new session to the database and commit the changes
-    request.shopping_session = new_session
     session.add(new_session)
-
+    session.commit()
     return new_session
 
 
@@ -52,7 +47,7 @@ def add_to_basket(request):
     quantity = int(data.get('quantity')) if data.get('quantity') else None
     # Get the shopping session associated with the specified session ID and user ID
     shopping_session = session.query(
-            ShoppingSession).filter_by(user_id=user.id).first() or create_shopping_session(request)
+            ShoppingSession).filter_by(user_id=user.id).first() or create_shopping_session(session, user)
 
     # Get the product_entry associated with the specified product_entry ID
     product_entry = session.query(ProductEntry).get(product_entry_id)
@@ -155,6 +150,8 @@ def update_cart_item_status(request, cart_item_id):
         },
         status=200,
     )
+    
+    
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required

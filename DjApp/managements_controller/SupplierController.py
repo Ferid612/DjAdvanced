@@ -27,7 +27,7 @@ def registration_of_supplier(request):
     supplier_name = data.get('supplier_name')
     phone_number = data.get('phone_number')
     description = data.get('description')
-    country_code = data.get('country_code')
+    country_phone_code = data.get('country_phone_code')
 
     session = request.session
     # check exist supplier
@@ -55,7 +55,7 @@ def registration_of_supplier(request):
     # Create a new phone number object
     new_phone = PhoneNumber(
         phone_number=phone_number,
-        country_code=country_code,
+        country_phone_code=country_phone_code,
         phone_type_id=2
     )
 

@@ -64,7 +64,7 @@ def create_person_registration(request):
     gender = data.get('gender', None)
     last_name = data.get('last_name')
     password = data.get('password')
-    user_country_code = data.get('country_code')
+    country_phone_code = data.get('country_phone_code')
     phone_number = data.get('phone_number')
     person_type = data.get('person_type')
     session = request.session
@@ -101,7 +101,7 @@ def create_person_registration(request):
     # Create a new phone number object
     new_phone = PhoneNumber(
         phone_number=phone_number,
-        country_code=user_country_code,
+        country_phone_code=country_phone_code,
         phone_type_id=1
     )
 
@@ -123,34 +123,40 @@ def create_person_registration(request):
     # Send the verification code to the user's email
     session.add(new_person)
 
-    # Commit the session to the database
-    session.commit()
 
-    send_verify_status = send_verification_code(new_person.id, email)
-    send_verify_status_code = send_verify_status.status_code
-    send_verify_status_text = json.loads(send_verify_status.content)['answer']
-
-    refresh_token = generate_new_refresh_token(
-        new_person, session).get('token')
-    access_token = generate_new_access_token(new_person.id).get('token')
 
     # Create the appropriate user type object and add to the database
     if person_type == "user":
 
         new_user = Users(person=new_person)
         session.add(new_user)
-        session.commit()
 
-        create_shopping_session(request)
+        request.person = new_person
+
+        try:
+            create_shopping_session(session, new_user)
+        except Exception:
+            print("somethink went wrong when creating shopping session.")
 
     elif person_type == "employee":
         new_employee = Employees(person=new_person)
         session.add(new_employee)
 
-        session.commit()
-
     if gender is not None:
         new_person.gender = gender
+
+
+
+    session.commit()
+
+    refresh_token = generate_new_refresh_token(
+        new_person, session).get('token')
+    access_token = generate_new_access_token(new_person.id).get('token')
+
+
+    send_verify_status = send_verification_code(new_person.id, email)
+    send_verify_status_code = send_verify_status.status_code
+    send_verify_status_text = json.loads(send_verify_status.content)['answer']
 
     # Return a success response
     person_json = new_person.to_json()

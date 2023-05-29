@@ -1157,7 +1157,7 @@ class PersonSerializer(serializers.Serializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     phone_number = serializers.CharField()
-    country_code = serializers.CharField()
+    country_phone_code = serializers.CharField()
     person_type = serializers.ChoiceField(choices=['user', 'employee'])
 
 @csrf_exempt
@@ -1172,7 +1172,7 @@ def create_person_registration(request):
     - first_name: the first name of the new person
     - last_name: the last name of the new person
     - phone_number: the phone_number of the new person
-    - country_code: the country code of the new person's phone number
+    - country_phone_code: the country code of the new person's phone number
     - person_type: the type of person to create, either 'user' or 'employee'
 
     If the account creation is successful, the function returns a JSON response with a success message.
@@ -1185,7 +1185,7 @@ def create_person_registration(request):
 
         with transaction.atomic():
             # Check if the country code exists
-            country = Country.objects.filter(country_code=data['country_code']).first()
+            country = Country.objects.filter(country_phone_code=data['country_phone_code']).first()
             if not country:
                 raise serializers.ValidationError("Invalid country code")
 
@@ -1196,7 +1196,7 @@ def create_person_registration(request):
             # Create new phone number object
             phone_number = PhoneNumber.objects.create(
                 phone_number=data['phone_number'],
-                country_code=country,
+                country_phone_code=country,
                 phone_type_id=1,
             )
 
@@ -1358,43 +1358,43 @@ def create_person_registration(request):
 {
  "countries":
 [{
-    "country_code": 90,
+    "country_phone_code": 90,
     "country_name": "Turkey",
     "currency_code": "TRY"
 }, {
-    "country_code": 994,
+    "country_phone_code": 994,
     "country_name": "Azerbaijan",
     "currency_code": "AZN"
 }, {
-    "country_code": 1,
+    "country_phone_code": 1,
     "country_name": "United States",
     "currency_code": "USD"
 }, {
-    "country_code": 86,
+    "country_phone_code": 86,
     "country_name": "China",
     "currency_code": "CNY"
 }, {
-    "country_code": 33,
+    "country_phone_code": 33,
     "country_name": "France",
     "currency_code": "EUR"
 }, {
-    "country_code": 49,
+    "country_phone_code": 49,
     "country_name": "Germany",
     "currency_code": "EUR"
 }, {
-    "country_code": 81,
+    "country_phone_code": 81,
     "country_name": "Japan",
     "currency_code": "JPY"
 }, {
-    "country_code": 7,
+    "country_phone_code": 7,
     "country_name": "Russia",
     "currency_code": "RUB"
 }, {
-    "country_code": 44,
+    "country_phone_code": 44,
     "country_name": "United Kingdom",
     "currency_code": "GBP"
 }, {
-    "country_code": 55,
+    "country_phone_code": 55,
     "country_name": "Brazil",
     "currency_code": "BRL"
 }]
@@ -2039,7 +2039,7 @@ def add_column_to_table(request):
 class Country(Base, TimestampMixin):
     __tablename__ = 'country'
     id = Column(Integer, primary_key=True)
-    country_code = Column(Integer, unique=True, nullable=False)
+    country_phone_code = Column(Integer, unique=True, nullable=False)
     country_name = Column(String, unique=True, nullable=False)
     currency_code = Column(String,  nullable=False)
 
@@ -2056,12 +2056,12 @@ def add_country(request):
     try:
         # Get the parameters from the request object
         data = request.data
-        country_code = data.get('country_code')
+        country_phone_code = data.get('country_phone_code')
         country_name = data.get('country_name')
         currency_code = data.get('currency_code')
         session = request.session
 
-        if not (country_code and country_name and currency_code):
+        if not (country_phone_code and country_name and currency_code):
             response = JsonResponse(
                 {'message': 'Missing data error. Country code, country name, and currency code must be filled.'}, status=400)
             
@@ -2069,7 +2069,7 @@ def add_country(request):
 
         # Create a new country object with the given parameters
         new_country = Country(
-            country_code=country_code,
+            country_phone_code=country_phone_code,
             country_name=country_name,
             currency_code=currency_code,
         )
@@ -2080,7 +2080,7 @@ def add_country(request):
 
         # Return a JSON response with a success message and the country's information
         response = JsonResponse({'message': 'Country added successfully.', 'country_id': new_country.id,
-                                'country_code': country_code, 'country_name': country_name, 'currency_code': currency_code}, status=200)
+                                'country_phone_code': country_phone_code, 'country_name': country_name, 'currency_code': currency_code}, status=200)
         
 
         return response
@@ -2103,12 +2103,12 @@ def add_countries(request):
     This function handles adding multiple countries to the database. It receives a list of countries in the following format:
     [
         {
-            "country_code": "1",
+            "country_phone_code": "1",
             "country_name": "Country 1",
             "currency_code": "CUR1"
         },
         {
-            "country_code": "2",
+            "country_phone_code": "2",
             "country_name": "Country 2",
             "currency_code": "CUR2"
         },
@@ -2138,7 +2138,7 @@ def add_countries(request):
     new_countries = []
     for country in added_countries:
         new_country = Country(
-            country_code=country.get('country_code'),
+            country_phone_code=country.get('country_phone_code'),
             country_name=country.get('country_name'),
             currency_code=country.get('currency_code')
         )

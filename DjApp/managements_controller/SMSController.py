@@ -37,8 +37,8 @@ def verify_twilio(request):
     # decode the token to retrieve the user's id
     client = Client(account_sid, auth_token)
     person = request.person
-    country_code = person.phone_number_id[0].country_code
-    verified_number = str(country_code) + \
+    country_phone_code = person.phone_number_id[0].country_phone_code
+    verified_number = str(country_phone_code) + \
         str(person.phone_number_id[0].phone_number)
 
     data = request.data
