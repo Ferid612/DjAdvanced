@@ -116,9 +116,13 @@ def GetErrorDetails(from_dev="Something went wrong.", e=Exception, status=400):
 
 
 def add_get_params(response, request):
+
     origin = request.headers.get("Origin")
-    if origin in ["https://delicate-tanuki-8a4bb0.netlify.app", "http://localhost:3000", "http://localhost:3001", "http://localhost:3002"]:
-        response["Access-Control-Allow-Origin"] = "origin"
+    if origin in ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"]:
+        response["Access-Control-Allow-Origin"] = origin
+    else: 
+        response["Access-Control-Allow-Origin"] = 'https://delicate-tanuki-8a4bb0.netlify.app'
+
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS, PUT"
     response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept, X-Requested-With, user"
     response["Access-Control-Max-Age"] = 86400  # 24 hours
@@ -208,3 +212,4 @@ def input_get_list_sanitizer(request, parameter):
         data_list = request.POST.getlist(parameter)
 
     return escape_list(data_list)
+

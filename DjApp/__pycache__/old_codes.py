@@ -2153,5 +2153,13 @@ def add_countries(request):
     response = JsonResponse(response_data, status=200)
     
     return response
+
+
+
+
+  # source_url = request.META.get('HTTP_REFERER')
+    # request_dict = request.__dict__
+    # request_environ_http = request.environ.get("HTTP_ORIGIN")
+    # source_url = request.build_absolute_uri()
 '''
 
