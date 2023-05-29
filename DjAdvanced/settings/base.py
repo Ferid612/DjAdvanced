@@ -25,11 +25,6 @@ DATABASE_SERVER = os.getenv("DATABASE_SERVER")
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
 DATABASE_PORT = os.getenv("DATABASE_PORT") 
 
-# DATABASE_NAME = "DeltaDB"
-# DATABASE_USER = "postgres"
-# DATABASE_SERVER = "deltadb-0.cepwuiqxjppx.eu-north-1.rds.amazonaws.com"
-# DATABASE_PASSWORD = "Farid612"
-# DATABASE_PORT = "5432"
 
 # Password validation
 EMAIL_HOST= os.getenv("EMAIL_HOST")
@@ -62,6 +57,7 @@ def get_engine(user, passwd, host, port, db):
 
 
 engine = get_engine(DATABASE_USER, DATABASE_PASSWORD, DATABASE_SERVER, DATABASE_PORT, DATABASE_NAME)
+# engine = DATABASE_NAME
 
 TENANT_ID = ""
 CLIENT_ID = ""
@@ -69,13 +65,6 @@ SECRET = ""
 
 
 EMAIL_USE_TLS=True      
-
-
-# AUTH0
-# AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
-# AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
-# AUTH0_CLIENT_ID="FKxBLxDlHpptOBG3oc0f5gRG1ys5svmx"
-# AUTH0_DOMAIN="dev-xrvdjg4v1xa41kws.eu.auth0.com"
 
 
 AUTH0_CLIENT_ID="ualhORzYGKAOIqk3yy9c0xVO0nNJHPuv"
@@ -189,3 +178,89 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+FORMATTERS = (
+    {
+        "verbose": {
+            "format": "{levelname} {asctime:s} {name} {threadName} {thread:d} {module} {filename} {lineno:d} {name} {funcName} {process:d} {message} \n path: {pathname}\n",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {asctime:s} {name} {module} {filename} {lineno:d} {funcName} {message} \n path: {pathname} \n \n",
+            "style": "{",
+        },
+    },
+)
+
+HANDLERS = {
+    "console_handler": {
+        "class": "logging.StreamHandler",
+        "formatter": "verbose",
+        "level": "DEBUG"
+    },
+    "custom_info_handler": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "filename": f"{BASE_DIR}/logs/delta_custom_info.log",
+        "mode": "a",
+        "encoding": "utf-8",
+        "formatter": "verbose",
+        "level": "INFO",
+        "backupCount": 5,
+        "maxBytes": 1024 * 1024 * 5,  # 5 MB
+    },
+    "info_handler": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "filename": f"{BASE_DIR}/logs/blogthedata_info.log",
+        "mode": "a",
+        "encoding": "utf-8",
+        "formatter": "verbose",
+        "level": "INFO",
+        "backupCount": 5,
+        "maxBytes": 1024 * 1024 * 5,  # 5 MB
+    },
+    "error_handler": {
+        "class": "logging.handlers.RotatingFileHandler",
+        "filename": f"{BASE_DIR}/logs/blogthedata_error.log",
+        "mode": "a",
+        "formatter": "verbose",
+        "level": "WARNING",
+        "backupCount": 5,
+        "maxBytes": 1024 * 1024 * 5,  # 5 MB
+    },
+}
+
+LOGGERS = (
+    {
+        "django": {
+            "handlers": ["console_handler", "info_handler"],
+            "level": "INFO",
+        },
+        "django.custom": {
+            "handlers": ["console_handler", "custom_info_handler"],
+            "level": "INFO",
+        },
+        "django.request": {
+            "handlers": ["error_handler"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "django.template": {
+            "handlers": ["error_handler"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+        "django.server": {
+            "handlers": ["error_handler"],
+            "level": "INFO",
+            "propagate": True,
+        },
+    },
+)
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": FORMATTERS[0],
+    "handlers": HANDLERS,
+    "loggers": LOGGERS[0],
+}

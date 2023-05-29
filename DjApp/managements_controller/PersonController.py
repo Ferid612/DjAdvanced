@@ -266,9 +266,6 @@ def create_or_update_person_address(request):
     )
 
 
-
-
-
 @csrf_exempt
 @require_http_methods(["POST", "GET", "OPTIONS"])
 def login(request):

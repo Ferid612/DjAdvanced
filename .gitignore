@@ -4,3 +4,4 @@ DjAdvanced/__pycache__/settings.cpython-310.pyc
 DjReactFront/delta-react/*
 *.ipynb
 .env
+*.log

@@ -4,7 +4,13 @@ from DjApp.views import views_apis
 
 urlpatterns = [
 
-    # VIEWS DISCOUNTS
+    path('test/', views_apis.test_func, name="test"),
+    path('test-err/', views_apis.test_func_error, name="test"),
+    path('test-war/', views_apis.test_func_warning, name="test"),
+
+
+    # VIEWS DISCOUNTS    
+
     path('get_person_location/', views_apis.get_person_location,
          name="Get all discounts"),
     
