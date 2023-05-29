@@ -197,16 +197,16 @@ HANDLERS = {
         "formatter": "verbose",
         "level": "DEBUG"
     },
-    "custom_info_handler": {
-        "class": "logging.handlers.RotatingFileHandler",
-        "filename": f"{BASE_DIR}/logs/delta_custom_info.log",
-        "mode": "a",
-        "encoding": "utf-8",
-        "formatter": "verbose",
-        "level": "INFO",
-        "backupCount": 5,
-        "maxBytes": 1024 * 1024 * 5,  # 5 MB
-    },
+    # "custom_info_handler": {
+    #     "class": "logging.handlers.RotatingFileHandler",
+    #     "filename": f"{BASE_DIR}/logs/delta_custom_info.log",
+    #     "mode": "a",
+    #     "encoding": "utf-8",
+    #     "formatter": "verbose",
+    #     "level": "INFO",
+    #     "backupCount": 5,
+    #     "maxBytes": 1024 * 1024 * 5,  # 5 MB
+    # },
     "info_handler": {
         "class": "logging.handlers.RotatingFileHandler",
         "filename": f"{BASE_DIR}/logs/blogthedata_info.log",
@@ -234,10 +234,11 @@ LOGGERS = (
             "handlers": ["console_handler", "info_handler"],
             "level": "INFO",
         },
-        "django.custom": {
-            "handlers": ["console_handler", "custom_info_handler"],
-            "level": "INFO",
-        },
+        
+        # "django.custom": {
+        #     "handlers": ["console_handler", "custom_info_handler"],
+        #     "level": "INFO",
+        # },
         "django.request": {
             "handlers": ["error_handler"],
             "level": "INFO",

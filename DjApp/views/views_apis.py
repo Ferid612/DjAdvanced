@@ -4,7 +4,7 @@ from django.http import JsonResponse
 import requests
 from DjAdvanced.settings.base import DATABASE_NAME
 from DjApp.decorators import require_http_methods
-from DjApp.helpers import custom_logger
+from DjApp.helpers import django_logger
 
 
 @csrf_exempt
@@ -12,14 +12,14 @@ def test_func(request):
     text = f"DB name is {DATABASE_NAME}."
     json_data = {"text_1":text}
 
-    custom_logger.info(text)
+    django_logger.info(text)
     return JsonResponse(json_data, status=200)
 
 def test_func_error(request):
     text = f"DB name is {DATABASE_NAME}."
     json_data = {"text_1":text}
 
-    custom_logger.info(text)
+    django_logger.info(text)
     return JsonResponse(json_data, status=400)
 
 
@@ -27,7 +27,7 @@ def test_func_warning(request):
     text = f"DB name is {DATABASE_NAME}."
     json_data = {"text_1":text}
 
-    custom_logger.info(text)
+    django_logger.info(text)
     return JsonResponse(json_data, status=500)
 
 

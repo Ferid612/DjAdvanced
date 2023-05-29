@@ -11,7 +11,7 @@ from DjAdvanced.settings.production import engine
 from fpdf import FPDF
 import logging
 
-custom_logger = logging.getLogger("django.custom")
+# custom_logger = logging.getLogger("django.custom")
 django_logger = logging.getLogger("django")
 
 
