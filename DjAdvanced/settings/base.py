@@ -177,6 +177,10 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Ensure the log directory exists
+log_directory = os.path.join(BASE_DIR, 'logs')
+os.makedirs(log_directory, exist_ok=True)
+
 
 FORMATTERS = (
     {
