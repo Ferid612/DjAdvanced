@@ -121,7 +121,7 @@ def GetErrorDetails(from_dev="Something went wrong.", e=Exception, status=400):
 def add_get_params(response, request):
 
     origin = request.headers.get("Origin")
-    django_logger.info(f"Request host origin{origin}\n")
+    django_logger.info(f"Request host origin {origin}\n")
 
     if origin == 'https://delicate-tanuki-8a4bb0.netlify.app':
         response["Access-Control-Allow-Origin"] = origin
