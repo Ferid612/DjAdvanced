@@ -121,10 +121,12 @@ def GetErrorDetails(from_dev="Something went wrong.", e=Exception, status=400):
 def add_get_params(response, request):
 
     origin = request.headers.get("Origin")
-    if origin in ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"]:
+    django_logger.info(f"Request host origin{origin}\n")
+
+    if origin == 'https://delicate-tanuki-8a4bb0.netlify.app':
         response["Access-Control-Allow-Origin"] = origin
     else: 
-        response["Access-Control-Allow-Origin"] = 'https://delicate-tanuki-8a4bb0.netlify.app'
+        response["Access-Control-Allow-Origin"] = "http://localhost:3000"
 
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS, PUT"
     response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept, X-Requested-With, user"
