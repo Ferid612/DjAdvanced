@@ -123,10 +123,10 @@ def add_get_params(response, request):
     origin = request.headers.get("Origin")
     django_logger.info(f"Request host origin {origin}\n")
 
-    if origin == ALLOWED_FRONT_HOST:
-        response["Access-Control-Allow-Origin"] = origin
-    else: 
+    if origin == "http://localhost:3000":
         response["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    else: 
+        response["Access-Control-Allow-Origin"] = ALLOWED_FRONT_HOST
 
     response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS, PUT"
     response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, Accept, X-Requested-With, user"
