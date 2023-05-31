@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
 import json
 import traceback
-from DjAdvanced.settings.production import AllOWED_FRONT_HOST, engine
+from DjAdvanced.settings.production import ALLOWED_FRONT_HOST, engine
 from fpdf import FPDF
 import logging
 
@@ -123,7 +123,7 @@ def add_get_params(response, request):
     origin = request.headers.get("Origin")
     django_logger.info(f"Request host origin {origin}\n")
 
-    if origin == AllOWED_FRONT_HOST:
+    if origin == ALLOWED_FRONT_HOST:
         response["Access-Control-Allow-Origin"] = origin
     else: 
         response["Access-Control-Allow-Origin"] = "http://localhost:3000"
