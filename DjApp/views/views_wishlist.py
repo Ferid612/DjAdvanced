@@ -18,7 +18,7 @@ def get_user_wishlists_list(request,count=None):
     """
 
     # Get the parameters from the request object
-    user = request.person.user[0]
+    user = request.person.user
     session = request.session
 
 
@@ -55,7 +55,7 @@ def get_user_wishlist(request,wishlist_id):
     """
 
     # Get the parameters from the request object
-    user = request.person.user[0]
+    user = request.person.user
     session = request.session
 
     if not user:

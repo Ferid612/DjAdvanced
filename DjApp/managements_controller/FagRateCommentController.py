@@ -24,7 +24,7 @@ def add_rate_to_product(request):
     data = request.data
     session = request.session
 
-    user_id = request.person.user[0].id
+    user_id = request.person.user.id
     product_entry_id = data.get('product_entry_id')
     rate_comment = data.get('rate_comment')
     rate = data.get('rate')
@@ -97,7 +97,7 @@ def update_rate(request):
         # Get the parameters from the request object
         data = request.data
         session = request.session
-        user_id = request.person.user[0].id
+        user_id = request.person.user.id
         rate_id = data.get('rate_id')
         rate_comment = data.get('rate')
         rate = data.get('rate')
@@ -154,7 +154,7 @@ def delete_rate(request):
     """
     try:
         data = request.data
-        user_id = request.person.user[0].id
+        user_id = request.person.user.id
         rate_id = data.get('rate_id')
         session = request.session
 

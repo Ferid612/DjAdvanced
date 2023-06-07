@@ -87,7 +87,7 @@ def registration_of_supplier(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def add_or_change_supplier_profile_image(request):
+def update_profile_image(request):
     """
     This function handles adding or changing a supplier's profile image by receiving a file containing the new image.
     The function receives the following parameters from the request object:
@@ -111,10 +111,7 @@ def add_or_change_supplier_profile_image(request):
             status=400
         )
 
-        
-
-        
-
+    
     if not image_file:
         # If no image file is provided, return an error response
         return JsonResponse(
@@ -126,7 +123,7 @@ def add_or_change_supplier_profile_image(request):
         
 
     # Save the image file to the server
-    path = PROFIL_IMAGE_ROOT / 'persons'
+    path = PROFIL_IMAGE_ROOT / 'suppliers'
     image_path = save_uploaded_image(image_file, path)
 
     if (

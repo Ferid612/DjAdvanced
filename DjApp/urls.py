@@ -22,7 +22,7 @@ urlpatterns = [
     path('discount/', include(urls_discount),
          name="discount-urls"),
     
-    path('roles_groups/', include(urls_roles_and_groups),
+    path('roles-groups/', include(urls_roles_and_groups),
          name="roles-groups-urls"),
     
     path('mail/', include(urls_mail),
@@ -37,7 +37,7 @@ urlpatterns = [
     path('shopping/', include(urls_shopping),
          name="shopping-urls"),
     
-    path('comments_question_fag/', include(urls_fag_question_comment),
+    path('comments-question-fag/', include(urls_fag_question_comment),
          name="fag-question-comment-urls"),
     
     path('apis/', include(urls_apis),

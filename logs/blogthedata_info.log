@@ -1,0 +1,879 @@
+INFO 2023-06-06 07:15:25,203 django.utils.autoreload MainThread 139874637291520 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 20606 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 07:15:42,078 django.utils.autoreload MainThread 139874637291520 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 20606 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/views/views_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 07:15:53,206 django.utils.autoreload MainThread 140586126393344 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 20797 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+WARNING 2023-06-06 07:17:49,065 django.request Thread-1 (process_request_thread) 140585997432384 log log.py 241 django.request log_response 20797 Not Found: /person/get_all_persons_data/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 07:17:49,069 django.server Thread-1 (process_request_thread) 140585997432384 basehttp basehttp.py 212 django.server log_message 20797 "POST /person/get_all_persons_data/ HTTP/1.1" 404 7938 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:36:54,158 django.utils.autoreload MainThread 140586126393344 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 20797 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/views/views_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 07:37:15,380 django.utils.autoreload MainThread 140259558350848 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 23751 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 07:39:53,579 django.utils.autoreload MainThread 140259558350848 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 23751 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/views/views_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 07:40:15,998 django.utils.autoreload MainThread 139933465477120 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 24277 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 07:44:00,526 django Thread-1 (process_request_thread) 139933335418432 helpers helpers.py 124 django add_get_params 24277 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 07:44:00,829 django.server Thread-1 (process_request_thread) 139933335418432 basehttp basehttp.py 212 django.server log_message 24277 "POST /person/get-self-person/ HTTP/1.1" 200 388 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:44:54,062 django Thread-2 (process_request_thread) 139933335418432 helpers helpers.py 124 django add_get_params 24277 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 07:44:54,665 django.server Thread-2 (process_request_thread) 139933335418432 basehttp basehttp.py 212 django.server log_message 24277 "POST /person/get-person/ HTTP/1.1" 200 47 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:47:23,765 django.utils.autoreload MainThread 139933465477120 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 24277 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/views/views_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 07:48:01,073 django.utils.autoreload MainThread 140629429985280 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 25172 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 07:48:25,747 django Thread-1 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 07:48:25,949 django.server Thread-1 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 200 70 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:49:06,420 django Thread-2 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+ERROR 2023-06-06 07:49:07,652 django.request Thread-2 (process_request_thread) 140629232318016 log log.py 241 django.request log_response 25172 Internal Server Error: /person/get-person/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+ERROR 2023-06-06 07:49:07,662 django.server Thread-2 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 500 530 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:53:43,222 django Thread-3 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+ERROR 2023-06-06 07:53:43,427 django.request Thread-3 (process_request_thread) 140629232318016 log log.py 241 django.request log_response 25172 Internal Server Error: /person/get-person/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+ERROR 2023-06-06 07:53:43,435 django.server Thread-3 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 500 530 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:53:49,453 django Thread-4 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 07:53:49,660 django.server Thread-4 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 200 395 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:54:41,254 django Thread-5 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 07:54:41,454 django.server Thread-5 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 200 70 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:54:54,247 django Thread-6 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 07:54:54,347 django.server Thread-6 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 200 70 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:55:01,835 django Thread-7 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 07:55:02,029 django.server Thread-7 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 200 388 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:55:15,140 django Thread-8 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+ERROR 2023-06-06 07:55:15,332 django.request Thread-8 (process_request_thread) 140629232318016 log log.py 241 django.request log_response 25172 Internal Server Error: /person/get-person/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+ERROR 2023-06-06 07:55:15,335 django.server Thread-8 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 500 530 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:55:50,057 django Thread-9 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 07:55:50,262 django.server Thread-9 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 200 388 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:56:23,224 django Thread-10 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+ERROR 2023-06-06 07:56:23,428 django.request Thread-10 (process_request_thread) 140629232318016 log log.py 241 django.request log_response 25172 Internal Server Error: /person/get-person/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+ERROR 2023-06-06 07:56:23,432 django.server Thread-10 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 500 530 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:56:28,552 django Thread-11 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+ERROR 2023-06-06 07:56:28,753 django.request Thread-11 (process_request_thread) 140629232318016 log log.py 241 django.request log_response 25172 Internal Server Error: /person/get-person/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+ERROR 2023-06-06 07:56:28,755 django.server Thread-11 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 500 530 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:56:37,558 django Thread-12 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 07:56:37,666 django.server Thread-12 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 200 388 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 07:57:23,121 django Thread-13 (process_request_thread) 140629232318016 helpers helpers.py 124 django add_get_params 25172 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 07:57:23,225 django.server Thread-13 (process_request_thread) 140629232318016 basehttp basehttp.py 212 django.server log_message 25172 "POST /person/get-person/ HTTP/1.1" 200 393 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:01:47,471 django.utils.autoreload MainThread 140629429985280 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 25172 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/models.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:02:17,283 django.utils.autoreload MainThread 139911619260416 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 27176 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:05:08,345 django Thread-1 (process_request_thread) 139911420528192 helpers helpers.py 124 django add_get_params 27176 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:05:08,549 django.server Thread-1 (process_request_thread) 139911420528192 basehttp basehttp.py 212 django.server log_message 27176 "POST /person/get-person/ HTTP/1.1" 200 419 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:06:11,520 django.utils.autoreload MainThread 139911619260416 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 27176 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/views/views_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:06:34,236 django.utils.autoreload MainThread 140286971912192 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 27726 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:06:39,122 django.utils.autoreload MainThread 140286971912192 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 27726 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/views/views_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:07:02,085 django.utils.autoreload MainThread 139642559758336 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 27901 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:07:08,615 django Thread-1 (process_request_thread) 139642429326912 helpers helpers.py 124 django add_get_params 27901 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:07:08,822 django.server Thread-1 (process_request_thread) 139642429326912 basehttp basehttp.py 212 django.server log_message 27901 "POST /person/get-person/ HTTP/1.1" 200 419 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:07:12,103 django Thread-2 (process_request_thread) 139642429326912 helpers helpers.py 124 django add_get_params 27901 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:07:12,309 django.server Thread-2 (process_request_thread) 139642429326912 basehttp basehttp.py 212 django.server log_message 27901 "POST /person/get-person/ HTTP/1.1" 200 45 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:07:25,612 django Thread-3 (process_request_thread) 139642429326912 helpers helpers.py 124 django add_get_params 27901 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:07:25,925 django.server Thread-3 (process_request_thread) 139642429326912 basehttp basehttp.py 212 django.server log_message 27901 "POST /person/get-person/ HTTP/1.1" 200 414 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:07:29,204 django Thread-4 (process_request_thread) 139642429326912 helpers helpers.py 124 django add_get_params 27901 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:07:29,414 django.server Thread-4 (process_request_thread) 139642429326912 basehttp basehttp.py 212 django.server log_message 27901 "POST /person/get-person/ HTTP/1.1" 200 45 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:07:44,931 django.utils.autoreload MainThread 139642559758336 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 27901 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/views/views_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:08:05,488 django.utils.autoreload MainThread 140226911227904 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 28228 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:12:11,177 django.utils.autoreload MainThread 140226911227904 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 28228 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/views/views_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:12:36,048 django.utils.autoreload MainThread 139934702190592 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 37613 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:12:51,977 django.utils.autoreload MainThread 139934702190592 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 37613 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/views/views_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:13:10,124 django.utils.autoreload MainThread 140204060987392 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 37820 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:14:18,379 django.utils.autoreload MainThread 140204060987392 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 37820 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/views/views_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:14:41,155 django.utils.autoreload MainThread 140197846982656 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 38076 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:15:20,846 django Thread-1 (process_request_thread) 140197649970752 helpers helpers.py 124 django add_get_params 38076 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:15:21,050 django.server Thread-1 (process_request_thread) 140197649970752 basehttp basehttp.py 212 django.server log_message 38076 "POST /person/get-person/ HTTP/1.1" 200 45 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:15:29,265 django Thread-2 (process_request_thread) 140197649970752 helpers helpers.py 124 django add_get_params 38076 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:15:29,358 django.server Thread-2 (process_request_thread) 140197649970752 basehttp basehttp.py 212 django.server log_message 38076 "POST /person/get-person/ HTTP/1.1" 200 414 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:17:32,518 django.utils.autoreload MainThread 140197846982656 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 38076 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/models.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:17:57,676 django.utils.autoreload MainThread 139886191235072 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 38718 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:18:23,027 django Thread-1 (process_request_thread) 139885992560192 helpers helpers.py 124 django add_get_params 38718 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:18:23,230 django.server Thread-1 (process_request_thread) 139885992560192 basehttp basehttp.py 212 django.server log_message 38718 "POST /person/get-person/ HTTP/1.1" 200 414 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:22:38,835 django Thread-2 (process_request_thread) 139885992560192 helpers helpers.py 124 django add_get_params 38718 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:22:38,938 django.server Thread-2 (process_request_thread) 139885992560192 basehttp basehttp.py 212 django.server log_message 38718 "POST /person/get-self-person/ HTTP/1.1" 200 414 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+WARNING 2023-06-06 08:35:12,060 django.request Thread-3 (process_request_thread) 139885992560192 log log.py 241 django.request log_response 38718 Not Found: /person/add_or_change_person_profile_image/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 08:35:12,066 django.server Thread-3 (process_request_thread) 139885992560192 basehttp basehttp.py 212 django.server log_message 38718 "POST /person/add_or_change_person_profile_image/ HTTP/1.1" 404 7970 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:36:11,122 django.utils.autoreload MainThread 139886191235072 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 38718 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/app_urls/urls_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:36:34,873 django.utils.autoreload MainThread 140445379584000 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 40733 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:45:33,524 django Thread-1 (process_request_thread) 140445250598464 helpers helpers.py 124 django add_get_params 40733 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:45:33,527 django.server Thread-1 (process_request_thread) 140445250598464 basehttp basehttp.py 212 django.server log_message 40733 "POST /person/update-profile-image/ HTTP/1.1" 200 281 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:47:58,428 django Thread-2 (process_request_thread) 140445250598464 helpers helpers.py 124 django add_get_params 40733 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+ERROR 2023-06-06 08:47:58,938 django.request Thread-2 (process_request_thread) 140445250598464 log log.py 241 django.request log_response 40733 Internal Server Error: /person/get-self-person/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+ERROR 2023-06-06 08:47:58,942 django.server Thread-2 (process_request_thread) 140445250598464 basehttp basehttp.py 212 django.server log_message 40733 "POST /person/get-self-person/ HTTP/1.1" 500 677 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:49:58,759 django.utils.autoreload MainThread 140445379584000 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 40733 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/models.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:50:14,040 django.utils.autoreload MainThread 140486423830528 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 41556 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:50:23,431 django Thread-1 (process_request_thread) 140486225425984 helpers helpers.py 124 django add_get_params 41556 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+ERROR 2023-06-06 08:50:23,545 django.request Thread-1 (process_request_thread) 140486225425984 log log.py 241 django.request log_response 41556 Internal Server Error: /person/get-self-person/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+ERROR 2023-06-06 08:50:23,547 django.server Thread-1 (process_request_thread) 140486225425984 basehttp basehttp.py 212 django.server log_message 41556 "POST /person/get-self-person/ HTTP/1.1" 500 677 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:50:34,593 django Thread-2 (process_request_thread) 140486225425984 helpers helpers.py 124 django add_get_params 41556 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+ERROR 2023-06-06 08:50:34,797 django.request Thread-2 (process_request_thread) 140486225425984 log log.py 241 django.request log_response 41556 Internal Server Error: /person/get-self-person/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+ERROR 2023-06-06 08:50:34,799 django.server Thread-2 (process_request_thread) 140486225425984 basehttp basehttp.py 212 django.server log_message 41556 "POST /person/get-self-person/ HTTP/1.1" 500 677 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:50:46,377 django.utils.autoreload MainThread 140486423830528 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 41556 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/models.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:51:03,546 django.utils.autoreload MainThread 140594837696512 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 41744 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:51:12,388 django.utils.autoreload MainThread 140594837696512 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 41744 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/models.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:51:28,755 django.utils.autoreload MainThread 140009443807232 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 41892 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:53:03,239 django.utils.autoreload MainThread 140009443807232 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 41892 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/decorators.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:53:25,146 django.utils.autoreload MainThread 140210446434304 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 42283 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:54:15,547 django.utils.autoreload MainThread 140210446434304 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 42283 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/decorators.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:54:34,680 django.utils.autoreload MainThread 140344064733184 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 42463 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:54:44,056 django.utils.autoreload MainThread 140344064733184 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 42463 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/managements_controller/RoleGroupController.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:55:08,499 django.utils.autoreload MainThread 139791424032768 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 42656 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 08:57:31,789 django Thread-1 (process_request_thread) 139791293564480 helpers helpers.py 124 django add_get_params 42656 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:57:32,065 django.server Thread-1 (process_request_thread) 139791293564480 basehttp basehttp.py 212 django.server log_message 42656 "POST /person/get-self-person/ HTTP/1.1" 200 628 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 08:59:13,832 django Thread-2 (process_request_thread) 139791293564480 helpers helpers.py 124 django add_get_params 42656 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 08:59:13,834 django.server Thread-2 (process_request_thread) 139791293564480 basehttp basehttp.py 212 django.server log_message 42656 "POST /person/update-profile-image/ HTTP/1.1" 200 281 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+ERROR 2023-06-06 09:11:51,305 django.request Thread-3 (process_request_thread) 139791293564480 log log.py 241 django.request log_response 42656 Internal Server Error: /person/profil-images/4 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+Traceback (most recent call last):
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/deprecation.py", line 136, in __call__
+    response = self.process_response(request, response)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/middleware/common.py", line 108, in process_response
+    return self.response_redirect_class(self.get_full_path_with_slash(request))
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/middleware/common.py", line 87, in get_full_path_with_slash
+    raise RuntimeError(
+RuntimeError: You called this URL via POST, but the URL doesn't end in a slash and you have APPEND_SLASH set. Django can't redirect to the slash URL while maintaining POST data. Change your form to point to 127.0.0.1:8000/person/profil-images/4/ (note the trailing slash), or set APPEND_SLASH=False in your Django settings.
+ERROR 2023-06-06 09:11:51,335 django.server Thread-3 (process_request_thread) 139791293564480 basehttp basehttp.py 212 django.server log_message 42656 "POST /person/profil-images/4 HTTP/1.1" 500 83541 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 09:12:03,052 django.server Thread-4 (process_request_thread) 139791293564480 basehttp basehttp.py 212 django.server log_message 42656 "GET /person/profil-images/4 HTTP/1.1" 301 0 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 09:12:03,780 django Thread-5 (process_request_thread) 139791293564480 helpers helpers.py 124 django add_get_params 42656 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+ERROR 2023-06-06 09:12:04,144 django.request Thread-5 (process_request_thread) 139791293564480 log log.py 241 django.request log_response 42656 Not Implemented: /person/profil-images/4/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+ERROR 2023-06-06 09:12:04,146 django.server Thread-5 (process_request_thread) 139791293564480 basehttp basehttp.py 212 django.server log_message 42656 "GET /person/profil-images/4/ HTTP/1.1" 501 39 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 09:12:13,370 django Thread-6 (process_request_thread) 139791293564480 helpers helpers.py 124 django add_get_params 42656 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 09:12:13,566 django.server Thread-6 (process_request_thread) 139791293564480 basehttp basehttp.py 212 django.server log_message 42656 "POST /person/get-self-person/ HTTP/1.1" 200 628 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 09:12:20,523 django.server Thread-7 (process_request_thread) 139791293564480 basehttp basehttp.py 212 django.server log_message 42656 "GET /person/profil-images/5 HTTP/1.1" 301 0 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 09:12:21,138 django Thread-8 (process_request_thread) 139791293564480 helpers helpers.py 124 django add_get_params 42656 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 09:12:21,549 django.server Thread-8 (process_request_thread) 139791293564480 basehttp basehttp.py 212 django.server log_message 42656 "GET /person/profil-images/5/ HTTP/1.1" 200 236 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 09:15:30,568 django Thread-9 (process_request_thread) 139791293564480 helpers helpers.py 124 django add_get_params 42656 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 09:15:30,772 django.server Thread-9 (process_request_thread) 139791293564480 basehttp basehttp.py 212 django.server log_message 42656 "POST /person/create-person-registration/ HTTP/1.1" 200 1065 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 09:17:54,644 django.utils.autoreload MainThread 139791424032768 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 42656 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/managements_controller/MailController.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 09:18:27,683 django.utils.autoreload MainThread 140461870112768 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 44804 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 09:20:07,695 django Thread-1 (process_request_thread) 140461670921792 helpers helpers.py 124 django add_get_params 44804 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 09:20:07,767 django.server Thread-1 (process_request_thread) 140461670921792 basehttp basehttp.py 212 django.server log_message 44804 "POST /person/get-self-person/ HTTP/1.1" 200 415 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 09:22:38,339 django.utils.autoreload MainThread 140461870112768 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 44804 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/managements_controller/PersonController.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 09:22:59,903 django.utils.autoreload MainThread 140564296990720 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 45375 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 09:23:31,672 django Thread-1 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 09:23:31,762 django.server Thread-1 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/update-person-address/ HTTP/1.1" 200 367 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 13:21:00,467 django Thread-3 (process_request_thread) 140564155590208 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 13:21:00,652 django.server Thread-3 (process_request_thread) 140564155590208 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/update-person-address/ HTTP/1.1" 200 367 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+ERROR 2023-06-06 13:36:49,028 django.request Thread-2 (process_request_thread) 140564168177216 log log.py 241 django.request log_response 45375 Internal Server Error: /person/update-person-address/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+Traceback (most recent call last):
+  File "/home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/managements_controller/TokenController.py", line 22, in get_person_from_access_token
+    decoded_token = jwt.decode(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/jwt/api_jwt.py", line 210, in decode
+    decoded = self.decode_complete(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/jwt/api_jwt.py", line 162, in decode_complete
+    self._validate_claims(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/jwt/api_jwt.py", line 248, in _validate_claims
+    self._validate_exp(payload, now, leeway)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/jwt/api_jwt.py", line 304, in _validate_exp
+    raise ExpiredSignatureError("Signature has expired")
+jwt.exceptions.ExpiredSignatureError: Signature has expired
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1968, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 920, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.OperationalError: could not receive data from server: Connection timed out
+SSL SYSCALL error: Connection timed out
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/decorators.py", line 63, in inner
+    response = func(request, *args, **kwargs)
+  File "/home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/decorators.py", line 129, in wrapper
+    person_and_tokens = get_person_from_access_token(
+  File "/home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/managements_controller/TokenController.py", line 27, in get_person_from_access_token
+    return handle_expired_access_token(request, session)
+  File "/home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/managements_controller/TokenController.py", line 56, in handle_expired_access_token
+    person = session.query(Person).get(person_id)
+  File "<string>", line 2, in get
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/util/deprecations.py", line 389, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 1130, in get
+    return self._get_impl(ident, loading.load_on_pk_identity)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/query.py", line 1139, in _get_impl
+    return self.session._get_impl(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 3675, in _get_impl
+    return db_load_fn(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/loading.py", line 668, in load_on_pk_identity
+    session.execute(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2232, in execute
+    return self._execute_internal(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 2127, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/context.py", line 293, in orm_execute_statement
+    result = conn.execute(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1413, in execute
+    return meth(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 483, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1637, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1987, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2344, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1968, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 920, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not receive data from server: Connection timed out
+SSL SYSCALL error: Connection timed out
+
+[SQL: SELECT persons.id AS persons_id, persons.username AS persons_username, persons.first_name AS persons_first_name, persons.last_name AS persons_last_name, persons.gender AS persons_gender, persons.email AS persons_email, persons._password AS persons__password, persons.location_id AS persons_location_id, persons.phone_number_id AS persons_phone_number_id, persons.person_type AS persons_person_type, persons.phone_verify AS persons_phone_verify, persons.active AS persons_active, persons.refresh_token_id AS persons_refresh_token_id, persons.created_at AS persons_created_at, persons.updated_at AS persons_updated_at, persons.deleted_at AS persons_deleted_at 
+FROM persons 
+WHERE persons.id = %(pk_1)s]
+[parameters: {'pk_1': 15}]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+INFO 2023-06-06 13:54:13,654 django Thread-4 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 13:54:13,756 django.server Thread-4 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/update-person-address/ HTTP/1.1" 200 367 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+WARNING 2023-06-06 13:56:39,030 django.request Thread-5 (process_request_thread) 140564168177216 log log.py 241 django.request log_response 45375 Not Found: /person/change_password/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 13:56:39,033 django.server Thread-5 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change_password/ HTTP/1.1" 404 7885 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 13:57:00,575 django Thread-6 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 13:57:00,799 django.server Thread-6 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 200 833 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 13:57:05,684 django Thread-7 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+WARNING 2023-06-06 13:57:05,886 django.request Thread-7 (process_request_thread) 140564168177216 log log.py 241 django.request log_response 45375 Unauthorized: /person/change-password/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 13:57:05,888 django.server Thread-7 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 401 48 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 13:57:21,637 django Thread-8 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 13:57:22,251 django.server Thread-8 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 200 833 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 13:57:30,749 django Thread-9 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+WARNING 2023-06-06 13:57:31,158 django.request Thread-9 (process_request_thread) 140564168177216 log log.py 241 django.request log_response 45375 Unauthorized: /person/change-password/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 13:57:31,159 django.server Thread-9 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 401 48 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 13:57:40,774 django Thread-10 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+WARNING 2023-06-06 13:57:40,977 django.request Thread-10 (process_request_thread) 140564168177216 log log.py 241 django.request log_response 45375 Unauthorized: /person/change-password/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 13:57:40,979 django.server Thread-10 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 401 48 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 13:58:11,878 django Thread-11 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+WARNING 2023-06-06 13:58:11,992 django.request Thread-11 (process_request_thread) 140564168177216 log log.py 241 django.request log_response 45375 Unauthorized: /person/change-password/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 13:58:11,993 django.server Thread-11 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 401 48 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 13:58:24,586 django Thread-12 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 13:58:24,798 django.server Thread-12 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 200 833 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 13:58:53,459 django Thread-13 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 13:58:53,665 django.server Thread-13 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 200 833 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 14:00:40,180 django Thread-14 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+WARNING 2023-06-06 14:00:40,371 django.request Thread-14 (process_request_thread) 140564168177216 log log.py 241 django.request log_response 45375 Unauthorized: /person/change-password/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 14:00:40,372 django.server Thread-14 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 401 48 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 14:00:56,761 django Thread-15 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 14:00:57,069 django.server Thread-15 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 200 833 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 14:01:01,802 django Thread-16 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+WARNING 2023-06-06 14:01:01,914 django.request Thread-16 (process_request_thread) 140564168177216 log log.py 241 django.request log_response 45375 Unauthorized: /person/change-password/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 14:01:01,916 django.server Thread-16 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 401 48 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 14:01:12,141 django Thread-17 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+WARNING 2023-06-06 14:01:12,382 django.request Thread-17 (process_request_thread) 140564168177216 log log.py 241 django.request log_response 45375 Unauthorized: /person/change-password/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 14:01:12,383 django.server Thread-17 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 401 48 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 14:01:25,412 django Thread-18 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+WARNING 2023-06-06 14:01:25,485 django.request Thread-18 (process_request_thread) 140564168177216 log log.py 241 django.request log_response 45375 Unauthorized: /person/change-password/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 14:01:25,491 django.server Thread-18 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 401 48 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 14:01:29,940 django Thread-19 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+WARNING 2023-06-06 14:01:30,144 django.request Thread-19 (process_request_thread) 140564168177216 log log.py 241 django.request log_response 45375 Unauthorized: /person/change-password/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 14:01:30,145 django.server Thread-19 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 401 48 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 14:01:44,790 django Thread-20 (process_request_thread) 140564168177216 helpers helpers.py 124 django add_get_params 45375 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 14:01:45,215 django.server Thread-20 (process_request_thread) 140564168177216 basehttp basehttp.py 212 django.server log_message 45375 "POST /person/change-password/ HTTP/1.1" 200 833 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 14:27:03,703 django.utils.autoreload MainThread 140533864935424 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 54683 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 14:33:47,965 django Thread-1 (process_request_thread) 140533669295680 helpers helpers.py 124 django add_get_params 54683 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+ERROR 2023-06-06 14:33:49,151 django.request Thread-1 (process_request_thread) 140533669295680 log log.py 241 django.request log_response 54683 Internal Server Error: /person/update/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+Traceback (most recent call last):
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1968, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 920, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "persons_email_key"
+DETAIL:  Key (email)=(\x3078316a4661754c2f774b75564377364e536c797376474e446f78354d66323856646d7649724c43506a673d) already exists.
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/decorators.py", line 60, in inner
+    with session_scope() as session:
+  File "/usr/lib/python3.10/contextlib.py", line 142, in __exit__
+    next(self.gen)
+  File "/home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py", line 145, in session_scope
+    session.commit()
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1906, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1221, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/state_changes.py", line 137, in _go
+    ret_value = fn(self, *arg, **kw)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 1196, in _prepare_impl
+    self.session.flush()
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 4154, in flush
+    self._flush(objects)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 4290, in _flush
+    with util.safe_reraise():
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/util/langhelpers.py", line 147, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/session.py", line 4251, in _flush
+    flush_context.execute()
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 467, in execute
+    rec.execute(self)
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/unitofwork.py", line 644, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 85, in save_obj
+    _emit_update_statements(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/orm/persistence.py", line 904, in _emit_update_statements
+    c = connection.execute(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1413, in execute
+    return meth(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/sql/elements.py", line 483, in _execute_on_connection
+    return connection._execute_clauseelement(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1637, in _execute_clauseelement
+    ret = self._execute_context(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1987, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 2344, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/base.py", line 1968, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/sqlalchemy/engine/default.py", line 920, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.IntegrityError: (psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint "persons_email_key"
+DETAIL:  Key (email)=(\x3078316a4661754c2f774b75564377364e536c797376474e446f78354d66323856646d7649724c43506a673d) already exists.
+
+[SQL: UPDATE persons SET first_name=%(first_name)s, last_name=%(last_name)s, email=%(email)s, active=%(active)s, updated_at=%(updated_at)s WHERE persons.id = %(persons_id)s]
+[parameters: {'first_name': 'Hebiblii', 'last_name': 'Elcann', 'email': <psycopg2.extensions.Binary object at 0x7fd08ace3c90>, 'active': False, 'updated_at': 'now()', 'persons_id': 15}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+ERROR 2023-06-06 14:33:49,162 django.server Thread-1 (process_request_thread) 140533669295680 basehttp basehttp.py 212 django.server log_message 54683 "POST /person/update/ HTTP/1.1" 500 229753 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 14:37:16,650 django Thread-2 (process_request_thread) 140533669295680 helpers helpers.py 124 django add_get_params 54683 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 14:37:17,468 django.server Thread-2 (process_request_thread) 140533669295680 basehttp basehttp.py 212 django.server log_message 54683 "POST /person/update/ HTTP/1.1" 200 178 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 14:38:50,555 django Thread-3 (process_request_thread) 140533669295680 helpers helpers.py 124 django add_get_params 54683 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 14:38:50,758 django.server Thread-3 (process_request_thread) 140533669295680 basehttp basehttp.py 212 django.server log_message 54683 "POST /person/update/ HTTP/1.1" 200 176 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 18:38:47,774 django.utils.autoreload MainThread 139802326712320 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 12567 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+WARNING 2023-06-06 18:41:28,969 django.request Thread-1 (process_request_thread) 139802125006400 log log.py 241 django.request log_response 12567 Not Found: /password/send-password-reset-link/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 18:41:28,983 django.server Thread-1 (process_request_thread) 139802125006400 basehttp basehttp.py 212 django.server log_message 12567 "POST /password/send-password-reset-link/ HTTP/1.1" 404 4371 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 18:41:49,370 django Thread-2 (process_request_thread) 139802125006400 helpers helpers.py 124 django add_get_params 12567 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 18:41:49,575 django.server Thread-2 (process_request_thread) 139802125006400 basehttp basehttp.py 212 django.server log_message 12567 "POST /person/send-password-reset-link/ HTTP/1.1" 200 163 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 18:46:32,560 django.utils.autoreload MainThread 139802326712320 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 12567 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/managements_controller/PersonController.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 18:46:52,351 django.utils.autoreload MainThread 140143990018048 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 13776 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+WARNING 2023-06-06 18:47:04,392 django.request Thread-1 (process_request_thread) 140143861167680 log log.py 241 django.request log_response 13776 Not Found: /give-reset-password-permission/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 18:47:04,400 django.server Thread-1 (process_request_thread) 140143861167680 basehttp basehttp.py 212 django.server log_message 13776 "GET /give-reset-password-permission/?reset_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwZXJzb25faWQiOjUsImV4cCI6MTY4NjE2MzMwNH0.wUD64qAqBjW0pwjtAiHo7zPuBCmy1YNHF1s9p1FnQWI HTTP/1.1" 404 4498 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+WARNING 2023-06-06 18:47:05,478 django.request Thread-1 (process_request_thread) 140143861167680 log log.py 241 django.request log_response 13776 Not Found: /favicon.ico 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 18:47:05,480 django.server Thread-1 (process_request_thread) 140143861167680 basehttp basehttp.py 212 django.server log_message 13776 "GET /favicon.ico HTTP/1.1" 404 4301 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 18:47:17,769 django Thread-1 (process_request_thread) 140143861167680 helpers helpers.py 124 django add_get_params 13776 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 18:47:18,073 django.server Thread-1 (process_request_thread) 140143861167680 basehttp basehttp.py 212 django.server log_message 13776 "GET /person/give-reset-password-permission/?reset_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwZXJzb25faWQiOjUsImV4cCI6MTY4NjE2MzMwNH0.wUD64qAqBjW0pwjtAiHo7zPuBCmy1YNHF1s9p1FnQWI HTTP/1.1" 200 399 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 18:49:56,654 django.utils.autoreload MainThread 140143990018048 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 13776 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/managements_controller/PersonController.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 18:50:27,867 django.utils.autoreload MainThread 140143141990400 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 14439 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 18:50:57,936 django Thread-1 (process_request_thread) 140143012197952 helpers helpers.py 124 django add_get_params 14439 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 18:50:58,039 django.server Thread-1 (process_request_thread) 140143012197952 basehttp basehttp.py 212 django.server log_message 14439 "POST /person/send-password-reset-link/ HTTP/1.1" 200 163 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 18:52:47,537 django.utils.autoreload MainThread 140143141990400 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 14439 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/managements_controller/PersonController.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 18:53:27,710 django.utils.autoreload MainThread 140444723470336 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 14932 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 18:53:44,915 django Thread-1 (process_request_thread) 140444594861632 helpers helpers.py 124 django add_get_params 14932 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 18:53:45,101 django.server Thread-1 (process_request_thread) 140444594861632 basehttp basehttp.py 212 django.server log_message 14932 "POST /person/send-password-reset-link/ HTTP/1.1" 200 163 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 18:54:41,900 django.utils.autoreload MainThread 140444723470336 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 14932 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/managements_controller/PersonController.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 18:55:15,927 django.utils.autoreload MainThread 140383329529856 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 15288 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 18:55:32,184 django Thread-1 (process_request_thread) 140383130830400 helpers helpers.py 124 django add_get_params 15288 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 18:55:32,593 django.server Thread-1 (process_request_thread) 140383130830400 basehttp basehttp.py 212 django.server log_message 15288 "POST /person/send-password-reset-link/ HTTP/1.1" 200 163 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+WARNING 2023-06-06 18:58:44,959 django.request Thread-2 (process_request_thread) 140383130830400 log log.py 241 django.request log_response 15288 Not Found: /reset-password/ 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/log.py
+
+WARNING 2023-06-06 18:58:44,979 django.server Thread-2 (process_request_thread) 140383130830400 basehttp basehttp.py 212 django.server log_message 15288 "POST /reset-password/ HTTP/1.1" 404 4314 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 18:59:08,830 django Thread-3 (process_request_thread) 140383130830400 helpers helpers.py 124 django add_get_params 15288 Request host origin None
+ 
+ path: /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/helpers.py
+
+INFO 2023-06-06 18:59:08,934 django.server Thread-3 (process_request_thread) 140383130830400 basehttp basehttp.py 212 django.server log_message 15288 "POST /person/reset-password/ HTTP/1.1" 200 1046 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/core/servers/basehttp.py
+
+INFO 2023-06-06 19:02:12,186 django.utils.autoreload MainThread 140383329529856 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 15288 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/app_urls/urls_person.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 19:02:41,953 django.utils.autoreload MainThread 140320173744128 autoreload autoreload.py 668 django.utils.autoreload run_with_reloader 16070 Watching for file changes with StatReloader 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+
+INFO 2023-06-06 19:12:15,545 django.utils.autoreload MainThread 140320173744128 autoreload autoreload.py 266 django.utils.autoreload trigger_reload 16070 /home/faridh/Desktop/DeltaProject/Project/DjAdvanced/DjApp/urls.py changed, reloading. 
+ path: /home/faridh/Desktop/DeltaProject/venv/lib/python3.10/site-packages/django/utils/autoreload.py
+

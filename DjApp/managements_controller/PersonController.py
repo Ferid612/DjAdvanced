@@ -183,7 +183,7 @@ def create_person_registration(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-def add_or_change_person_profile_image(request):
+def update_profil_image(request):
     """
     This function handles adding or changing a person's profile image by receiving a file containing the new image.
     The function receives the following parameters from the request object:
@@ -192,59 +192,54 @@ def add_or_change_person_profile_image(request):
     If the image upload is successful, the function returns a JSON response with a success message and the new user's updated information.
     If an error occurs during the image upload process, the function returns a JSON response with an error message and the error details.
     """
-    try:
-        # Get the parameters from the request object
-        image_file = request.FILES.get('image')
-        image_title = request.data.get("image_title")
-        session = request.session
+    # Get the parameters from the request object
+    image_file = request.FILES.get('image')
+    image_title = request.data.get("image_title")
+    session = request.session
 
-        # Get the current person object from the request object
-        person = request.person
+    # Get the current person object from the request object
+    person = request.person
 
-        if not image_file:
-            return JsonResponse(
-                {"error": "No image file provided."}, status=400
-            )
-        # Save the image file to the server
-        path = PROFIL_IMAGE_ROOT / 'persons'
-        image_path = save_uploaded_image(image_file, path)
+    if not image_file:
+        return JsonResponse(
+            {"error": "No image file provided."}, status=400
+        )
+    # Save the image file to the server
+    path = PROFIL_IMAGE_ROOT / 'persons'
+    image_path = save_uploaded_image(image_file, path)
 
-        if (
-            old_profil_image := session.query(ProfilImage)
-            .filter_by(person_id=person.id)
-            .one_or_none()
-        ):
-            session.delete(old_profil_image)
-            session.commit()
-
-        image_data = {
-            "image_url": image_path,
-            "title": image_title,
-            "person_id": person.id
-        }
-
-        profil_image = ProfilImage(**image_data)
-        # Commit the session to the database
-        session.add(profil_image)
+    if (
+        old_profil_image := session.query(ProfilImage)
+        .filter_by(person_id=person.id)
+        .one_or_none()
+    ):
+        session.delete(old_profil_image)
         session.commit()
 
-        return JsonResponse(
-            {
-                "answer": "The profile image has been updated successfully.",
-                "person_profil_image": image_data,
-            },
-            status=200,
-        )
-    except Exception as e:
-        return GetErrorDetails(
-            "Something went wrong when updating the profile image.", e, 500
-        )
+    image_data = {
+        "image_url": image_path,
+        "title": image_title,
+        "person_id": person.id
+    }
+
+    profil_image = ProfilImage(**image_data)
+    # Commit the session to the database
+    session.add(profil_image)
+    session.commit()
+
+    return JsonResponse(
+        {
+            "answer": "The profile image has been updated successfully.",
+            "person_profil_image": image_data,
+        },
+        status=200,
+    )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required
-def create_or_update_person_address(request):
+def update_person_address(request):
     person = request.person
     session = request.session
     data = request.data
@@ -327,7 +322,6 @@ def logout(request):
 
     """
     # Get the parameters from the request object
-    data = request.data
     person = request.person
     session = request.session
 
@@ -444,7 +438,6 @@ def update_person(request):
 
     # Extract required parameters from the request
     data = request.data  # get the data from the request
-    session = request.session  # get the session from the request
     person = request.person  # get the person object from the request
     new_values = data.get('new_values')  # get the new_values from the data
 
@@ -495,7 +488,7 @@ def email_replacement_process(person, old_email):
     reset_token = generate_new_access_token(
         person_id, minutes=1440).get('token')
 
-    token_with_url = f'{str(HOST_URL)}/give_reset_password_permission/?reset_token={reset_token}{extra_variables}'
+    token_with_url = f'https://{str(HOST_URL)}/person/give-reset-password-permission/?reset_token={reset_token}{extra_variables}'
 
     body_html_message_with_token = create_html_message_with_token(token_with_url=token_with_url,
                                                                   header_text=header_text,
@@ -546,9 +539,7 @@ def send_password_reset_link(request):
     # Construct the password reset link
     reset_token = generate_new_access_token(
         person.id, minutes=1440).get('token')
-    reset_link = request.build_absolute_uri(
-        f'/give_reset_password_permission/?reset_token={reset_token}'
-    )
+    reset_link = f'<a href="https://{HOST_URL}/person/give-reset-password-permission/?reset_token={reset_token}">Reset Password</a>'
 
     # Send the password reset link to the user's email
     send_email(

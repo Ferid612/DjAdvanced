@@ -6,12 +6,12 @@ from DjApp.managements_controller import PersonController
 urlpatterns = [
 
     # VIEWS PERSONS
-    path('get-person/', views_person.get_person,
-         name="get-person"),
+    path('get-self-person/', views_person.get_self_person,
+         name="get-self-person"),
     
-    path('get-person-by-username/',
-         views_person.get_person_data_by_username,
-         name="get-person-by-name"),
+    path('get-person/',
+         views_person.get_person,
+         name="get-person"),
     
     path('get-all-persons-data/',
          views_person.get_all_persons_data,
@@ -31,8 +31,8 @@ urlpatterns = [
     path('create-person-registration/', PersonController.create_person_registration,
          name="create-person-registration"),
 
-    path('add-or-change-person-profile-image/', PersonController.add_or_change_person_profile_image,
-         name="add-or-change-person-profile-image"),
+    path('update-profile-image/', PersonController.update_profil_image,
+         name="update-profile-image"),
 
     path('login/', PersonController.login,
          name="login"),
@@ -40,10 +40,10 @@ urlpatterns = [
     path('change-password/', PersonController.change_password,
          name="change-password"),
 
-    path('update-person/', PersonController.update_person,
-         name="update-person"),
+    path('update/', PersonController.update_person,
+         name="update"),
 
-    path('update-person-address/', PersonController.create_or_update_person_address,
+    path('update-person-address/', PersonController.update_person_address,
          name="update-person-address"),
 
     path('change-null-passwords/', PersonController.change_null_password,

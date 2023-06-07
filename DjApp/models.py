@@ -781,9 +781,9 @@ class Person(Base, TimestampMixin):
 
     location = relationship('Location', back_populates='persons')
     phone_number = relationship('PhoneNumber', back_populates='person')
-    employee = relationship('Employees', back_populates='person')
-    user = relationship('Users', back_populates='person')
-    profil_image = relationship('ProfilImage', back_populates='person')
+    employee = relationship('Employees', uselist=False, back_populates='person')
+    user = relationship('Users', uselist=False, back_populates='person')
+    profil_image = relationship('ProfilImage',uselist=False, back_populates='person')
     comments = relationship('ProductComment', back_populates='person')
 
     def hash_password(self, password):
@@ -801,23 +801,27 @@ class Person(Base, TimestampMixin):
     def to_json(self):
         person_profil_image = None
         if self.profil_image:
-            person_profil_image = self.profil_image[0].to_json()
+            person_profil_image = self.profil_image.to_json()
 
-        person_id = -1
+        user_id = None
+        employee_id = None
         if self.person_type == 'user':
-            person_id = self.user[0].id if self.user else 0
+            user_id = self.user.id if self.user else None
         else:
-            person_id = self.employee[0].id if self.employee else 0
-
+            employee_id = self.employee.id if self.employee else None
+            
         return {
-            'id': self.id,
-            'person_id': person_id,
+            'person_id': self.id,
+            'user_id': user_id,
+            'employee_id': employee_id,
+            
             'username': self.username,
             'first_name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
             'location_id': self.location_id,
             'phone_number_id': self.phone_number_id,
+            
             'person_type': self.person_type,
             'phone_verify': self.phone_verify,
             'active': self.active,

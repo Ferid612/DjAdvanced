@@ -20,7 +20,7 @@ def add_credit_card(request):
 
     data = request.data
     session = request.session
-    user = request.person.user[0]
+    user = request.person.user
 
     card_number = data.get('card_number')
     expiration_date = data.get('expiration_date')
@@ -68,7 +68,7 @@ def delete_credit_card(request, card_id):
     """
 
     session = request.session
-    user = request.person.user[0]
+    user = request.person.user
 
     # Check if the credit card exists and belongs to the user
     credit_card = session.query(CreditCard).filter_by(

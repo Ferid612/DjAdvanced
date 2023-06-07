@@ -11,20 +11,20 @@ urlpatterns = [
 
     # VIEWS DISCOUNTS    
 
-    path('get_person_location/', views_apis.get_person_location,
-         name="Get all discounts"),
+    path('get-person-location/', views_apis.get_person_location,
+         name="get-person-location"),
     
-    path('image_search/', views_apis.image_search,
-         name="Get all discounts"),
+    path('image-search/', views_apis.image_search,
+         name="image-search"),
     
-    path('web_search/', views_apis.web_search,
-         name="Get all discounts"),
+    path('web-search/', views_apis.web_search,
+         name="web-search"),
     
-    path('get_countiries/', views_apis.get_countiries,
-         name="Get all discounts"),
+    path('get-countiries/', views_apis.get_countiries,
+         name="get-countiries"),
     
-    path('get_cities/', views_apis.get_cities,
-         name="Get all discounts"),
+    path('get-cities/', views_apis.get_cities,
+         name="get-cities"),
 
 
 
