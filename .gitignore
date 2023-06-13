@@ -5,4 +5,3 @@ DjReactFront/delta-react/*
 *.ipynb
 .env
 *.log
-logs/blogthedata_info.log
