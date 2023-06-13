@@ -56,8 +56,8 @@ def get_engine(user, passwd, host, port, db):
     return create_engine(url, pool_size=50, echo=False)
 
 
-# engine = get_engine(DATABASE_USER, DATABASE_PASSWORD, DATABASE_SERVER, DATABASE_PORT, DATABASE_NAME)
-engine = DATABASE_NAME
+engine = get_engine(DATABASE_USER, DATABASE_PASSWORD, DATABASE_SERVER, DATABASE_PORT, DATABASE_NAME)
+# engine = DATABASE_NAME
 
 TENANT_ID = ""
 CLIENT_ID = ""
