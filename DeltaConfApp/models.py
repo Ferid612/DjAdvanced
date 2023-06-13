@@ -116,5 +116,5 @@ class ProductEntryCardBox(Base, TimestampMixin):
         }   
 
 
-Base.metadata.create_all(engine)
+# Base.metadata.create_all(engine)
   
