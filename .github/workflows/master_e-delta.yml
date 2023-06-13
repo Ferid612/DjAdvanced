@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'e-delta'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_635D27757344468593853011CB10EEF0 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8E4E2C143AEF4562B327E72CF6DCC157 }}
