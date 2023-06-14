@@ -203,7 +203,7 @@ def add_product_entry_to_card_box(request, pk):
     return JsonResponse(
         {
             'Success': 'The product entry has been successfully added to the card box.',
-            'card_box': card_box.to_json_with_entries(session),
+            'card_box': card_box.to_json_with_entries()
         },
         status=200,
     )

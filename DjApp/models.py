@@ -195,7 +195,7 @@ class Product(Base, TimestampMixin):
 
     __tablename__ = 'product'
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
+    name = Column(String)
     supplier_id = Column(Integer, ForeignKey('supplier.id'), nullable=False)
     category_id = Column(Integer, ForeignKey('category.id'), nullable=False)
     description = Column(String)
