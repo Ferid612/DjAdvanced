@@ -7,19 +7,19 @@ urlpatterns = [
     path('suppliers/', views_supplier.get_all_suppliers, 
          name="suppliers"),
 
-    path('registration-of-supplier/', SupplierController.registration_of_supplier,
-         name="registration-of-supplier"),
+    path('create-registration/', SupplierController.registration_of_supplier,
+         name="create-registration"),
    
-    path('update-profil-image/', SupplierController.add_or_change_supplier_profile_image,
+    path('update-profil-image/', SupplierController.update_profile_image,
          name="update-supplier-profil-image"),
 
-    path('update-supplier/', SupplierController.update_supplier_data,
+    path('update/', SupplierController.update_supplier_data,
          name="update-supplier"),
     
-    path('delete-supplier/', SupplierController.delete_supplier,
+    path('delete/', SupplierController.delete_supplier,
          name="delete-supplier"),
           
-    path('update-supplier-address/', SupplierController.update_supplier_address,
+    path('update-address/', SupplierController.update_supplier_address,
          name="update-supplier-address"),
 
 ]

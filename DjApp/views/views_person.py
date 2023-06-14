@@ -10,7 +10,7 @@ from DjApp.models import Person, ProfilImage
 @csrf_exempt
 @require_http_methods(["POST", "GET", "OPTIONS"])
 @login_required
-def get_person(request):
+def get_self_person(request):
     """
     API endpoint to retrieve user information by username.
     The user data includes the following fields:
@@ -41,9 +41,10 @@ def get_person(request):
 @csrf_exempt
 @require_http_methods(["POST", "GET", "OPTIONS"])
 @login_required
-def get_person_data_by_username(request):
+def get_person(request):
     """
-    API endpoint to retrieve user information by username.
+    API endpoint to retrieve user information by username or person ID.
+
     The user data includes the following fields:
     - id
     - username
@@ -55,19 +56,44 @@ def get_person_data_by_username(request):
     - update_at
     - active
     - phone_verify
+
+    Args:
+        request (HttpRequest): The Django HttpRequest object.
+
+    Returns:
+        JsonResponse: The JSON response containing the user data or an error message.
+
+    Raises:
+        Exception: If an error occurs while getting the user information.
     """
-    try:
-        # Get the user object associated with the request
-        person = request.person
 
-        # Build the user data dictionary
-        user_data = person.to_json()
+    # Get the user object associated with the request
+    data = request.data
+    session = request.session
+    person_id = data.get('person_id')
+    username = data.get('username')
 
-        return JsonResponse(user_data, status=200)
-    except Exception as e:
-        return GetErrorDetails(
-            "An error occurred while getting user information.", e, 500
-        )
+    if not (person_id or username):
+        # If neither person ID nor username is provided, return an error response
+        return JsonResponse({'answer': 'Please provide person ID or username.', 'data': None})
+
+    if person_id is not None:
+        # If person ID is provided, retrieve the person by ID
+        person = session.query(Person).get(person_id)
+    else:
+        # If username is provided, retrieve the person by username
+        person = session.query(Person).filter_by(username=username).first()
+
+    if not person:
+        # If no person is found, return an error response
+        return JsonResponse({'answer': 'Person not found.', 'data': None})
+
+    # Build the user data dictionary
+    person_data = person.to_json()
+
+    # Return the user data as a JSON response
+    return JsonResponse(person_data, status=200)
+
 
 
 @csrf_exempt

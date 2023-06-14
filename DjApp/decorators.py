@@ -175,7 +175,7 @@ def permission_required(*permission_names):
                 person_permissions = session.query(RolePermission)\
                     .join(EmployeeRole)\
                     .join(EmployeeEmployeeGroupRole)\
-                    .filter(EmployeeEmployeeGroupRole.employee_id == person.employee[0].id)\
+                    .filter(EmployeeEmployeeGroupRole.employee_id == person.employee.id)\
                     .all()
 
             # Extract the names of the user's permissions

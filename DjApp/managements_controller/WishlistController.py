@@ -115,7 +115,7 @@ def update_wishlist_title(request, wishlist_id):
         {
             'Success': 'The wishlist title has been successfully updated.',
             "wishlist_id": wishlist.id,
-            'user_id': user[0].id,
+            'user_id': user.id,
             'title': wishlist.title,
         },
         status=200,

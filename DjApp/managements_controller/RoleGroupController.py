@@ -421,7 +421,7 @@ def assign_user_to_group_role(request):
             {'answer': 'False', 'message': 'Missing data error'}, status=404
         )
     applied_user = session.query(Person).filter_by(
-        username=applied_username).first().user[0]
+        username=applied_username).first().user
     assigned_role = session.query(UserRole).filter_by(
         name=assigned_role_name).first()
     assigned_group = session.query(UserGroup).filter_by(
@@ -471,7 +471,7 @@ def assign_employee_to_group_role(request):
             {'answer': 'False', 'message': 'Missing data error'}, status=404
         )
     applied_employee = session.query(Person).filter_by(
-        username=applied_username).first().employee[0]
+        username=applied_username).first().employee
     assigned_role = session.query(EmployeeRole).filter_by(
         name=assigned_role_name).first()
     assigned_group = session.query(EmployeeGroup).filter_by(

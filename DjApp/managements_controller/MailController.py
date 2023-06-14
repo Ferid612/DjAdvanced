@@ -106,7 +106,7 @@ def send_verification_code(person_id, person_email):
             person_id, minutes=1440).get('token')
 
         # Create the link to verify the account using the token and user_id
-        token_with_url = f'{str(HOST_URL)}/mail/get_verification/?access_token={str(verification_token)}&person_id={str(person_id)}'
+        token_with_url = f'{str(HOST_URL)}/mail/get-verification/?access_token={str(verification_token)}&person_id={str(person_id)}'
 
         body_html_message_with_token = create_html_message_with_token(
             token_with_url=token_with_url, header_text='Verification Token', header_details_text='Your verification code', link_text='Verificate!')
