@@ -168,7 +168,7 @@ def permission_required(*permission_names):
                 person_permissions = session.query(RolePermission)\
                     .join(UserRole)\
                     .join(UserUserGroupRole)\
-                    .filter(UserUserGroupRole.user_id == person.user[0].id)\
+                    .filter(UserUserGroupRole.user_id == person.user.id)\
                     .all()
             else:
 

@@ -26,7 +26,7 @@ def CompleteOrder(request):
     session = request.session
     try:
         person = request.person
-        user = person.user[0]
+        user = person.user
         shopping_session = user.shopping_session[0]
         cart_items_in_order = get_cart_items_in_order(shopping_session)
         new_order = create_order(session, user, cart_items_in_order)
@@ -158,7 +158,7 @@ def handle_credit_card_payment(payment, request):
 
 
 def handle_saved_credit_card(request):
-    user = request.person.user[0]
+    user = request.person.user
     saved_card = CreditCard(
         user_id=user.id,
         card_number=request.data.get('card_number'),

@@ -12,7 +12,7 @@ def get_user_shopping_session_data(request):
     """
     try:
         session = request.session
-        shopping_session = request.person.user[0].shopping_session[0]
+        shopping_session = request.person.user.shopping_session[0]
     except Exception:
         return JsonResponse({'answer': "The session data of the user could not be found. Please add any product to basket. After remove it."}, status=400)
 
@@ -30,7 +30,7 @@ def get_cart_item_count(request):
     """
     Retrieves all the cart items for the authenticated user and returns them along with the corresponding product data.
     """
-    shopping_session = request.person.user[0].shopping_session[0]
+    shopping_session = request.person.user.shopping_session[0]
 
     if not shopping_session:
         return JsonResponse({'answer': "The session data of the user could not be found."}, status=400)

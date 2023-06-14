@@ -61,7 +61,7 @@ def get_user_discount_coupons(request):
     """
 
     # Get the parameters from the request object
-    user = request.person.user[0]
+    user = request.person.user
 
     discount_coupons = user.get_user_discount_coupons()
 

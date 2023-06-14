@@ -450,7 +450,7 @@ def activate_discount_coupon(request):
     """
     # Get the user object associated with the request
     session = request.session
-    user = request.person.user[0]
+    user = request.person.user
     data = request.data
 
     # Get the parameters from the request

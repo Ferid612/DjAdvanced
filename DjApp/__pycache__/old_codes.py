@@ -1616,7 +1616,7 @@ def get_user_shopping_session_data(request):
     Retrieves all the cart items for the authenticated user and returns them along with the corresponding product data.
     """
     person = request.person
-    user = person.user[0]
+    user = person.user
     session = request.session
 
     shopping_session = session.query(ShoppingSession).filter_by(user_id=user.id).first()
@@ -1836,7 +1836,7 @@ def add_column_to_table(request):
 #     - quantity: the quantity of the product_entry to add
 #     """
 #     # Get the user object associated with the request
-#     user = request.person.user[0]
+#     user = request.person.user
 #     session = request.session
 #     shopping_session = user.shopping_session[0]
 #     # Get the shopping session associated with the specified session ID and user ID
@@ -1954,7 +1954,7 @@ def add_column_to_table(request):
 #     """
 
 #     # Get the user object associated with the request
-#     user = request.person.user[0]
+#     user = request.person.user
 #     shopping_session = user.shopping_session[0]
 #     session = request.session
 #     # Filter cart items in order

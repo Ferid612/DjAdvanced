@@ -38,7 +38,7 @@ def add_to_basket(request):
     - quantity: the quantity of the product_entry to add
     """
     # Get the user object associated with the request
-    user = request.person.user[0]
+    user = request.person.user
     session = request.session
     data = request.data
 
@@ -123,7 +123,7 @@ def update_cart_item_status(request, cart_item_id):
     - quantity: the new quantity of the cart item
     """
     # Get the user object associated with the request
-    user = request.person.user[0]
+    user = request.person.user
     session = request.session
 
     # Get the cart item to update
@@ -162,7 +162,7 @@ def delete_cart_item(request, cart_item_id):
     - cart_item_id: the ID of the cart item to delete
     """
     # Get the user object associated with the request
-    user = request.person.user[0]
+    user = request.person.user
     session = request.session
 
     # Get the cart item to delete

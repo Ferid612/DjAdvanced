@@ -20,7 +20,7 @@ def create_wishlist(request):
 
     # Get the parameters from the request object
     title = request.data.get("title")
-    user = request.person.user[0]
+    user = request.person.user
     session = request.session
 
     if not (user or title):
@@ -77,7 +77,7 @@ def update_wishlist_title(request, wishlist_id):
 
     # Get the parameters from the request object
     title = request.data.get("title")
-    user = request.person.user[0]
+    user = request.person.user
     session = request.session
 
     if not (wishlist_id or title):
@@ -135,7 +135,7 @@ def delete_wishlist(request, wishlist_id):
     """
 
     # Get the user from the request object
-    user = request.person.user[0]
+    user = request.person.user
     session = request.session
 
     if not wishlist_id:
@@ -188,7 +188,7 @@ def add_product_entry_to_wishlist(request):
     """
 
     session = request.session
-    user = request.person.user[0]
+    user = request.person.user
 
     # Get the parameters from the request object
     wishlist_id = request.data.get("wishlist_id")
@@ -284,7 +284,7 @@ def delete_product_entry_in_wishlist(request):
     """
 
     session = request.session
-    user = request.person.user[0]
+    user = request.person.user
 
     # Get the parameters from the request object
     wishlist_id = request.data.get("wishlist_id")
@@ -368,7 +368,7 @@ def delete_product_entry_in_wishlist(request):
 @login_required
 def delete_product_entry_in_wishlist_with_id(request, wishlist_product_entry_id):
     session = request.session
-    user = request.person.user[0]
+    user = request.person.user
     try:
         # Retrieve the wishlist-product entry with the given ID
         wishlist_product_entry = session.query(
