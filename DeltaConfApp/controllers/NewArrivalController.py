@@ -33,7 +33,7 @@ def add_new_arrival(request):
 
     if not url or not description or not image_gallery_id or not relevant_url or not index:
         return JsonResponse(
-            {'answer': 'False', 'message': 'The required data is missing.'},
+            {'answer': 'unsuccessful', 'message': 'The required data is missing.'},
             status=404,
         )
     # Retrieve the ImageGallery object based on the given ID
@@ -42,7 +42,7 @@ def add_new_arrival(request):
     if not gallery:
         return JsonResponse(
             {
-                'answer': 'False',
+                'answer': 'unsuccessful',
                 'message': 'The Image Gallery name  is not exists.',
             },
             status=404,
@@ -55,9 +55,10 @@ def add_new_arrival(request):
     # Commit the changes to the database
     session.commit()
     return JsonResponse(
-        {
-            "Success": "The new new_arrival has been successfully added to gallery.",
-            "new_arrival": new_arrival.to_json(),
+        {   
+            'answer':'successful',
+            'message': 'The new new_arrival has been successfully added to gallery.',
+            'new_arrival': new_arrival.to_json(),
         },
         status=200,
     )

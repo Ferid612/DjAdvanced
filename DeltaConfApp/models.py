@@ -32,7 +32,7 @@ class NewArrival(Base, TimestampMixin):
     index = Column(Integer, nullable=False, default=1)
     url = Column(String, nullable = False)
     title = Column(String, unique=True, nullable=False)
-    relavant_url = Column(String, nullable=False)
+    relevant_url = Column(String, nullable=False)
     description = Column(String, nullable=False)
     gallery_id = Column(Integer, ForeignKey('image_gallery.id'), nullable=False) 
     image_gallery = relationship('ImageGallery', back_populates='new_arrival_photos')  
@@ -44,7 +44,7 @@ class NewArrival(Base, TimestampMixin):
         'id': self.id,
         'index': self.index,
         'url': self.url,
-        'relavant_url': self.relavant_url,
+        'relevant_url': self.relevant_url,
         'title': self.title,
         'description': self.description,
         'gallery_id': self.gallery_id,
@@ -56,7 +56,7 @@ class SlidePhotos(Base, TimestampMixin):
     id = Column(Integer, primary_key=True)
     url = Column(String, nullable = False)
     title = Column(String, unique=True, nullable=False)
-    relavant_url = Column(String, nullable=False)
+    relevant_url = Column(String, nullable=False)
     
     gallery_id = Column(Integer, ForeignKey('image_gallery.id'), nullable=False) 
     image_gallery = relationship('ImageGallery', back_populates='slide_photos')  
@@ -68,7 +68,7 @@ class SlidePhotos(Base, TimestampMixin):
         'id': self.id,
         'url': self.url,
         'title': self.title,
-        'relavant_url': self.relavant_url,
+        'relevant_url': self.relevant_url,
         'gallery_id': self.gallery_id,
         }
         

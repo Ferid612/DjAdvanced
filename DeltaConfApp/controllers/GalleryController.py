@@ -4,11 +4,10 @@ from DjApp.decorators import permission_required, login_required, require_http_m
 from ..models import ImageGallery, SlidePhotos
 
 
-
 # @login_required
 # @permission_required("manage_gallery")
 @csrf_exempt
-@require_http_methods(["POST","OPTIONS"])
+@require_http_methods(["POST", "OPTIONS"])
 def add_slide_photo(request):
     """
     Add a new SlidePhotos object to an existing ImageGallery object
@@ -28,7 +27,6 @@ def add_slide_photo(request):
     title = data.get("title")
     relevant_url = data.get("relevant_url")
 
-
     session = request.session
 
     # Retrieve the ImageGallery object based on the given ID
@@ -37,29 +35,49 @@ def add_slide_photo(request):
     if not gallery:
         return JsonResponse(
             {
-                'answer': 'False',
-                'message': 'The Image Gallery name  is not exists.',
+                'answer': 'unsuccessful',
+                'message': 'The Image Gallery does not exist.',
+                'data': None,
             },
             status=404,
         )
+
+    if (
+        existing_slide_photo := session.query(SlidePhotos)
+        .filter((SlidePhotos.url == url) | (SlidePhotos.title == title))
+        .first()
+    ):
+        return JsonResponse(
+            {
+                'answer': 'unsuccessful',
+                'message': 'A slide photo with the same URL or title already exists.',
+                'data': None,
+            },
+            status=400,
+        )
+
     # Create a new SlidePhotos object and add it to the ImageGallery's list of slide photos
-    slide_photo = SlidePhotos(gallery_id=image_gallery_id,url=url, title=title, relavant_url=relevant_url)
+    slide_photo = SlidePhotos(
+        gallery_id=image_gallery_id, url=url, title=title, relevant_url=relevant_url
+    )
     session.add(slide_photo)
 
     # Commit the changes to the database
     session.commit()
     return JsonResponse(
         {
-            "Success": "The new slide_photo has been successfully added to gallery."
+            'answer': 'successful',
+            'message': 'The new slide photo has been successfully added to the gallery.',
+            'slide_photo': slide_photo.to_json(),
         },
         status=200,
     )
 
 
- 
+
 # @login_required
 @csrf_exempt
-@require_http_methods(["POST","OPTIONS"])
+@require_http_methods(["POST", "OPTIONS"])
 def add_slide_photos(request):
     """
     Add new SlidePhotos objects to an existing ImageGallery object
@@ -84,27 +102,40 @@ def add_slide_photos(request):
     gallery = session.query(ImageGallery).filter_by(id=image_gallery_id).one_or_none()
 
     if not gallery:
-        return JsonResponse({'Error': 'The Image Gallery does not exist.'}, status=404)
+        return JsonResponse({
+            'answer': 'unsuccessful',
+            'message': 'The Image Gallery does not exist.',
+            'data': None
+        }, status=404)
+
     for photo in slide_photos:
         url = photo.get("url")
         title = photo.get("title")
         relevant_url = photo.get("relevant_url")
 
-        # Create a new SlidePhotos object and add it to the ImageGallery's list of slide photos
-        slide_photo = SlidePhotos(gallery_id=image_gallery_id,url=url, title=title, relavant_url=relevant_url)
+        if (
+            existing_slide_photo := session.query(SlidePhotos)
+            .filter((SlidePhotos.url == url) | (SlidePhotos.title == title))
+            .first()
+        ):
+            continue
 
+        # Create a new SlidePhotos object and add it to the ImageGallery's list of slide photos
+        slide_photo = SlidePhotos(
+            gallery_id=image_gallery_id, url=url, title=title, relevant_url=relevant_url
+        )
         session.add(slide_photo)
 
     # Commit the changes to the database
     session.commit()
     return JsonResponse(
         {
-            "Success": "The new slide photos have been successfully added to the gallery."
+            'answer': 'successful',
+            'message': 'The new slide photos have been successfully added to the gallery.',
+            'gallery': gallery.to_json(),
         },
         status=200,
     )
-
-
 
 # @login_required
 @csrf_exempt
@@ -132,8 +163,9 @@ def create_image_gallery(request):
     if gallery:
         return JsonResponse(
             {
-                'answer': 'False',
+                'answer': 'successful',
                 'message': 'The Image Gallery name is allready exists.',
+                'gallery': gallery.to_json()
             },
             status=404,
         )
@@ -144,8 +176,10 @@ def create_image_gallery(request):
     session.add(gallery)
     session.commit()
     return JsonResponse(
-        {"Success": "The new Image Gallery has been successfully created."},
+        {
+        'answer': 'successful',
+        'message': 'The new Image Gallery has been successfully created.',
+        'gallery': gallery.to_json()
+         },
         status=200,
     )
-
-
