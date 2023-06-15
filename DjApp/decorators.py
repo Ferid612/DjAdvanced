@@ -6,7 +6,7 @@ import uuid
 from django.http import JsonResponse
 from DjAdvanced.settings.production import engine, SECRET_KEY
 import jwt
-from DjApp.helpers import add_get_params, session_scope
+from DjApp.helpers import GetErrorDetails, add_get_params, session_scope
 from DjApp.managements_controller.TokenController import generate_new_access_token, get_person_from_access_token
 from DjApp.models import EmployeeEmployeeGroupRole, EmployeeRole, RolePermission, UserRole, UserUserGroupRole, Person
 from django.utils.log import log_response
@@ -59,8 +59,10 @@ def require_http_methods(request_method_list):
 
             with session_scope() as session:
                 request.session = session
-
-                response = func(request, *args, **kwargs)
+                try:
+                    response = func(request, *args, **kwargs)
+                except Exception as e:
+                    response = GetErrorDetails("Error handling from developer decorator", e, 500)            
                 add_get_params(response, request)
                 return response
 

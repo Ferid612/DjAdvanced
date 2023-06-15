@@ -1252,13 +1252,16 @@ class CartItem(Base, TimestampMixin):
     def calculate_cargo_data(self):
         product_entry = self.product_entry
         cargo_data = {}
-        if product_entry.cargo_active:
+        
+        if (product_entry.cargo_active) and (product_entry.product.supplier.cargo_percent is not None):
             cargo_percent = float(product_entry.product.supplier.cargo_percent)
             item_cargo_fee = self.total() * cargo_percent
             cargo_data['supplier_cargo_percent'] = cargo_percent
             cargo_data['item_cargo_fee'] = item_cargo_fee
+        
         else:
             cargo_data = "Not any cargo fee"
+        
         return cargo_data
 
     # Helper functions for calculating discounts and cargo fees
