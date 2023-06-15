@@ -4,7 +4,7 @@ from DjApp.managements_controller import ShoppingController, OrderController
 
 urlpatterns = [
     # Views
-    path('shopping-session/show', views_shopping.get_user_shopping_session_data,
+    path('shopping-session/show/', views_shopping.get_user_shopping_session_data,
          name="shopping-session"),
     
     path('shopping-session/count/', views_shopping.get_cart_item_count,
