@@ -217,6 +217,10 @@ class Product(Base, TimestampMixin):
                          primaryjoin="ProductEntry.product_id == Product.id", secondaryjoin="ProductEntry.measure_value_id == ProductMeasureValue.id",
                          viewonly=True)
 
+    def get_first_image(self):
+        return self.entries[0].images[0].to_json() if self.entries[0].images else None
+
+    
     def get_exist_colors(self):
         """
         Returns a list of all colors that are already assigned to at least one product entry
@@ -261,6 +265,7 @@ class Product(Base, TimestampMixin):
             'id': self.id,
             'name': self.name,
             'description': self.description,
+            'image': self.get_first_image(),
             'supplier_data': self.supplier.to_json_for_card(),
             'category_data': self.category.to_json(),
             'exist_colors': self.get_exist_colors(),
