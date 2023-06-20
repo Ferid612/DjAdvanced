@@ -47,7 +47,7 @@ class Location(Base, TimestampMixin):
 
     city = Column(EncryptedType(String, 'AES'), nullable=False)
     state = Column(EncryptedType(String, 'AES'), nullable=False)
-    addres_line_1 = Column(EncryptedType(String, 'AES'), nullable=False)
+    address_line_1 = Column(EncryptedType(String, 'AES'), nullable=False)
     district = Column(EncryptedType(String, 'AES'))
     postal_code = Column(EncryptedType(String, 'AES'), nullable=False)
     description = Column(EncryptedType(String, 'AES'))
@@ -64,7 +64,7 @@ class Location(Base, TimestampMixin):
                 "country_name": self.country.name,
                 "city": self.city,
                 "state": self.state,
-                "addres_line_1": self.addres_line_1,
+                "address_line_1": self.address_line_1,
                 "district": self.district,
                 "postal_code": self.postal_code,
                 "description": self.description,

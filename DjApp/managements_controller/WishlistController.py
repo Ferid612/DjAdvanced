@@ -26,7 +26,7 @@ def create_wishlist(request):
     if not (user or title):
         return JsonResponse(
             {
-                'answer': 'False',
+                'answer': 'successful',
                 'message': 'Missing data error. User ID and Title must be filled.',
             },
             status=404,
@@ -39,7 +39,7 @@ def create_wishlist(request):
     ):
         return JsonResponse(
             {
-                'answer': 'False',
+                'answer': 'unsuccessful',
                 'message': 'The user already has a wishlist with this title.',
             },
             status=404,
@@ -54,8 +54,8 @@ def create_wishlist(request):
     session.commit()
 
     return JsonResponse(
-        {
-            'Success': 'The new wishlist has been successfully created.',
+        {   'answer':'successful',
+            'message': 'The new wishlist has been successfully created.',
             "wishlist": new_wishlist.to_json(),
         },
         status=200,
@@ -83,7 +83,7 @@ def update_wishlist_title(request, wishlist_id):
     if not (wishlist_id or title):
         return JsonResponse(
             {
-                'answer': 'False',
+                'answer': 'unsuccessful',
                 'message': 'Missing data error. Wishlist ID and Title must be filled.',
             },
             status=404,
@@ -91,7 +91,7 @@ def update_wishlist_title(request, wishlist_id):
     if not user:
         return JsonResponse(
             {
-                'answer': 'False',
+                'answer': 'unsuccessful',
                 'message': 'User with the given ID does not exist.',
             },
             status=404,
@@ -102,7 +102,7 @@ def update_wishlist_title(request, wishlist_id):
     if not wishlist:
         return JsonResponse(
             {
-                'answer': 'False',
+                'answer': 'unsuccessful',
                 'message': 'The user does not have a wishlist with this ID.',
             },
             status=404,
@@ -112,8 +112,8 @@ def update_wishlist_title(request, wishlist_id):
     session.commit()
 
     return JsonResponse(
-        {
-            'Success': 'The wishlist title has been successfully updated.',
+        {   'answer':'successful',
+            'message': 'The wishlist title has been successfully updated.',
             "wishlist_id": wishlist.id,
             'user_id': user.id,
             'title': wishlist.title,
@@ -141,7 +141,7 @@ def delete_wishlist(request, wishlist_id):
     if not wishlist_id:
         return JsonResponse(
             {
-                'answer': 'False',
+                'answer': 'unsuccessful',
                 'message': 'Missing data error. Wishlist ID must be filled.',
             },
             status=404,
@@ -149,7 +149,7 @@ def delete_wishlist(request, wishlist_id):
     if not user:
         return JsonResponse(
             {
-                'answer': 'False',
+                'answer': 'unsuccessful',
                 'message': 'User with the given ID does not exist.',
             },
             status=404,
@@ -160,7 +160,7 @@ def delete_wishlist(request, wishlist_id):
     if not wishlist:
         return JsonResponse(
             {
-                'answer': 'False',
+                'answer': 'unsuccessful',
                 'message': 'The user does not have a wishlist with this ID.',
             },
             status=404,
@@ -170,8 +170,10 @@ def delete_wishlist(request, wishlist_id):
     session.commit()
 
     return JsonResponse(
-        {'Success': 'The wishlist has been successfully deleted.'}, status=200
-    )
+        {
+            'answer': 'successful',
+            'message': 'The wishlist has been successfully deleted.'}, status=200
+        )
 
 
 @csrf_exempt
@@ -198,7 +200,7 @@ def add_product_entry_to_wishlist(request):
     if not wishlist_id or not product_entry_id:
         return JsonResponse(
             {
-                'answer': 'False',
+                'answer': 'unsuccessful',
                 'message': 'Missing data error. Wishlist ID and Product Entry ID must be filled.',
             },
             status=404,
@@ -214,7 +216,9 @@ def add_product_entry_to_wishlist(request):
         session.rollback()
         return JsonResponse(
             {
-                'answer': False,
+
+                'answer': 'unsuccessful',
+
                 'message': 'Error retrieving data from the database.',
                 'error': str(e),
             },
@@ -224,7 +228,7 @@ def add_product_entry_to_wishlist(request):
     if not wishlist or not product_entry:
         return JsonResponse(
             {
-                'answer': False,
+                'answer': 'unsuccessful',
                 'message': 'Invalid data provided or user is not authorized to add products to the wishlist.',
             },
             status=401,
@@ -233,7 +237,7 @@ def add_product_entry_to_wishlist(request):
     if session.query(WishListProductEntry).filter_by(wishlist_id=wishlist_id, product_entry_id=product_entry_id).first():
         return JsonResponse(
             {
-                'answer': False,
+                'answer': 'unsuccessful',
                 'message': 'Product entry is already in the wishlist.',
             },
             status=200,
@@ -253,7 +257,7 @@ def add_product_entry_to_wishlist(request):
 
         return JsonResponse(
             {
-                'answer': True,
+                'answer': 'successful',
                 'message': 'Product entry added to the wishlist.',
             },
             status=200,
@@ -262,7 +266,7 @@ def add_product_entry_to_wishlist(request):
         session.rollback()
         return JsonResponse(
             {
-                'answer': False,
+                'answer': 'unsuccessful',
                 'message': 'Error adding product entry to wishlist.',
                 'error': str(e),
             },
@@ -294,7 +298,7 @@ def delete_product_entry_in_wishlist(request):
     if not wishlist_id or not product_entry_id:
         return JsonResponse(
             {
-                'answer': False,
+                'answer': 'unsuccessful',
                 'message': 'Missing data error. Wishlist ID and Product Entry ID must be filled.',
             },
             status=404,
@@ -310,7 +314,7 @@ def delete_product_entry_in_wishlist(request):
         session.rollback()
         return JsonResponse(
             {
-                'answer': False,
+                'answer': 'unsuccessful',
                 'message': 'Error retrieving data from the database.',
                 'error': str(e),
             },
@@ -320,7 +324,7 @@ def delete_product_entry_in_wishlist(request):
     if not wishlist or not product_entry:
         return JsonResponse(
             {
-                'answer': False,
+                'answer': 'unsuccessful',
                 'message': 'Invalid data provided or user is not authorized to delete products from the wishlist.',
             },
             status=401,
@@ -331,7 +335,7 @@ def delete_product_entry_in_wishlist(request):
     if not wishlist_product_entry:
         return JsonResponse(
             {
-                'answer': False,
+                'answer': 'unsuccessful',
                 'message': 'Product entry is not in the wishlist.',
             },
             status=200,
@@ -346,7 +350,7 @@ def delete_product_entry_in_wishlist(request):
 
         return JsonResponse(
             {
-                'answer': True,
+                'answer': 'successful',
                 'message': 'Product entry deleted from the wishlist.',
             },
             status=200,
@@ -355,7 +359,7 @@ def delete_product_entry_in_wishlist(request):
         session.rollback()
         return JsonResponse(
             {
-                'answer': False,
+                'answer': 'unsuccessful',
                 'message': 'Error deleting product entry from wishlist.',
                 'error': str(e),
             },
@@ -381,7 +385,7 @@ def delete_product_entry_in_wishlist_with_id(request, wishlist_product_entry_id)
         ):
             return JsonResponse(
                 {
-                    'answer': False,
+                    'answer': 'unsuccessful',
                     'message': 'Invalid data provided or user is not authorized to delete products from the wishlist.',
                 },
                 status=401,
@@ -392,7 +396,8 @@ def delete_product_entry_in_wishlist_with_id(request, wishlist_product_entry_id)
 
         return JsonResponse(
             {
-                'Success': 'The wishlist product entry has been successfully deleted.',
+                'answer': 'successful',
+                'message': 'The wishlist product entry has been successfully deleted.',
                 "wishlist_product_entry_id": wishlist_product_entry_id,
             },
             status=200,
@@ -401,7 +406,7 @@ def delete_product_entry_in_wishlist_with_id(request, wishlist_product_entry_id)
         session.rollback()
         return JsonResponse(
             {
-                'Success': 'False',
+                'answer': 'unsuccessful',
                 'message': 'An error occurred while deleting the wishlist product entry.',
                 'error_details': str(e),
             },

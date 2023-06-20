@@ -14,8 +14,8 @@ def create_address_object(session, data):
     This function handles person address creation by creating a new address and adding it to the user's account.
     The function receives the following parameters from the request object:
     - person_id: the ID of the person to add the address to
-    - addres_line_1: the first line of the user's address
-    - addres_line_2: the second line of the user's address (optional)
+    - address_line_1: the first line of the user's address
+    - address_line_2: the second line of the user's address (optional)
     - city: the city of the user's address
     - postal_code: the postal code of the user's address
     - country: the country of the user's address
@@ -31,7 +31,7 @@ def create_address_object(session, data):
     state = data.get('state')
     city = data.get('city')
 
-    addres_line_1 = data.get('addres_line_1')
+    address_line_1 = data.get('address_line_1')
     district = data.get('district')
     postal_code = data.get('postal_code')
     description = data.get('description')
@@ -39,7 +39,7 @@ def create_address_object(session, data):
 
     country_name = data.get('country_name')
 
-    if not (addres_line_1 and city and country_name and state and postal_code):
+    if not (address_line_1 and city and country_name and state and postal_code):
         return JsonResponse(
             {
                 'answer': 'False',
@@ -77,7 +77,7 @@ def create_address_object(session, data):
         country_id = country_id,
         state = state,
         city = city,
-        addres_line_1 = addres_line_1,
+        address_line_1 = address_line_1,
         postal_code = postal_code,
         district = district,
         description = description,
