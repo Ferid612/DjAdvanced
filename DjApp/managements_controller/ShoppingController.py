@@ -110,8 +110,9 @@ def add_to_basket(request):
         },
         status=200,
     )
-@csrf_exempt
-@require_http_methods(["POST"])
+    
+    
+
 @csrf_exempt
 @require_http_methods(["POST"])
 @login_required

@@ -1,5 +1,5 @@
 from datetime import datetime
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from DjApp.models import CashPayment, CreditCard, CreditCardPayment, DiscountCoupon, DiscountCouponUser, Order, OrderItem, Payment
 from ..helpers import create_pdf
@@ -68,6 +68,49 @@ def CompleteOrder(request):
 
         session.rollback()
         raise e
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def change_order_status(request):
+    """
+    Updates the status of an order.
+
+    Args:
+        request: HttpRequest object representing the current request.
+
+    Returns:
+        JsonResponse: JSON response indicating the success or failure of the operation.
+    """
+    
+    session = request.session
+    order_id = request.data.get('order_id')
+    new_status = request.data.get('new_status')
+    
+    order = session.query(Order).get(order_id)
+
+    if order is None:
+      return JsonResponse({'error': 'Order not found.'}, status=400)
+  
+    allowed_statuses = ('preparing', 'placed', 'shipped', 'delivered', 'cancelled')
+
+    if new_status not in allowed_statuses:
+       return JsonResponse({'error': 'Invalid status.'}, status=400)
+
+
+    order.status = new_status
+    session.commit()
+
+    return JsonResponse({
+        
+        'answer':'successfull',
+        'message': 'Order status updated successfully.',
+        'order': order.to_json()
+    
+    }, status=200)
+
 
 
 def get_cart_items_in_order(shopping_session):
@@ -176,3 +219,8 @@ def handle_cash_payment(session, payment):
         session.commit()
         payment.status = 'completed'
         # Add any additional steps needed for a cash payment, such as printing a receipt
+
+
+
+
+

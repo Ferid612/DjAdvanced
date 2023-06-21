@@ -1358,11 +1358,14 @@ class CreditCardPayment(Base):
             "expiration_date": self.expiration_date,
         }
 
+
+
 class CashPayment(Base):
     __tablename__ = 'cash_payment'
     id = Column(Integer, primary_key=True)
     payment_id = Column(Integer, ForeignKey('payment.id'), nullable=False)
     payment = relationship('Payment', back_populates='cash_payment')
+
 
 
 class Order(Base, TimestampMixin):
