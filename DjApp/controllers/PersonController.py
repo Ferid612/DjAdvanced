@@ -2,9 +2,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 import jwt
-from DjApp.managements_controller.ShoppingController import create_shopping_session
+from DjApp.controllers.ShoppingController import create_shopping_session
 from DjAdvanced.settings.production import HOST_URL, PROFIL_IMAGE_ROOT, SECRET_KEY
-from DjApp.managements_controller.LocationController import  create_address_object, update_object_address
+from DjApp.controllers.LocationController import  create_address_object, update_object_address
 from .MailController import create_html_message_with_token, send_verification_code
 from ..helpers import GetErrorDetails,  save_uploaded_image
 from ..models import Employees, Location, Person, PhoneNumber, ProfilImage, Users

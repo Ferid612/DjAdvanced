@@ -1,6 +1,6 @@
 from django.urls import path
 from DjApp.views import views_person
-from DjApp.managements_controller import PersonController
+from DjApp.controllers import PersonController
 
 
 urlpatterns = [

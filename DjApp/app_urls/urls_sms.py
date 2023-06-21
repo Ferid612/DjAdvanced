@@ -1,5 +1,5 @@
 from django.urls import path
-from DjApp.managements_controller import SMSController
+from DjApp.controllers import SMSController
 
 urlpatterns = [
 

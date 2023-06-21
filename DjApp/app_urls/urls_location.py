@@ -1,5 +1,5 @@
 from django.urls import path
-from DjApp.managements_controller import LocationController
+from DjApp.controllers import LocationController
 
 urlpatterns = [
 

@@ -1,5 +1,5 @@
 from django.urls import path
-from DjApp.managements_controller import WishlistController
+from DjApp.controllers import WishlistController
 from DjApp.views import views_wishlist
 
 urlpatterns = [

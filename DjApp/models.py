@@ -15,6 +15,7 @@ class TimestampMixin:
     updated_at = Column(DateTime, nullable=False,
                         server_default='now()', onupdate='now()')
     deleted_at = Column(DateTime, nullable=True)
+    
 
 class Country(Base, TimestampMixin):
     __tablename__ = 'country'
@@ -83,6 +84,16 @@ class PhoneNumber(Base, TimestampMixin):
 
     person = relationship('Person', back_populates='phone_number')
     supplier = relationship('Supplier', back_populates='phone_number')
+    
+    def to_json(self):
+        return {
+                "id": self.id,
+                "phone_number": self.phone_number,
+                "country_phone_code": self.country_phone_code,
+                "phone_type_id": self.phone_type_id,
+                
+        }
+
 
 
 class Category(Base, TimestampMixin):
@@ -819,13 +830,12 @@ class Person(Base, TimestampMixin):
             'person_id': self.id,
             'user_id': user_id,
             'employee_id': employee_id,
-            
             'username': self.username,
             'first_name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
-            'location_id': self.location_id,
-            'phone_number_id': self.phone_number_id,
+            'location_id': self.location.to_json(),
+            'phone_number': self.phone_number.to_json(),
             
             'person_type': self.person_type,
             'phone_verify': self.phone_verify,
@@ -1399,6 +1409,8 @@ class Order(Base, TimestampMixin):
             "total_price": self.total_price,
             "discount_coupon_data": discount_coupon_data,
             "payment_data": payment_data,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at
         }
 
 

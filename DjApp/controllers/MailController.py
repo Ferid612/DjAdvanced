@@ -4,7 +4,7 @@ import jwt
 from DjAdvanced.settings.production import EMAIL_HOST_USER, HOST_URL
 from DjApp.decorators import login_required, require_http_methods
 from DjApp.helpers import GetErrorDetails
-from DjApp.managements_controller.TokenController import generate_new_access_token
+from DjApp.controllers.TokenController import generate_new_access_token
 from django.views.decorators.csrf import csrf_exempt
 # from DjApp.models import Users
 from django.core.mail import send_mail

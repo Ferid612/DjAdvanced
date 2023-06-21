@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from DjAdvanced.settings.production import engine, SECRET_KEY
 import jwt
 from DjApp.helpers import GetErrorDetails, add_get_params, session_scope
-from DjApp.managements_controller.TokenController import generate_new_access_token, get_person_from_access_token
+from DjApp.controllers.TokenController import generate_new_access_token, get_person_from_access_token
 from DjApp.models import EmployeeEmployeeGroupRole, EmployeeRole, RolePermission, UserRole, UserUserGroupRole, Person
 from django.utils.log import log_response
 from django.http import HttpResponseNotAllowed

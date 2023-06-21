@@ -135,6 +135,16 @@ def add_get_params(response, request):
     
     
     
+def json_object_to_html(obj):
+    def process_value(value):
+        return json_object_to_html(value) if isinstance(value, dict) else str(value)
+
+    return "<br>".join(f"{key}: {process_value(value)}" for key, value in obj.items())
+
+def class_object_to_html(obj):
+    return "<br>".join(f"{key}: {value}" for key, value in obj.__dict__.items())
+    
+    
 @contextmanager
 def session_scope():
 

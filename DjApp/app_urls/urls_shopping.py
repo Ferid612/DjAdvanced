@@ -1,6 +1,6 @@
 from django.urls import path
 from DjApp.views import views_shopping
-from DjApp.managements_controller import ShoppingController, OrderController
+from DjApp.controllers import ShoppingController, OrderController
 
 urlpatterns = [
     # Views
@@ -31,4 +31,9 @@ urlpatterns = [
     
     path('order/change-status/', OrderController.change_order_status,
          name="change-order-status"),
+    
+    path('order/cancel-request/', OrderController.send_order_cancellation_request,
+         name="send-order-cancellation-request"),
+    
+    
 ]

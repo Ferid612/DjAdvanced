@@ -1,6 +1,6 @@
 
 from django.urls import path
-from DjApp.managements_controller import CategoryController, ProductController, ProductImageController, MeasureController, MaterialController, TagController, ColorController
+from DjApp.controllers import CategoryController, ProductController, ProductImageController, MeasureController, MaterialController, TagController, ColorController
 from DjApp.views import views_product, views_category, views_supplier
 
 urlpatterns = [

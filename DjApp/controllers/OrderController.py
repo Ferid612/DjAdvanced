@@ -1,8 +1,10 @@
 from datetime import datetime
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from DjAdvanced.settings.base import EMAIL_HOST_USER
+from DjApp.controllers.MailController import send_email
 from DjApp.models import CashPayment, CreditCard, CreditCardPayment, DiscountCoupon, DiscountCouponUser, Order, OrderItem, Payment
-from ..helpers import create_pdf
+from ..helpers import create_pdf, json_object_to_html
 from ..decorators import login_required, require_http_methods
 
 
@@ -111,6 +113,53 @@ def change_order_status(request):
     
     }, status=200)
 
+
+
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def send_order_cancellation_request(request):
+    """
+    Updates the status of an order.
+
+    Args:
+        request: HttpRequest object representing the current request.
+
+    Returns:
+        JsonResponse: JSON response indicating the success or failure of the operation.
+    """
+    session = request.session
+    order_id = request.data.get('order_id')
+    person = request.person
+
+    order = session.query(Order).get(order_id)
+    if order is None:
+        return JsonResponse({'error': 'Order not found.'}, status=400)
+
+
+    person_data = person.to_json()
+    person_data_str = "<br>".join(f"{key}: {value}" for key, value in person_data.items())
+  
+    # order_details = order.to_json()
+    # order_details_str = "<br>".join(f"{key}: {value}" for key, value in order_details.items())
+
+    order_details_html = json_object_to_html(order.to_json())
+
+
+    body_message = f"User with {person.username} wants to cancel his or her order. <br><br> User data: <br>{person_data_str}<br><br> Order details: <br>{order_details_html}"
+
+
+    send_email(EMAIL_HOST_USER, f"User with {person.username} wants to cancel his or her order.", body_message)
+
+    return JsonResponse({
+        'answer': 'successful',
+        'message': 'Order status update request sent successfully.',
+        'order': order.to_json()
+    }, status=200)
 
 
 def get_cart_items_in_order(shopping_session):

@@ -1,5 +1,5 @@
 from django.urls import path
-from DjApp.managements_controller import MailController
+from DjApp.controllers import MailController
 
 urlpatterns = [
 
