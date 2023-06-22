@@ -138,19 +138,27 @@ def send_order_cancellation_request(request):
 
     order = session.query(Order).get(order_id)
     if order is None:
-        return JsonResponse({'error': 'Order not found.'}, status=400)
+        return JsonResponse({
+            'answer':'unsuccessful',
+            'message': 'Order not found.'}, status=400)
 
+    if order.status in ['cancelled', 'delivered']:
+        
+        return JsonResponse({
+            'answer':'unsuccessful',
+            'message': f"The order status is {order.status}. The order can't be cancelled."}, status=501)
+        
+        
 
-    person_data = person.to_json()
-    person_data_str = "<br>".join(f"{key}: {value}" for key, value in person_data.items())
-  
+    person_data_html = json_object_to_html(person.to_json()) 
+    
     # order_details = order.to_json()
     # order_details_str = "<br>".join(f"{key}: {value}" for key, value in order_details.items())
 
     order_details_html = json_object_to_html(order.to_json())
 
 
-    body_message = f"User with {person.username} wants to cancel his or her order. <br><br> User data: <br>{person_data_str}<br><br> Order details: <br>{order_details_html}"
+    body_message = f"User with {person.username} wants to cancel his or her order. <br><br> User data: <br>{person_data_html}<br><br> Order details: <br>{order_details_html}"
 
 
     send_email(EMAIL_HOST_USER, f"User with {person.username} wants to cancel his or her order.", body_message)
