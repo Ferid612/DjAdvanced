@@ -346,20 +346,21 @@ def add_comment(request):
         if Levenshtein.distance(comment_text, c.comment_text) <= len(comment_text) * 0.4:
             return JsonResponse(
                 {'answer': "You have already made a similar comment on this product."}, status=400)
-            
+
     # Create a new comment object and add it to the product
     comment = ProductComment(product_entry_id=product_entry.id,
                              person_id=person.id, comment_text=comment_text, status='active')
     if parent_comment_id:
-        # If a parent comment ID is provided, add the comment as a child of the parent comment
-        parent_comment = session.query(ProductComment).get(parent_comment_id)
-        if not parent_comment:
+        if parent_comment := session.query(ProductComment).get(
+            parent_comment_id
+        ):
+            comment.parent_comment_id = parent_comment.id
+
+        else:
             # If the parent comment doesn't exist, return an error response
             return  JsonResponse(
                 {'answer': "Invalid parent comment id."}, status=400)
 
-
-        comment.parent_comment_id = parent_comment.id
 
     session.add(comment)
     session.commit()

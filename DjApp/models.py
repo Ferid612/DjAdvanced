@@ -687,6 +687,9 @@ class ProductRate(Base, TimestampMixin):
         return {
             'id': self.id,
             'product_entry_id': self.product_entry_id,
+            'product_id': self.product_entry.product.id,
+            'product_name': self.product_entry.product.name,
+            'product_description': self.product_entry.product.description,
             "user_id": self.user_id,
             "username": self.user.person.username,
             "rate_comment": self.rate_comment,
@@ -695,8 +698,7 @@ class ProductRate(Base, TimestampMixin):
             'ip': self.ip
 
         }
-
-
+    
 class ProductFag(Base, TimestampMixin):
     """
     A table representing the fag section of product.
@@ -720,6 +722,7 @@ class ProductFag(Base, TimestampMixin):
         }
 
 
+
 class ProductComment(Base, TimestampMixin):
     """
     A table representing the comment and answer section of product.
@@ -737,6 +740,18 @@ class ProductComment(Base, TimestampMixin):
     product_entry = relationship('ProductEntry', back_populates='comments')
     child_comments = relationship('ProductComment')
     person = relationship('Person', back_populates='comments')
+
+
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'product_entry_id': self.product_entry_id,
+            'person_id': self.person_id,
+            'parent_comment_id': self.parent_comment_id,
+            'comment_text': self.comment_text,
+            'status': self.status,
+        }
 
 
 class Discount(Base, TimestampMixin):

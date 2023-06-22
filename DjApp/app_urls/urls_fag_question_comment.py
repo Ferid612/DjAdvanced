@@ -1,7 +1,19 @@
 from django.urls import path
 from DjApp.controllers import FagRateCommentController
+from DjApp.views import views_fag_question_comment
 
 urlpatterns = [
+
+     # VIEWS URLS
+     
+     path('rates/', views_fag_question_comment.get_self_rates,
+         name="rates"),
+    
+     path('comments/', views_fag_question_comment.get_self_comments,
+         name="comments"),
+    
+     path('entry_fags/<int:product_entry_id>/', views_fag_question_comment.get_product_entry_fags,
+         name="product_entry_fags"),
 
 
 
