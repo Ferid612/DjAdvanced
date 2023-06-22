@@ -840,7 +840,8 @@ class Person(Base, TimestampMixin):
             user_id = self.user.id if self.user else None
         else:
             employee_id = self.employee.id if self.employee else None
-            
+
+        location_data = self.location.to_json() if self.location else None
         return {
             'person_id': self.id,
             'user_id': user_id,
@@ -849,9 +850,9 @@ class Person(Base, TimestampMixin):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
-            'location_id': self.location.to_json(),
+            'location_id': location_data,
             'phone_number': self.phone_number.to_json(),
-            
+
             'person_type': self.person_type,
             'phone_verify': self.phone_verify,
             'active': self.active,
