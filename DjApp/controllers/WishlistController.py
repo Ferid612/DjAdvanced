@@ -5,10 +5,8 @@ from DjApp.decorators import login_required, require_http_methods
 from ..models import ProductEntry, WishList, WishListProductEntry
 
 
-@csrf_exempt
-@require_http_methods(["POST"])
-@login_required
-def create_wishlist(request):
+
+def create_wishlist_func(title,user, session):
     """
     This function handles the creation of a new wishlist for a user.
     The function receives the following parameters from the request object:
@@ -18,10 +16,6 @@ def create_wishlist(request):
     If an error occurs during the wishlist creation process, the function returns a JSON response with an error message and the error details.
     """
 
-    # Get the parameters from the request object
-    title = request.data.get("title")
-    user = request.person.user
-    session = request.session
 
     if not (user or title):
         return JsonResponse(
@@ -60,6 +54,33 @@ def create_wishlist(request):
         },
         status=200,
     )
+
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@login_required
+def create_wishlist(request):
+    """
+    This function handles the creation of a new wishlist for a user.
+    The function receives the following parameters from the request object:
+    - user_id: the ID of the user for which the wishlist should be created
+    - title: the title of the wishlist to be created
+    If the wishlist creation is successful, the function returns a JSON response with a success message and the new wishlist's information.
+    If an error occurs during the wishlist creation process, the function returns a JSON response with an error message and the error details.
+    """
+
+    # Get the parameters from the request object
+    title = request.data.get("title")
+    user = request.person.user
+    session = request.session
+
+    return create_wishlist_func(title, user, session)
+
+
+
 
 
 @csrf_exempt

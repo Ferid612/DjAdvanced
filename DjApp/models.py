@@ -850,7 +850,7 @@ class Person(Base, TimestampMixin):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'email': self.email,
-            'location_id': location_data,
+            'location_data': location_data,
             'phone_number': self.phone_number.to_json(),
 
             'person_type': self.person_type,

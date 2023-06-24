@@ -2,6 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 import jwt
+from DjApp.controllers.WishlistController import create_wishlist_func
 from DjApp.controllers.ShoppingController import create_shopping_session
 from DjAdvanced.settings.production import HOST_URL, PROFIL_IMAGE_ROOT, SECRET_KEY
 from DjApp.controllers.LocationController import  create_address_object, update_object_address
@@ -146,8 +147,11 @@ def create_person_registration(request):
         new_person.gender = gender
 
 
-
     session.commit()
+
+    # Create default wishlist
+    wishlist_info =  json.loads(create_wishlist_func("Default", new_person.user, session).content)['message']
+
 
     refresh_token = generate_new_refresh_token(
         new_person, session).get('token')
@@ -165,6 +169,7 @@ def create_person_registration(request):
     response = JsonResponse(
         {"answer": "The new account has been successfully created. Please check your email account and verify your account.",
             "person": person_json,
+            'wishlist_info': wishlist_info,
             "send_verify_status_code": send_verify_status_code,
             "send_verify_status_text": send_verify_status_text,
 

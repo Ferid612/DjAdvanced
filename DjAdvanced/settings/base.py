@@ -81,7 +81,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'DjApp',
-    'DeltaConfApp'
+    'DeltaConfApp',
 ]
 
 MIDDLEWARE = [

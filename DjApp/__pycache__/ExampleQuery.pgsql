@@ -65,3 +65,9 @@
     --     ON UPDATE NO ACTION
     --     ON DELETE NO ACTION
 -- UPDATE persons  set location_id = null where username LIKE '%arid%';
+
+
+-- ! DELETE PERSON
+-- delete from shopping_session where id = 5 ;
+-- delete from users where id = 4 ;
+-- DELETE FROM persons WHERE username LIKE '%cav%';
