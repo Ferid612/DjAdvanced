@@ -19,7 +19,6 @@ def get_user_wishlists_list(request,count=None):
 
     # Get the parameters from the request object
     user = request.person.user
-    session = request.session
 
 
     if not user:
@@ -30,6 +29,7 @@ def get_user_wishlists_list(request,count=None):
             },
             status=404,
         )
+    
     wishlists = user.get_user_wishlists_list(count)
 
     return JsonResponse(

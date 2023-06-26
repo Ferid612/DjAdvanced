@@ -1,3 +1,4 @@
+import json
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from sqlalchemy.exc import SQLAlchemyError
@@ -241,15 +242,18 @@ def add_product_entry_to_wishlist(request):
         session.rollback()
         return JsonResponse(
             {
-
                 'answer': 'unsuccessful',
-
                 'message': 'Error retrieving data from the database.',
                 'error': str(e),
             },
             status=500,
         )
     # Check if the wishlist and product entry exist and if the user is authorized to add products to the wishlist
+    if not wishlist:
+        create_wishlist_func("Default", user, session)
+        
+        wishlist = session.query(WishList).filter_by(user_id = user.id).first()
+    
     if not wishlist or not product_entry:
         return JsonResponse(
             {
@@ -258,12 +262,15 @@ def add_product_entry_to_wishlist(request):
             },
             status=401,
         )
+        
+
     # Check if the product entry is already in the wishlist
-    if session.query(WishListProductEntry).filter_by(wishlist_id=wishlist_id, product_entry_id=product_entry_id).first():
+    if session.query(WishListProductEntry).filter_by(wishlist_id=wishlist.id, product_entry_id=product_entry_id).first():
         return JsonResponse(
             {
                 'answer': 'unsuccessful',
                 'message': 'Product entry is already in the wishlist.',
+                'wishlist':wishlist.to_json(),
             },
             status=200,
         )
@@ -272,7 +279,7 @@ def add_product_entry_to_wishlist(request):
 
         # Create a new instance of the WishListProductEntry class and set its attributes
         wishlist_product_entry = WishListProductEntry(
-            wishlist_id=wishlist_id, product_entry_id=product_entry_id)
+            wishlist_id=wishlist.id, product_entry_id=product_entry_id)
 
         # Add the new wishlist-product entry association to the session
         session.add(wishlist_product_entry)
@@ -284,6 +291,7 @@ def add_product_entry_to_wishlist(request):
             {
                 'answer': 'successful',
                 'message': 'Product entry added to the wishlist.',
+                'wishlist':wishlist.to_json(),
             },
             status=200,
         )
@@ -293,6 +301,7 @@ def add_product_entry_to_wishlist(request):
             {
                 'answer': 'unsuccessful',
                 'message': 'Error adding product entry to wishlist.',
+                'wishlist':wishlist.to_json(),
                 'error': str(e),
             },
             status=500,
