@@ -227,86 +227,67 @@ def add_product_entry_to_wishlist(request):
             },
             status=404,
         )
+
     try:
         # Retrieve the wishlist with the given wishlist_id
-        wishlist = None
         if not wishlist_id:
-            wishlist = session.query(WishList).filter_by(user_id = user.id).first()
-
-        else:       
-            wishlist = session.query(WishList).filter_by(id = wishlist_id, user_id = user.id).first()
+            wishlist = session.query(WishList).filter_by(user_id=user.id).first()
+        else:
+            wishlist = session.query(WishList).filter_by(id=wishlist_id, user_id=user.id).first()
 
         # Retrieve the product entry with the given product_entry_id
         product_entry = session.query(ProductEntry).get(product_entry_id)
-    except SQLAlchemyError as e:
-        session.rollback()
-        return JsonResponse(
-            {
-                'answer': 'unsuccessful',
-                'message': 'Error retrieving data from the database.',
-                'error': str(e),
-            },
-            status=500,
-        )
-    # Check if the wishlist and product entry exist and if the user is authorized to add products to the wishlist
-    if not wishlist:
-        create_wishlist_func("Default", user, session)
-        
-        wishlist = session.query(WishList).filter_by(user_id = user.id).first()
-    
-    if not wishlist or not product_entry:
-        return JsonResponse(
-            {
-                'answer': 'unsuccessful',
-                'message': 'Invalid data provided or user is not authorized to add products to the wishlist.',
-            },
-            status=401,
-        )
-        
 
-    # Check if the product entry is already in the wishlist
-    if session.query(WishListProductEntry).filter_by(wishlist_id=wishlist.id, product_entry_id=product_entry_id).first():
-        return JsonResponse(
-            {
-                'answer': 'unsuccessful',
-                'message': 'Product entry is already in the wishlist.',
-                'wishlist':wishlist.to_json(),
-            },
-            status=200,
-        )
-    # Add the product entry to the wishlist and commit the changes to the database
-    try:
+        # Check if the wishlist and product entry exist and if the user is authorized to add products to the wishlist
+        if not wishlist:
+            create_wishlist_func("Default", user, session)
+            wishlist = session.query(WishList).filter_by(user_id=user.id).first()
 
-        # Create a new instance of the WishListProductEntry class and set its attributes
-        wishlist_product_entry = WishListProductEntry(
-            wishlist_id=wishlist.id, product_entry_id=product_entry_id)
+        if not wishlist or not product_entry:
+            return JsonResponse(
+                {
+                    'answer': 'unsuccessful',
+                    'message': 'Invalid data provided or user is not authorized to add products to the wishlist.',
+                },
+                status=401,
+            )
 
-        # Add the new wishlist-product entry association to the session
+        # Check if the product entry is already in the wishlist
+        if session.query(WishListProductEntry).filter_by(wishlist_id=wishlist.id, product_entry_id=product_entry_id).first():
+            return JsonResponse(
+                {
+                    'answer': 'unsuccessful',
+                    'message': 'Product entry is already in the wishlist.',
+                    'wishlist': wishlist.to_json_light(),
+                },
+                status=200,
+            )
+
+        # Add the product entry to the wishlist and commit the changes to the database
+        wishlist_product_entry = WishListProductEntry(wishlist_id=wishlist.id, product_entry_id=product_entry_id)
         session.add(wishlist_product_entry)
-
-        # Commit the changes to the database
         session.commit()
 
         return JsonResponse(
             {
                 'answer': 'successful',
                 'message': 'Product entry added to the wishlist.',
-                'wishlist':wishlist.to_json(),
+                'wishlist': wishlist.to_json_light(),
             },
             status=200,
         )
+
     except SQLAlchemyError as e:
         session.rollback()
         return JsonResponse(
             {
                 'answer': 'unsuccessful',
                 'message': 'Error adding product entry to wishlist.',
-                'wishlist':wishlist.to_json(),
+                'wishlist': wishlist.to_json_light(),
                 'error': str(e),
             },
             status=500,
         )
-
 
 @csrf_exempt
 @require_http_methods(["POST"])

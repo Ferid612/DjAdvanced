@@ -999,10 +999,20 @@ class WishList(Base, TimestampMixin):
         return {
             'id': self.id,
             'user_id': self.user_id,
+            'length':len(self.wishlist_product_entries),
             'title': self.title,
             'product_entries': wishlist_product_entries
         }
 
+
+    def to_json_light(self):
+        
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'length':len(self.wishlist_product_entries),
+            'title': self.title,
+        }
 
 class WishListProductEntry(Base, TimestampMixin):
     __tablename__ = 'wishlist_product_entry'
