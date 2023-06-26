@@ -218,7 +218,7 @@ def add_product_entry_to_wishlist(request):
     product_entry_id = int(request.data.get("product_entry_id"))
 
     # Check if both wishlist_id and product_entry_id are provided
-    if not wishlist_id or not product_entry_id:
+    if not product_entry_id:
         return JsonResponse(
             {
                 'answer': 'unsuccessful',
@@ -228,8 +228,12 @@ def add_product_entry_to_wishlist(request):
         )
     try:
         # Retrieve the wishlist with the given wishlist_id
-        wishlist = session.query(WishList).filter_by(
-            id=wishlist_id, user_id=user.id).first()
+        wishlist = None
+        if not wishlist_id:
+            wishlist = session.query(WishList).filter_by(user_id = user.id).first()
+
+        else:       
+            wishlist = session.query(WishList).filter_by(id = wishlist_id, user_id = user.id).first()
 
         # Retrieve the product entry with the given product_entry_id
         product_entry = session.query(ProductEntry).get(product_entry_id)
